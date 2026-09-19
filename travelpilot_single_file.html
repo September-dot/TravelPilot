@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — AI Trip Planner for India (with Interactive Map & Transit Hub)</title>
-  <meta name="description" content="Clean, editable day-by-day itinerary, interactive route map, transit booking, and dynamic weather/delay contingency rerouting for India.">
+  <title>TravelPilot — AI Trip Planner for India (Interactive Map, Transit Hub & Smart Delay Rerouting)</title>
+  <meta name="description" content="AI trip planner for India featuring live Leaflet route maps, geodesic distance calculations, transit and cab booking, and proactive AI delay detection and auto-rerouting.">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
   <style>
 /* ==========================================================================
    TRAVELPILOT - Modern Minimalist AI Trip Planner for India
-   With Interactive Map, Transit Hub, & Dynamic Weather/Delay Disruption Assistant
+   With Interactive Map, Transit Hub, Live Distances & AI Delay Rerouting
    ========================================================================== */
 
 :root {
@@ -32,7 +32,7 @@
   /* Primary Terracotta & Indigo Accents */
   --primary: #ea580c;
   --primary-hover: #c2410c;
-  --primary-glow: rgba(234, 88, 12, 0.15);
+  --primary-glow: rgba(234, 88, 12, 0.18);
   
   --indigo: #4f46e5;
   --indigo-light: #eef2ff;
@@ -53,6 +53,10 @@
   --sky: #0284c7;
   --sky-bg: #f0f9ff;
   --sky-border: #bae6fd;
+
+  --purple: #7c3aed;
+  --purple-bg: #f5f3ff;
+  --purple-border: #ddd6fe;
   
   /* Typography Tokens */
   --text-main: #1c1917;
@@ -107,7 +111,7 @@ body {
 
 /* Container */
 .container {
-  max-width: 1240px;
+  max-width: 1260px;
   margin: 0 auto;
   padding: 0 24px;
   width: 100%;
@@ -115,13 +119,13 @@ body {
 
 /* Header & Nav */
 .app-header {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-subtle);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
   transition: all 0.2s ease;
 }
 
@@ -138,6 +142,10 @@ body {
   gap: 12px;
   text-decoration: none;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
 }
 
 .brand-icon {
@@ -150,6 +158,7 @@ body {
   justify-content: center;
   color: #ffffff;
   box-shadow: 0 4px 12px var(--primary-glow);
+  flex-shrink: 0;
 }
 
 .brand-icon svg {
@@ -173,14 +182,15 @@ body {
 }
 
 .brand-badge {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   background: var(--bg-accent-light);
   color: var(--primary);
-  border: 1px solid rgba(234, 88, 12, 0.25);
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: var(--radius-full);
+  border: 1px solid rgba(234, 88, 12, 0.2);
 }
 
 .header-actions {
@@ -189,70 +199,158 @@ body {
   gap: 10px;
 }
 
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.25);
+}
+
+.btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--border-medium);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-subtle);
+  border-color: var(--text-muted);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.btn-sm {
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-icon-sm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-icon-sm:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--border-medium);
+}
+
+.btn-icon-sm.delete:hover {
+  background: var(--rose-bg);
+  color: var(--rose);
+  border-color: var(--rose-border);
+}
+
+.full-width {
+  width: 100%;
+}
+
 /* Hero & Setup Form Section */
 .hero-section {
-  padding: 36px 0 20px;
+  padding: 40px 0 24px;
 }
 
 .hero-header {
   text-align: center;
   max-width: 680px;
-  margin: 0 auto 28px;
+  margin: 0 auto 36px;
 }
 
 .hero-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  background: var(--bg-accent-light);
+  border: 1px solid rgba(234, 88, 12, 0.2);
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
   padding: 6px 16px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .hero-title {
   font-family: var(--font-heading);
   font-size: 2.5rem;
   font-weight: 800;
-  line-height: 1.15;
   letter-spacing: -0.03em;
+  line-height: 1.15;
   color: var(--text-main);
   margin-bottom: 12px;
 }
 
 .hero-title span {
-  background: linear-gradient(135deg, #ea580c, #f97316);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
+  position: relative;
 }
 
 .hero-subtitle {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* Trip Setup Form Card */
 .setup-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 32px;
+  padding: 36px;
   box-shadow: var(--shadow-card);
-  max-width: 880px;
+  max-width: 920px;
   margin: 0 auto;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1.4fr 1fr 1fr;
   gap: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .form-group {
@@ -271,56 +369,39 @@ body {
 }
 
 .form-label svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   color: var(--primary);
 }
 
 .input-control {
-  width: 100%;
-  height: 48px;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 0 16px;
   font-family: var(--font-sans);
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-main);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
   outline: none;
   transition: all 0.2s ease;
-}
-
-.input-control:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-medium);
+  width: 100%;
 }
 
 .input-control:focus {
-  background: #ffffff;
-  border-color: var(--primary);
+  border-color: var(--border-focus);
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
-select.input-control {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2357534e' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 16px;
-  padding-right: 40px;
-  cursor: pointer;
-}
-
-/* Interests Section */
+/* Interest Chips */
 .interests-group {
-  margin-bottom: 28px;
+  margin-bottom: 30px;
 }
 
 .interests-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
 
@@ -339,26 +420,27 @@ select.input-control {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
   background: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
+  border: 1.5px solid var(--border-subtle);
+  padding: 8px 16px;
   border-radius: var(--radius-full);
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.18s ease;
 }
 
 .interest-chip input {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .interest-chip:hover {
   background: var(--bg-hover);
   border-color: var(--border-medium);
-  transform: translateY(-1px);
 }
 
 .interest-chip.selected {
@@ -368,129 +450,46 @@ select.input-control {
   box-shadow: 0 2px 8px var(--primary-glow);
 }
 
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  font-family: var(--font-sans);
-  font-size: 0.92rem;
-  font-weight: 700;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  text-decoration: none;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: #ffffff;
-  box-shadow: 0 4px 14px var(--primary-glow);
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.25);
-}
-
-.btn-secondary {
-  background: var(--bg-surface);
-  color: var(--text-main);
-  border-color: var(--border-subtle);
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-subtle);
-  border-color: var(--border-medium);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-.btn-ghost:hover {
-  background: var(--bg-subtle);
-  color: var(--text-main);
-}
-
-.btn-sm {
-  padding: 6px 14px;
-  font-size: 0.82rem;
-  border-radius: var(--radius-sm);
-}
-
-.btn-icon-sm {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: var(--radius-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-
-.btn-icon-sm:hover {
-  background: var(--bg-hover);
-  color: var(--text-main);
-}
-
-.btn-icon-sm.delete:hover {
-  background: var(--rose-bg);
-  color: var(--rose);
-}
-
-/* Itinerary Dashboard Layout */
+/* Dashboard & View Switcher */
 .dashboard-section {
-  padding: 20px 0 60px;
+  padding: 10px 0 60px;
 }
 
-/* Destination Banner Card */
 .destination-banner {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 24px 30px;
+  padding: 28px 36px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-card);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  position: relative;
-  overflow: hidden;
+  justify-content: space-between;
+  box-shadow: var(--shadow-card);
 }
 
 .dest-badge-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .dest-title {
   font-family: var(--font-heading);
-  font-size: 1.85rem;
+  font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text-main);
-  margin-bottom: 4px;
 }
 
 .dest-subtitle {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .dest-meta-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
 }
@@ -498,10 +497,11 @@ select.input-control {
 .meta-chip {
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 4px 12px;
   background: var(--bg-subtle);
-  border-radius: var(--radius-full);
   color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
 }
 
 .dest-actions {
@@ -509,52 +509,51 @@ select.input-control {
   gap: 10px;
 }
 
-/* Dashboard View Switcher Navigation (Itinerary vs Map vs Transit) */
+/* 3-View Mode Nav Bar */
 .view-mode-nav {
   display: flex;
-  background: var(--bg-surface);
-  padding: 5px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  gap: 6px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-sm);
-  width: fit-content;
+  border: 1px solid var(--border-subtle);
 }
 
 .view-mode-btn {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
   border: none;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: 0.85rem;
   font-weight: 700;
+  font-size: 0.92rem;
   color: var(--text-secondary);
-  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .view-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.6);
   color: var(--text-main);
 }
 
 .view-mode-btn.active {
-  background: var(--text-main);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(28, 25, 23, 0.15);
-}
-
-.view-mode-btn.active svg {
+  background: var(--bg-surface);
   color: var(--primary);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-subtle);
 }
 
-/* Dynamic Weather / Disruption Assistant Card */
-.disruption-bar-card {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border: 1px solid var(--amber-border);
+/* AI Diagnostics & Delay Alert Card */
+.ai-diagnosis-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fffbf5 100%);
+  border: 1.5px solid var(--amber-border);
   border-radius: var(--radius-lg);
   padding: 16px 20px;
   margin-bottom: 20px;
@@ -562,38 +561,136 @@ select.input-control {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.08);
 }
 
-.disruption-info {
+.ai-diagnosis-card.optimal {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+  border-color: var(--emerald-border);
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.08);
+}
+
+.ai-diag-left {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.disruption-icon-wrap {
-  width: 42px;
-  height: 42px;
+.ai-diag-icon {
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--amber-bg);
+  color: var(--amber);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
-  box-shadow: var(--shadow-sm);
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.ai-diagnosis-card.optimal .ai-diag-icon {
+  background: var(--emerald-bg);
+  color: var(--emerald);
+}
+
+.ai-diag-title {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-diag-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.ai-risk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ai-risk-tag {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--rose-bg);
+  color: var(--rose);
+  border: 1px solid var(--rose-border);
+}
+
+.btn-ai-reroute {
+  background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+  color: #ffffff;
+  border: none;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-ai-reroute:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.35);
+}
+
+/* Disruption Contingency Bar */
+.disruption-bar-card {
+  background: #fffbeb;
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.disruption-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.disruption-icon-wrap {
+  font-size: 1.5rem;
+  width: 38px;
+  height: 38px;
+  background: #fef3c7;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
 .disruption-text h4 {
   font-family: var(--font-heading);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: #78350f;
-  margin-bottom: 2px;
 }
 
 .disruption-text p {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: #92400e;
 }
 
@@ -601,108 +698,101 @@ select.input-control {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .btn-disruption-scenario {
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  border-radius: var(--radius-md);
   background: #ffffff;
-  border: 1px solid #fcd34d;
-  color: #92400e;
+  border: 1px solid var(--amber-border);
+  color: #78350f;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .btn-disruption-scenario:hover {
-  background: #fef08a;
-  transform: translateY(-1px);
+  background: #fef3c7;
+  border-color: #d97706;
 }
 
 /* Dashboard Grid Layout */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 24px;
-  align-items: start;
+  grid-template-columns: 1.85fr 1fr;
+  gap: 28px;
 }
 
-/* Day Tabs Navigation */
+/* Day Tabs */
 .days-nav {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 8px;
-  margin-bottom: 16px;
-  scrollbar-width: none;
+  margin-bottom: 18px;
+  scrollbar-width: thin;
 }
 
-.days-nav::-webkit-scrollbar { display: none; }
-
 .day-tab-btn {
-  flex-shrink: 0;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  min-width: 120px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 10px 18px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 105px;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .day-tab-btn:hover {
-  background: var(--bg-subtle);
   border-color: var(--border-medium);
+  background: var(--bg-subtle);
 }
 
 .day-tab-btn.active {
-  background: var(--text-main);
-  border-color: var(--text-main);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(28, 25, 23, 0.15);
+  background: var(--bg-surface);
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .tab-day-label {
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.75;
+  color: var(--text-muted);
+}
+
+.day-tab-btn.active .tab-day-label {
+  color: var(--primary);
 }
 
 .tab-day-title {
   font-family: var(--font-heading);
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--text-main);
 }
 
 .tab-day-cost {
-  font-size: 0.72rem;
-  margin-top: 2px;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
 }
 
-.day-tab-btn.active .tab-day-cost {
-  color: #fdba74;
-}
-
-/* Day Itinerary Card */
-.day-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
+/* Day Header Card */
 .day-header-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 16px 20px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -711,7 +801,7 @@ select.input-control {
 
 .day-title-group h3 {
   font-family: var(--font-heading);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 800;
 }
 
@@ -723,117 +813,120 @@ select.input-control {
 .day-header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .day-subtotal-badge {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  padding: 5px 12px;
   background: var(--bg-subtle);
-  border-radius: var(--radius-full);
   color: var(--text-main);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
 }
 
 /* Activities List & Cards */
 .activities-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .activity-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  box-shadow: var(--shadow-card);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 16px;
-  align-items: center;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
   position: relative;
 }
 
 .activity-card:hover {
-  box-shadow: var(--shadow-hover);
   border-color: var(--border-medium);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
 }
 
 .activity-card.is-transit {
-  background: var(--sky-bg);
+  background: #f0f9ff;
   border-color: var(--sky-border);
 }
 
 .drag-handle {
   color: var(--text-dim);
   cursor: grab;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding-top: 4px;
+  user-select: none;
 }
 
-.drag-handle:hover {
-  color: var(--text-main);
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.activity-main {
+  flex: 1;
 }
 
 .activity-badge-category {
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 6px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  display: inline-block;
+  margin-right: 8px;
 }
 
-.cat-culture { background: #fef3c7; color: #92400e; }
-.cat-nature { background: #ecfdf5; color: #065f46; }
-.cat-adventure { background: #fee2e2; color: #991b1b; }
-.cat-food { background: #ffedd5; color: #9a3412; }
+.cat-culture { background: #fee2e2; color: #991b1b; }
+.cat-nature { background: #dcfce7; color: #166534; }
+.cat-adventure { background: #ffedd5; color: #9a3412; }
+.cat-food { background: #fef9c3; color: #854d0e; }
 .cat-nightlife { background: #f3e8ff; color: #6b21a8; }
-.cat-wellness { background: #e0f2fe; color: #075985; }
+.cat-wellness { background: #e0e7ff; color: #3730a3; }
 .cat-shopping { background: #fce7f3; color: #9d174d; }
-.cat-transit { background: #e0f2fe; color: #0369a1; }
+.cat-transit { background: #e0f2fe; color: #075985; }
 
 .activity-time {
   font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-left: 6px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .activity-name {
   font-family: var(--font-heading);
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-main);
-  margin-bottom: 4px;
+  margin-top: 3px;
 }
 
 .activity-desc {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  line-height: 1.45;
-  margin-bottom: 6px;
+  margin-top: 4px;
+  line-height: 1.4;
 }
 
 .activity-tip {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: #92400e;
+  background: #fef3c7;
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);
+  margin-top: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
+  border: 1px solid #fde68a;
 }
 
 .activity-tip svg {
   width: 14px;
   height: 14px;
-  color: var(--amber);
   flex-shrink: 0;
 }
 
@@ -847,26 +940,26 @@ select.input-control {
 .cost-input-wrap {
   display: flex;
   align-items: center;
-  gap: 4px;
   background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 4px 10px;
+  padding: 4px 8px;
+  gap: 4px;
 }
 
 .cost-currency {
+  font-size: 0.85rem;
   font-weight: 700;
-  font-size: 0.88rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .cost-field {
-  width: 75px;
-  background: transparent;
+  width: 76px;
   border: none;
-  font-family: var(--font-sans);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-weight: 800;
   font-size: 0.95rem;
-  font-weight: 700;
   color: var(--text-main);
   outline: none;
   text-align: right;
@@ -875,24 +968,66 @@ select.input-control {
 .activity-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+}
+
+/* Transit Connector Card (Between Stops) */
+.transit-connector-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  margin: 2px 0 2px 24px;
+}
+
+.tc-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.tc-badge {
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+}
+
+.tc-link {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tc-link:hover {
+  text-decoration: underline;
 }
 
 .add-activity-btn {
-  border: 2px dashed var(--border-medium);
-  background: transparent;
+  background: var(--bg-surface);
+  border: 1.5px dashed var(--border-medium);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 12px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   width: 100%;
 }
 
@@ -902,182 +1037,16 @@ select.input-control {
   background: var(--bg-accent-light);
 }
 
-/* ==========================================================================
-   INTERACTIVE MAP VIEW STYLES
-   ========================================================================== */
-.map-view-section {
-  display: none;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.map-card-wrapper {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 16px;
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-}
-
-.map-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px 14px;
-}
-
-.map-title {
-  font-family: var(--font-heading);
-  font-size: 1.15rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.map-canvas {
-  width: 100%;
-  height: 520px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  z-index: 10;
-}
-
-.map-legend-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 8px 0;
-}
-
-.map-pill-item {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* ==========================================================================
-   TRANSIT & CAB BOOKING HUB STYLES
-   ========================================================================== */
-.transit-view-section {
-  display: none;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.transit-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-
-.transit-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.transit-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.transit-card-title {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.transit-links-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.transit-partner-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-main);
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.transit-partner-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-medium);
-  transform: translateY(-1px);
-}
-
-.local-transport-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.local-transit-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  background: var(--bg-subtle);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-}
-
-.lt-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.lt-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.lt-sub {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-
-.lt-cost {
-  font-family: var(--font-heading);
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--emerald);
-}
-
-/* Right Sticky Sidebar: Budget & Summary */
+/* Sticky Right Sidebar */
 .sidebar-sticky {
-  position: sticky;
-  top: 92px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: sticky;
+  top: 90px;
 }
 
+/* Live Budget Tracker Card */
 .budget-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -1090,7 +1059,7 @@ select.input-control {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .budget-card-title {
@@ -1103,7 +1072,7 @@ select.input-control {
 }
 
 .budget-status-pill {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: var(--radius-full);
@@ -1121,7 +1090,6 @@ select.input-control {
   border: 1px solid var(--rose-border);
 }
 
-/* Budget Visual Progress Meter */
 .budget-meter-wrap {
   margin-bottom: 20px;
 }
@@ -1137,33 +1105,31 @@ select.input-control {
 .budget-bar-fill {
   height: 100%;
   border-radius: var(--radius-full);
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
 }
 
-.budget-bar-fill.within { background: linear-gradient(90deg, #10b981, #059669); }
-.budget-bar-fill.over { background: linear-gradient(90deg, #f97316, #e11d48); }
+.budget-bar-fill.within { background: var(--emerald); }
+.budget-bar-fill.over { background: var(--rose); }
 
 .budget-meter-labels {
   display: flex;
   justify-content: space-between;
   font-size: 0.78rem;
-  color: var(--text-muted);
   font-weight: 600;
+  color: var(--text-muted);
 }
 
 .budget-numbers-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 14px 0;
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 16px;
 }
 
 .budget-num-item {
-  display: flex;
-  flex-direction: column;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
 }
 
 .b-num-lbl {
@@ -1225,6 +1191,246 @@ select.input-control {
   color: var(--primary);
   flex-shrink: 0;
   margin-top: 2px;
+}
+
+/* ==========================================================================
+   VIEW 2: INTERACTIVE ROUTE MAP STYLES
+   ========================================================================== */
+.map-view-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-card-wrapper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.map-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.map-title {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-canvas {
+  height: 540px;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  z-index: 10;
+}
+
+.map-legend-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  align-items: center;
+}
+
+.map-pill-item {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+/* Leaflet Custom Marker & Permanent Tooltips */
+.custom-map-pin {
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 11px;
+  border-radius: 50%;
+  width: 30px !important;
+  height: 30px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.custom-map-pin:hover {
+  transform: scale(1.18);
+}
+
+.leaflet-custom-tooltip {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+  color: #1e293b !important;
+  font-family: var(--font-sans) !important;
+}
+
+.map-label-card {
+  font-family: var(--font-sans);
+}
+
+.map-label-header {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.map-label-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.map-label-meta {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Distance Badges along Polyline */
+.map-distance-badge {
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ==========================================================================
+   VIEW 3: TRANSIT & CAB BOOKING HUB STYLES
+   ========================================================================== */
+.transit-view-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.transit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.transit-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.transit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.transit-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transit-links-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.transit-partner-btn {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.transit-partner-btn:hover {
+  background: var(--bg-accent-light);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.local-transport-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.local-transit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.lt-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.lt-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.lt-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.lt-cost {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--emerald);
 }
 
 /* Modals */
@@ -1308,40 +1514,12 @@ select.input-control {
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .toast.success { background: #065f46; color: #ecfdf5; }
 .toast.info { background: #1c1917; color: #ffffff; }
-
-/* Leaflet Custom Marker & Popup Styles */
-.custom-map-pin {
-  background: var(--primary);
-  color: #ffffff;
-  font-weight: 800;
-  font-size: 11px;
-  border-radius: 50%;
-  width: 28px !important;
-  height: 28px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.leaflet-popup-content-wrapper {
-  border-radius: var(--radius-md) !important;
-  box-shadow: var(--shadow-modal) !important;
-}
-
-.leaflet-popup-content {
-  font-family: var(--font-sans) !important;
-  font-size: 0.82rem !important;
-  line-height: 1.4 !important;
-  margin: 12px 14px !important;
-}
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleUp { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
@@ -1351,7 +1529,9 @@ select.input-control {
   .dashboard-grid { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .transit-grid { grid-template-columns: 1fr; }
+  .transit-links-row { grid-template-columns: 1fr; }
   .disruption-bar-card { flex-direction: column; align-items: flex-start; }
+  .ai-diagnosis-card { flex-direction: column; align-items: flex-start; }
   .destination-banner { flex-direction: column; align-items: flex-start; gap: 16px; }
   .hero-title { font-size: 2rem; }
   .map-canvas { height: 380px; }
@@ -1367,7 +1547,7 @@ select.input-control {
   <!-- Header Navigation -->
   <header class="app-header">
     <div class="container header-inner">
-      <a class="brand-wrap" id="btn-brand-home">
+      <button class="brand-wrap" id="btn-brand-home" title="Scroll to top">
         <div class="brand-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/>
@@ -1377,7 +1557,7 @@ select.input-control {
           <h1 class="brand-title">Travel<span>Pilot</span></h1>
         </div>
         <span class="brand-badge">India Edition</span>
-      </a>
+      </button>
 
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" id="btn-sample-trip">
@@ -1398,10 +1578,10 @@ select.input-control {
     <section class="hero-section" id="section-setup">
       <div class="hero-header">
         <div class="hero-pill">
-          <span>🇮🇳 Explore India with Smart Adaptive AI Planning</span>
+          <span>🇮🇳 Smart Adaptive AI Planning for India</span>
         </div>
         <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Includes live interactive route maps, transit booking hubs, and automatic rain/delay rerouting.</p>
+        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Includes live interactive route maps, GPS distances, transit booking hubs, and automatic AI delay rerouting.</p>
       </div>
 
       <div class="setup-card">
@@ -1501,11 +1681,30 @@ select.input-control {
         </div>
       </div>
 
+      <!-- AI PROACTIVE ROUTE HEALTH & DELAY DETECTOR CARD -->
+      <div class="ai-diagnosis-card" id="ai-diagnosis-card">
+        <div class="ai-diag-left">
+          <div class="ai-diag-icon" id="ai-diag-icon">🤖</div>
+          <div>
+            <h4 class="ai-diag-title" id="ai-diag-title">
+              <span>AI Route Diagnostics & Delay Analyzer</span>
+            </h4>
+            <p class="ai-diag-desc" id="ai-diag-desc">Analyzing geographic proximity, transit durations, and weather vulnerabilities...</p>
+            <div class="ai-risk-tags" id="ai-risk-tags-container"></div>
+          </div>
+        </div>
+        <div>
+          <button class="btn-ai-reroute" id="btn-ai-auto-reroute">
+            <span>⚡ AI Auto-Reroute & Fix Delays</span>
+          </button>
+        </div>
+      </div>
+
       <!-- View Mode Selector (Itinerary vs Interactive Map vs Transit Hub) -->
       <nav class="view-mode-nav">
         <button class="view-mode-btn active" id="btn-mode-itinerary" data-mode="itinerary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span>1. Daily Itinerary</span>
+          <span>1. Daily Itinerary & Distances</span>
         </button>
         <button class="view-mode-btn" id="btn-mode-map" data-mode="map">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
@@ -1627,14 +1826,26 @@ select.input-control {
       <!-- ============================================================= -->
       <!-- VIEW 2: INTERACTIVE ROUTE MAP                                 -->
       <!-- ============================================================= -->
-      <div class="map-view-section" id="view-section-map">
+      <div class="map-view-section" id="view-section-map" style="display: none;">
         <div class="map-card-wrapper">
           <div class="map-header-row">
-            <h3 class="map-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-              <span>Interactive Day-by-Day Route Visualizer</span>
-            </h3>
-            <span class="meta-chip">Click any pin for place info & directions</span>
+            <div>
+              <h3 class="map-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                <span>Interactive Route Map & Distance Markers</span>
+              </h3>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                Shows all places marked with names, day indicators, connecting polylines, and live transit distance badges.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-sm" id="btn-map-fit-bounds">
+                <span>🎯 Recenter Map</span>
+              </button>
+              <button class="btn btn-primary btn-sm" id="btn-map-optimize">
+                <span>⚡ AI Optimize Route</span>
+              </button>
+            </div>
           </div>
           
           <div id="travel-map-container" class="map-canvas"></div>
@@ -1648,46 +1859,48 @@ select.input-control {
       <!-- ============================================================= -->
       <!-- VIEW 3: TRANSIT & CAB BOOKING HUB                             -->
       <!-- ============================================================= -->
-      <div class="transit-view-section" id="view-section-transit">
+      <div class="transit-view-section" id="view-section-transit" style="display: none;">
         <div class="transit-grid">
           
           <!-- Intercity Travel Booking (Flights, Trains, Buses) -->
           <div class="transit-card">
-            <div class="transit-card-header">
-              <h3 class="transit-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/></svg>
-                <span>Intercity Travel & Flight Booking</span>
-              </h3>
-              <span class="meta-chip">Direct Booking Links</span>
+            <div>
+              <div class="transit-card-header">
+                <h3 class="transit-card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/></svg>
+                  <span>Intercity Travel & Flight Booking</span>
+                </h3>
+                <span class="meta-chip">Direct Booking Links</span>
+              </div>
+
+              <p style="font-size: 0.82rem; color: var(--text-secondary);" id="transit-airport-info">
+                Nearest Airport: Loading airport details...
+              </p>
+
+              <div class="transit-links-row">
+                <a href="https://www.makemytrip.com/flights/" target="_blank" rel="noopener" class="transit-partner-btn">
+                  <span>✈️ MakeMyTrip Flights</span>
+                </a>
+                <a href="https://www.irctc.co.in/" target="_blank" rel="noopener" class="transit-partner-btn">
+                  <span>🚆 IRCTC Trains</span>
+                </a>
+                <a href="https://www.redbus.in/" target="_blank" rel="noopener" class="transit-partner-btn">
+                  <span>🚌 RedBus AC Buses</span>
+                </a>
+                <a href="https://www.uber.com/in/en/" target="_blank" rel="noopener" class="transit-partner-btn">
+                  <span>🚗 Uber Outstation</span>
+                </a>
+              </div>
             </div>
 
-            <p style="font-size: 0.82rem; color: var(--text-secondary);" id="transit-airport-info">
-              Nearest Airport: Loading airport details...
-            </p>
-
-            <div class="transit-links-row">
-              <a href="https://www.makemytrip.com/flights/" target="_blank" rel="noopener" class="transit-partner-btn">
-                <span>✈️ Search Flights (MakeMyTrip)</span>
-              </a>
-              <a href="https://www.irctc.co.in/" target="_blank" rel="noopener" class="transit-partner-btn">
-                <span>🚆 Book Trains (IRCTC)</span>
-              </a>
-              <a href="https://www.redbus.in/" target="_blank" rel="noopener" class="transit-partner-btn">
-                <span>🚌 AC Buses (RedBus)</span>
-              </a>
-              <a href="https://www.uber.com/in/en/" target="_blank" rel="noopener" class="transit-partner-btn">
-                <span>🚗 Intercity Cab (Uber Outstation)</span>
-              </a>
-            </div>
-
-            <div style="margin-top: 14px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+            <div style="margin-top: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
               <h5 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Add Airport/Station Cab Transfer to Itinerary:</h5>
-              <div style="display: flex; gap: 8px;">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button class="btn btn-secondary btn-sm" id="btn-add-airport-pickup">
-                  <span>+ Add Airport Pickup Cab (₹750)</span>
+                  <span>+ Airport Pickup Cab (₹750)</span>
                 </button>
                 <button class="btn btn-secondary btn-sm" id="btn-add-station-transfer">
-                  <span>+ Add Station Cab (₹400)</span>
+                  <span>+ Station Cab (₹400)</span>
                 </button>
               </div>
             </div>
@@ -1695,19 +1908,21 @@ select.input-control {
 
           <!-- Local Cab, Auto & Scooter Rentals -->
           <div class="transit-card">
-            <div class="transit-card-header">
-              <h3 class="transit-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--emerald);"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                <span>Local Cabs, Autos & Rental Scooters</span>
-              </h3>
-              <span class="meta-chip" id="local-transit-avg-badge">Avg ₹600/day</span>
+            <div>
+              <div class="transit-card-header">
+                <h3 class="transit-card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--emerald);"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  <span>Local Cabs, Autos & Rental Scooters</span>
+                </h3>
+                <span class="meta-chip" id="local-transit-avg-badge">Avg ₹600/day</span>
+              </div>
+
+              <div class="local-transport-list" id="local-transport-options-list">
+                <!-- Populated dynamically -->
+              </div>
             </div>
 
-            <div class="local-transport-list" id="local-transport-options-list">
-              <!-- Populated dynamically -->
-            </div>
-
-            <div style="margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+            <div style="margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
               <button class="btn btn-primary btn-sm full-width" id="btn-add-daily-cab">
                 <span>+ Add Full-Day Private Tour Cab to Day 1 (₹1,800)</span>
               </button>
@@ -2732,7 +2947,14 @@ const INTEREST_CATEGORIES = [
 
 
 /**
- * TravelPilot - Interactive Trip Planner Engine with Live Leaflet Map, Transit Booking & Dynamic Disruption Assistant
+ * TravelPilot - Advanced AI Trip Planner Engine for India
+ * Features:
+ *  - Live Leaflet.js Route Map with Visible Place Labels & Midpoint Distance Badges
+ *  - Geodesic Distance (km) & Cab Travel Time Calculation
+ *  - Proactive AI Route Delay & Disruption Analyzer
+ *  - Automatic AI Geographic Rerouting & Schedule Optimizer (TSP Nearest-Neighbor)
+ *  - Transit & Cab Booking Hub with 1-Click Transfers
+ *  - Live Interactive Budget Tracker
  */
 
 // =============================================================================
@@ -2754,12 +2976,38 @@ let state = {
 let mapInstance = null;
 let mapMarkersGroup = null;
 let mapPolylinesGroup = null;
+let draggedCard = null;
 
 // Day Pin Palette
 const DAY_COLORS = ["#ea580c", "#4f46e5", "#059669", "#e11d48", "#d97706", "#7c3aed", "#0284c7"];
 
 // =============================================================================
-// 2. INITIALIZATION & EVENT HANDLERS
+// 2. MATHEMATICAL & GEOGRAPHIC HELPERS
+// =============================================================================
+
+// Haversine Distance Calculation (in Kilometers)
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Number((R * c).toFixed(1));
+}
+
+// Estimate Drive/Cab Time in Minutes (considering Indian urban/hill traffic ~25km/h avg + 5m buffer)
+function estimateDriveTimeMin(distKm) {
+  if (distKm <= 0.3) return 5;
+  const driveMinutes = Math.round((distKm / 25) * 60) + 5;
+  return Math.max(driveMinutes, 8);
+}
+
+// =============================================================================
+// 3. INITIALIZATION & SETUP
 // =============================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -2836,7 +3084,7 @@ function syncFormWithState() {
 }
 
 // =============================================================================
-// 3. ITINERARY GENERATOR ALGORITHM
+// 4. ITINERARY GENERATOR ALGORITHM
 // =============================================================================
 
 function generateItinerary() {
@@ -2906,7 +3154,232 @@ function generateItinerary() {
 }
 
 // =============================================================================
-// 4. RENDERING & UI SYNC
+// 5. AI PROACTIVE ROUTE HEALTH & DELAY DIAGNOSTICS
+// =============================================================================
+
+function analyzeItineraryHealth() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const issues = [];
+  let totalTripKm = 0;
+  let totalTripDriveMins = 0;
+
+  state.itinerary.forEach((day) => {
+    let dayKm = 0;
+    const acts = day.activities;
+
+    for (let i = 0; i < acts.length; i++) {
+      const cur = acts[i];
+      const curCoords = cur.coords || destInfo.centerCoords;
+
+      // Check distance to next stop
+      if (i < acts.length - 1) {
+        const next = acts[i + 1];
+        const nextCoords = next.coords || destInfo.centerCoords;
+        const dist = calculateDistanceKm(curCoords[0], curCoords[1], nextCoords[0], nextCoords[1]);
+        const driveM = estimateDriveTimeMin(dist);
+        dayKm += dist;
+        totalTripKm += dist;
+        totalTripDriveMins += driveM;
+
+        if (dist > 10) {
+          issues.push({
+            dayNum: day.dayNum,
+            type: "distance_delay",
+            severity: "high",
+            tag: `⚠️ Day ${day.dayNum}: ${dist} km commute`,
+            message: `Long travel distance (${dist} km · ~${driveM} min cab) between "${cur.name}" and "${next.name}" — high risk of traffic delay.`
+          });
+        }
+      }
+
+      // Check Sunset / Nightlife timing conflict in morning slot
+      const lowerName = cur.name.toLowerCase();
+      if ((lowerName.includes("sunset") || lowerName.includes("nightlife") || lowerName.includes("aarti") || cur.category === "nightlife") && cur.timeSlot.toLowerCase().includes("morning")) {
+        issues.push({
+          dayNum: day.dayNum,
+          type: "timing_mismatch",
+          severity: "medium",
+          tag: `⚠️ Day ${day.dayNum}: Timing Conflict`,
+          message: `"${cur.name}" is scheduled in the Morning, but best experienced during Evening or Sunset.`
+        });
+      }
+
+      // Check Monsoon/Rain risks
+      if (state.activeDisruption === "rain" && (cur.category === "adventure" || lowerName.includes("fort") || lowerName.includes("trek") || lowerName.includes("rafting"))) {
+        issues.push({
+          dayNum: day.dayNum,
+          type: "weather_risk",
+          severity: "high",
+          tag: `🌧️ Day ${day.dayNum}: Outdoor Rain Risk`,
+          message: `Outdoor activity "${cur.name}" is vulnerable to rain, slippery trails, or water logging.`
+        });
+      }
+    }
+
+    if (acts.length > 4) {
+      issues.push({
+        dayNum: day.dayNum,
+        type: "overload",
+        severity: "medium",
+        tag: `⚠️ Day ${day.dayNum}: Overcrowded Day`,
+        message: `${acts.length} stops in Day ${day.dayNum} may cause fatigue and rush-hour delays.`
+      });
+    }
+  });
+
+  return {
+    issues,
+    totalTripKm: Number(totalTripKm.toFixed(1)),
+    totalTripDriveMins,
+    isOptimal: issues.length === 0
+  };
+}
+
+function updateAiDiagnosticsUI() {
+  const card = document.getElementById("ai-diagnosis-card");
+  const icon = document.getElementById("ai-diag-icon");
+  const title = document.getElementById("ai-diag-title");
+  const desc = document.getElementById("ai-diag-desc");
+  const tagContainer = document.getElementById("ai-risk-tags-container");
+  const btnReroute = document.getElementById("btn-ai-auto-reroute");
+
+  if (!card || !tagContainer) return;
+
+  const health = analyzeItineraryHealth();
+
+  tagContainer.innerHTML = "";
+
+  if (health.isOptimal) {
+    card.className = "ai-diagnosis-card optimal";
+    if (icon) icon.textContent = "✅";
+    if (title) title.innerHTML = `<span>AI Route Diagnostics: Optimal Efficiency</span>`;
+    if (desc) desc.textContent = `All stops are sequenced for minimal travel delays (Total transit: ${health.totalTripKm} km · ~${health.totalTripDriveMins} mins drive across all days).`;
+    if (btnReroute) {
+      btnReroute.style.display = "none";
+    }
+  } else {
+    card.className = "ai-diagnosis-card";
+    if (icon) icon.textContent = "🤖";
+    if (title) title.innerHTML = `<span>AI Delay Detection: ${health.issues.length} Travel Risk${health.issues.length > 1 ? 's' : ''} Identified</span>`;
+    if (desc) desc.textContent = `AI detected potential transit bottlenecks, geographic zigzags, or timing conflicts. Click below to automatically reroute & eliminate delays.`;
+    
+    health.issues.slice(0, 3).forEach(iss => {
+      const tag = document.createElement("span");
+      tag.className = "ai-risk-tag";
+      tag.textContent = iss.tag;
+      tag.title = iss.message;
+      tagContainer.appendChild(tag);
+    });
+
+    if (btnReroute) {
+      btnReroute.style.display = "inline-flex";
+      btnReroute.innerHTML = `<span>⚡ AI Auto-Reroute & Fix Delays</span>`;
+    }
+  }
+}
+
+// AI Automatic Geographic Rerouting & Schedule Optimizer (TSP Nearest-Neighbor + Time Harmonizer)
+function aiAutoRerouteItinerary(targetDayIndex = -1) {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const center = destInfo.centerCoords || [26.9124, 75.7873];
+  let totalKmSaved = 0;
+
+  const daysToOptimize = targetDayIndex === -1 
+    ? state.itinerary 
+    : [state.itinerary[targetDayIndex]].filter(Boolean);
+
+  daysToOptimize.forEach((day) => {
+    if (day.activities.length <= 1) return;
+
+    // Calculate initial distance
+    let initialKm = 0;
+    for (let i = 0; i < day.activities.length - 1; i++) {
+      const c1 = day.activities[i].coords || center;
+      const c2 = day.activities[i + 1].coords || center;
+      initialKm += calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+    }
+
+    // Separate evening-locked activities (sunset, nightlife, evening light shows)
+    const eveningActivities = [];
+    const regularActivities = [];
+
+    day.activities.forEach(act => {
+      const nameL = act.name.toLowerCase();
+      if (nameL.includes("sunset") || nameL.includes("nightlife") || nameL.includes("aarti") || nameL.includes("light show") || nameL.includes("chokhi dhani") || act.category === "nightlife") {
+        eveningActivities.push(act);
+      } else {
+        regularActivities.push(act);
+      }
+    });
+
+    // Nearest-neighbor TSP ordering for regular activities
+    const orderedRegular = [];
+    let currentPoint = center;
+
+    while (regularActivities.length > 0) {
+      let nearestIdx = 0;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < regularActivities.length; i++) {
+        const c = regularActivities[i].coords || center;
+        const d = calculateDistanceKm(currentPoint[0], currentPoint[1], c[0], c[1]);
+        if (d < minDistance) {
+          minDistance = d;
+          nearestIdx = i;
+        }
+      }
+
+      const selected = regularActivities.splice(nearestIdx, 1)[0];
+      orderedRegular.push(selected);
+      currentPoint = selected.coords || center;
+    }
+
+    // Combine ordered regular activities with evening activities at the end
+    const combined = [...orderedRegular, ...eveningActivities];
+
+    // Harmonize chronological time slots
+    const standardSlots = [
+      "Morning (09:00 AM)",
+      "Morning (11:30 AM)",
+      "Afternoon (02:00 PM)",
+      "Evening (05:30 PM)",
+      "Night (08:00 PM)"
+    ];
+
+    combined.forEach((act, idx) => {
+      act.timeSlot = standardSlots[Math.min(idx, standardSlots.length - 1)];
+    });
+
+    // Calculate optimized distance
+    let optimizedKm = 0;
+    for (let i = 0; i < combined.length - 1; i++) {
+      const c1 = combined[i].coords || center;
+      const c2 = combined[i + 1].coords || center;
+      optimizedKm += calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+    }
+
+    const saved = Math.max(0, initialKm - optimizedKm);
+    totalKmSaved += saved;
+
+    day.activities = combined;
+  });
+
+  saveToLocalStorage();
+  renderDashboard();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+
+  const savedMins = Math.round((totalKmSaved / 25) * 60);
+  showToast(
+    "AI Auto-Reroute Complete! ⚡",
+    totalKmSaved > 0.5 
+      ? `Reordered stops geographically! Saved ~${totalKmSaved.toFixed(1)} km & ~${savedMins} mins of traffic delay.`
+      : `Harmonized time slots and verified optimal route geometry.`,
+    "success"
+  );
+}
+
+// =============================================================================
+// 6. RENDERING & UI SYNC
 // =============================================================================
 
 function renderDashboard() {
@@ -2924,7 +3397,8 @@ function renderDashboard() {
     highlightsContainer.innerHTML = destInfo.highlights.map(h => `<span class="meta-chip">✨ ${h}</span>`).join("");
   }
 
-  // Update Disruption Bar
+  // Update AI Diagnostics & Disruption Bar
+  updateAiDiagnosticsUI();
   updateDisruptionBarUI();
 
   // Render Sub-Views
@@ -2936,7 +3410,7 @@ function renderDashboard() {
 
   // If map is currently active view, render map
   if (state.activeViewMode === "map") {
-    setTimeout(initOrUpdateMap, 100);
+    setTimeout(initOrUpdateMap, 80);
   }
 }
 
@@ -2970,6 +3444,7 @@ function renderDayTabs() {
   tabsContainer.innerHTML = "";
 
   const allTab = document.createElement("button");
+  allTab.type = "button";
   allTab.className = `day-tab-btn ${state.activeDayTab === -1 ? 'active' : ''}`;
   allTab.innerHTML = `
     <span class="tab-day-label">Overview</span>
@@ -2987,6 +3462,7 @@ function renderDayTabs() {
   state.itinerary.forEach((day, idx) => {
     const dayCost = day.activities.reduce((sum, act) => sum + (Number(act.cost) || 0), 0);
     const tabBtn = document.createElement("button");
+    tabBtn.type = "button";
     tabBtn.className = `day-tab-btn ${state.activeDayTab === idx ? 'active' : ''}`;
     tabBtn.innerHTML = `
       <span class="tab-day-label">Day ${day.dayNum}</span>
@@ -3005,22 +3481,26 @@ function renderDayTabs() {
   });
 
   const addDayBtn = document.createElement("button");
+  addDayBtn.type = "button";
   addDayBtn.className = "day-tab-btn";
   addDayBtn.style.borderStyle = "dashed";
   addDayBtn.innerHTML = `
     <span class="tab-day-label">Extend Trip</span>
     <span class="tab-day-title">+ Add Day</span>
-    <span class="tab-day-cost">Add Day ${state.itinerary.length + 1}</span>
+    <span class="tab-day-cost">Day ${state.itinerary.length + 1}</span>
   `;
   addDayBtn.addEventListener("click", addNewDay);
   tabsContainer.appendChild(addDayBtn);
 }
 
-// Render Active Day Activities
+// Render Active Day Activities with Distance Connectors
 function renderDayContent() {
   const container = document.getElementById("day-content-area");
   if (!container) return;
   container.innerHTML = "";
+
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const center = destInfo.centerCoords || [26.9124, 75.7873];
 
   const daysToRender = state.activeDayTab === -1 
     ? state.itinerary 
@@ -3035,6 +3515,15 @@ function renderDayContent() {
     const dayIndex = state.itinerary.findIndex(d => d.dayNum === day.dayNum);
     const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
 
+    // Calculate total day distance
+    let totalDayKm = 0;
+    for (let i = 0; i < day.activities.length - 1; i++) {
+      const c1 = day.activities[i].coords || center;
+      const c2 = day.activities[i + 1].coords || center;
+      totalDayKm += calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+    }
+    const totalDayDriveTime = estimateDriveTimeMin(totalDayKm);
+
     const daySection = document.createElement("div");
     daySection.style.marginBottom = "24px";
 
@@ -3043,12 +3532,15 @@ function renderDayContent() {
     header.innerHTML = `
       <div class="day-title-group">
         <h3>Day ${day.dayNum}: ${day.title.replace(/^Day \d+:\s*/, '')}</h3>
-        <p>${day.activities.length} activities planned · Estimated daily spend</p>
+        <p>${day.activities.length} activities planned · ${totalDayKm > 0 ? `🚗 ~${totalDayKm} km travel (~${totalDayDriveTime}m cab) · ` : ''}Estimated daily spend</p>
       </div>
       <div class="day-header-actions">
         <span class="day-subtotal-badge">Day Subtotal: ₹${dayCost.toLocaleString('en-IN')}</span>
+        <button class="btn btn-secondary btn-sm" title="AI Optimize this Day" onclick="window.aiAutoRerouteItinerary(${dayIndex})">
+          <span>⚡ AI Optimize</span>
+        </button>
         ${state.itinerary.length > 1 ? `
-          <button class="btn-icon-sm delete" title="Delete this Day" onclick="deleteDay(${dayIndex})">
+          <button class="btn-icon-sm delete" title="Delete this Day" onclick="window.deleteDay(${dayIndex})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         ` : ''}
@@ -3061,6 +3553,7 @@ function renderDayContent() {
     actList.style.marginTop = "12px";
 
     day.activities.forEach((act, actIndex) => {
+      // Activity Card
       const actCard = document.createElement("div");
       actCard.className = `activity-card ${act.category === 'transit' ? 'is-transit' : ''}`;
       actCard.draggable = true;
@@ -3097,16 +3590,16 @@ function renderDayContent() {
           </div>
 
           <div class="activity-actions">
-            <button class="btn-icon-sm" title="Move Up" onclick="moveActivity(${dayIndex}, ${actIndex}, -1)" ${actIndex === 0 ? 'disabled style="opacity:0.3;"' : ''}>
+            <button type="button" class="btn-icon-sm" title="Move Up" onclick="window.moveActivity(${dayIndex}, ${actIndex}, -1)" ${actIndex === 0 ? 'disabled style="opacity:0.3;"' : ''}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="18 15 12 9 6 15"/></svg>
             </button>
-            <button class="btn-icon-sm" title="Move Down" onclick="moveActivity(${dayIndex}, ${actIndex}, 1)" ${actIndex === day.activities.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>
+            <button type="button" class="btn-icon-sm" title="Move Down" onclick="window.moveActivity(${dayIndex}, ${actIndex}, 1)" ${actIndex === day.activities.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
-            <button class="btn-icon-sm" title="Edit Place Details" onclick="openEditActivityModal(${dayIndex}, ${actIndex})">
+            <button type="button" class="btn-icon-sm" title="Edit Place Details" onclick="window.openEditActivityModal(${dayIndex}, ${actIndex})">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="btn-icon-sm delete" title="Delete Activity" onclick="deleteActivity(${dayIndex}, ${actIndex})">
+            <button type="button" class="btn-icon-sm delete" title="Delete Activity" onclick="window.deleteActivity(${dayIndex}, ${actIndex})">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
           </div>
@@ -3125,9 +3618,33 @@ function renderDayContent() {
       });
 
       actList.appendChild(actCard);
+
+      // Render Transit / Distance Connector between consecutive stops
+      if (actIndex < day.activities.length - 1) {
+        const nextAct = day.activities[actIndex + 1];
+        const c1 = act.coords || center;
+        const c2 = nextAct.coords || center;
+        const distKm = calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+        const driveM = estimateDriveTimeMin(distKm);
+
+        const connector = document.createElement("div");
+        connector.className = "transit-connector-card";
+        connector.innerHTML = `
+          <div class="tc-left">
+            <span>🚗</span>
+            <span class="tc-badge">${distKm} km</span>
+            <span>~${driveM} min cab ride</span>
+          </div>
+          <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(act.name + ' ' + destInfo.name)}&destination=${encodeURIComponent(nextAct.name + ' ' + destInfo.name)}" target="_blank" rel="noopener" class="tc-link" title="Open GPS directions in Google Maps">
+            <span>🗺️ Directions &rarr;</span>
+          </a>
+        `;
+        actList.appendChild(connector);
+      }
     });
 
     const addBtn = document.createElement("button");
+    addBtn.type = "button";
     addBtn.className = "add-activity-btn";
     addBtn.style.marginTop = "8px";
     addBtn.innerHTML = `
@@ -3163,7 +3680,7 @@ function updateDaySubtotalBadges() {
 }
 
 // =============================================================================
-// 5. LIVE LEAFLET MAP VISUALIZER
+// 7. LIVE LEAFLET MAP VISUALIZER WITH DISTANCE BADGES & LABELS
 // =============================================================================
 
 function initOrUpdateMap() {
@@ -3202,7 +3719,7 @@ function initOrUpdateMap() {
   const legendContainer = document.getElementById("map-legend-pills");
   if (legendContainer) legendContainer.innerHTML = "";
 
-  daysToPlot.forEach((day, dayIdx) => {
+  daysToPlot.forEach((day) => {
     const dayColor = DAY_COLORS[day.dayNum % DAY_COLORS.length] || "#ea580c";
     const dayLatLngs = [];
 
@@ -3230,28 +3747,67 @@ function initOrUpdateMap() {
       dayLatLngs.push(coords);
       allLatLngs.push(coords);
 
-      // Custom HTML pin
+      // Custom HTML pin with Day + Stop number
       const icon = L.divIcon({
         className: 'custom-pin-wrapper',
-        html: `<div class="custom-map-pin" style="background:${dayColor};">D${day.dayNum}</div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
+        html: `<div class="custom-map-pin" style="background:${dayColor};">D${day.dayNum}-${actIdx + 1}</div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
       });
 
       const popupHtml = `
-        <div style="min-width:180px;">
+        <div style="min-width:200px;">
           <div style="font-size:0.7rem; font-weight:700; color:${dayColor}; text-transform:uppercase;">Day ${day.dayNum} · Stop #${actIdx + 1}</div>
-          <div style="font-weight:700; font-size:0.95rem; margin-top:2px;">${act.name}</div>
-          <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">⏰ ${act.timeSlot} · ₹${act.cost}</div>
-          ${act.tip ? `<div style="font-size:0.72rem; color:#d97706; margin-top:4px;">💡 ${act.tip}</div>` : ''}
-          <div style="margin-top:8px;">
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.name + ' ' + destInfo.name)}" target="_blank" style="color:#ea580c; font-weight:700; font-size:0.75rem; text-decoration:none;">Open in Google Maps &rarr;</a>
+          <div style="font-weight:800; font-size:1rem; margin-top:2px; color:#0f172a;">${act.name}</div>
+          <div style="font-size:0.78rem; color:#64748b; margin-top:3px;">⏰ ${act.timeSlot} · ₹${(act.cost || 0).toLocaleString('en-IN')}</div>
+          ${act.description ? `<p style="font-size:0.75rem; color:#334155; margin-top:5px; line-height:1.35;">${act.description}</p>` : ''}
+          ${act.tip ? `<div style="font-size:0.72rem; color:#d97706; background:#fef3c7; padding:4px 6px; border-radius:4px; margin-top:6px;">💡 ${act.tip}</div>` : ''}
+          <div style="margin-top:10px; border-top:1px solid #e2e8f0; padding-top:6px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.name + ' ' + destInfo.name)}" target="_blank" rel="noopener" style="color:#ea580c; font-weight:700; font-size:0.78rem; text-decoration:none;">Open in Google Maps &rarr;</a>
           </div>
         </div>
       `;
 
       const marker = L.marker(coords, { icon: icon }).bindPopup(popupHtml);
+
+      // Attach permanent legible tooltip with place name directly above pin
+      const tooltipHtml = `
+        <div class="map-label-card">
+          <div class="map-label-header" style="color:${dayColor};">Stop ${actIdx + 1} · Day ${day.dayNum}</div>
+          <div class="map-label-title">${act.name}</div>
+          <div class="map-label-meta">⏰ ${act.timeSlot} · ₹${(act.cost || 0).toLocaleString('en-IN')}</div>
+        </div>
+      `;
+
+      marker.bindTooltip(tooltipHtml, {
+        permanent: true,
+        direction: 'top',
+        offset: [0, -14],
+        className: 'leaflet-custom-tooltip'
+      });
+
       mapMarkersGroup.addLayer(marker);
+
+      // If there's a subsequent stop on the same day, compute distance badge at midpoint
+      if (actIdx < day.activities.length - 1) {
+        const nextAct = day.activities[actIdx + 1];
+        const nextCoords = nextAct.coords || center;
+        const distKm = calculateDistanceKm(coords[0], coords[1], nextCoords[0], nextCoords[1]);
+        const driveTime = estimateDriveTimeMin(distKm);
+
+        const midLat = (coords[0] + nextCoords[0]) / 2;
+        const midLng = (coords[1] + nextCoords[1]) / 2;
+
+        const distIcon = L.divIcon({
+          className: 'map-dist-badge-wrapper',
+          html: `<div class="map-distance-badge" title="Transit from Stop ${actIdx + 1} to Stop ${actIdx + 2}">🚗 ${distKm} km (~${driveTime}m)</div>`,
+          iconSize: [120, 24],
+          iconAnchor: [60, 12]
+        });
+
+        const distMarker = L.marker([midLat, midLng], { icon: distIcon, interactive: false });
+        mapMarkersGroup.addLayer(distMarker);
+      }
     });
 
     // Draw route connecting lines for the day
@@ -3259,7 +3815,7 @@ function initOrUpdateMap() {
       const polyline = L.polyline(dayLatLngs, {
         color: dayColor,
         weight: 3.5,
-        opacity: 0.75,
+        opacity: 0.85,
         dashArray: '6, 8'
       });
       mapPolylinesGroup.addLayer(polyline);
@@ -3270,7 +3826,7 @@ function initOrUpdateMap() {
   if (allLatLngs.length > 0) {
     try {
       const bounds = L.latLngBounds(allLatLngs);
-      mapInstance.fitBounds(bounds, { padding: [40, 40] });
+      mapInstance.fitBounds(bounds, { padding: [50, 50] });
     } catch (e) {
       // Handled
     }
@@ -3280,7 +3836,7 @@ function initOrUpdateMap() {
 }
 
 // =============================================================================
-// 6. DYNAMIC WEATHER & DELAY DISRUPTION ASSISTANT
+// 8. DYNAMIC WEATHER & DELAY DISRUPTION ASSISTANT
 // =============================================================================
 
 function applyDisruptionScenario(type) {
@@ -3352,7 +3908,7 @@ function updateDisruptionBarUI() {
 }
 
 // =============================================================================
-// 7. TRANSIT & CAB BOOKING HUB
+// 9. TRANSIT & CAB BOOKING HUB
 // =============================================================================
 
 function renderTransitView() {
@@ -3414,7 +3970,7 @@ function addTransitActivity(name, cost, timeSlot = "Morning (08:30 AM)") {
 }
 
 // =============================================================================
-// 8. LIVE BUDGET TRACKER & RECALCULATION
+// 10. LIVE BUDGET TRACKER & RECALCULATION
 // =============================================================================
 
 function recalculateBudget() {
@@ -3487,7 +4043,7 @@ function renderInsights() {
   container.innerHTML = `
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <div><strong>Best Season:</strong> ${destInfo.bestTime} for outdoor travel.</div>
+      <div><strong>Best Season:</strong> ${destInfo.bestTime} for pleasant weather.</div>
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -3495,7 +4051,7 @@ function renderInsights() {
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <div><strong>Dynamic Defense:</strong> Use the ⚡ Disruption Assistant if rain or traffic delays your day.</div>
+      <div><strong>AI Route Health:</strong> Use the ⚡ AI Auto-Reroute button to minimize traffic delays.</div>
     </div>
   `;
 }
@@ -3515,7 +4071,7 @@ function getCategoryLabel(cat) {
 }
 
 // =============================================================================
-// 9. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
+// 11. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
 // =============================================================================
 
 function moveActivity(dayIndex, actIndex, direction) {
@@ -3528,7 +4084,7 @@ function moveActivity(dayIndex, actIndex, direction) {
   activities[targetIndex] = temp;
 
   saveToLocalStorage();
-  renderDayContent();
+  renderDashboard();
   if (state.activeViewMode === "map") initOrUpdateMap();
   showToast("Reordered", `Moved activity ${direction < 0 ? 'up' : 'down'}.`, "info");
 }
@@ -3537,11 +4093,9 @@ function deleteActivity(dayIndex, actIndex) {
   const actName = state.itinerary[dayIndex].activities[actIndex]?.name || "Activity";
   state.itinerary[dayIndex].activities.splice(actIndex, 1);
   saveToLocalStorage();
-  renderDayTabs();
-  renderDayContent();
-  recalculateBudget();
+  renderDashboard();
   if (state.activeViewMode === "map") initOrUpdateMap();
-  showToast("Activity Removed", `Deleted ${actName} from Day ${state.itinerary[dayIndex].dayNum}.`, "info");
+  showToast("Activity Removed", `Deleted "${actName}" from Day ${state.itinerary[dayIndex].dayNum}.`, "info");
 }
 
 function addNewDay() {
@@ -3579,9 +4133,7 @@ function addNewDay() {
   state.daysCount = state.itinerary.length;
   state.activeDayTab = state.itinerary.length - 1;
   saveToLocalStorage();
-  renderDayTabs();
-  renderDayContent();
-  recalculateBudget();
+  renderDashboard();
   if (state.activeViewMode === "map") initOrUpdateMap();
   showToast(`Day ${newDayNum} Added!`, `Trip extended to ${state.daysCount} days.`, "success");
 }
@@ -3601,9 +4153,7 @@ function deleteDay(dayIndex) {
     state.activeDayTab = state.itinerary.length - 1;
   }
   saveToLocalStorage();
-  renderDayTabs();
-  renderDayContent();
-  recalculateBudget();
+  renderDashboard();
   if (state.activeViewMode === "map") initOrUpdateMap();
   showToast("Day Deleted", `Trip adjusted to ${state.daysCount} days.`, "info");
 }
@@ -3640,16 +4190,14 @@ function setupCardDragAndDrop(card, dayIndex, actIndex) {
     state.itinerary[toDay].activities.splice(toAct, 0, movedItem);
 
     saveToLocalStorage();
-    renderDayContent();
-    renderDayTabs();
-    recalculateBudget();
+    renderDashboard();
     if (state.activeViewMode === "map") initOrUpdateMap();
     showToast("Reordered via Drag & Drop", "Moved to new position.", "info");
   });
 }
 
 // =============================================================================
-// 10. MODALS & EVENT LISTENERS
+// 12. MODALS & EVENT LISTENERS
 // =============================================================================
 
 function openAddActivityModal(dayIndex) {
@@ -3713,6 +4261,16 @@ function setupEventListeners() {
       const mode = btn.dataset.mode;
       switchViewMode(mode);
     });
+  });
+
+  // AI Auto-Reroute Buttons
+  document.getElementById("btn-ai-auto-reroute")?.addEventListener("click", () => aiAutoRerouteItinerary(-1));
+  document.getElementById("btn-map-optimize")?.addEventListener("click", () => aiAutoRerouteItinerary(-1));
+  document.getElementById("btn-map-fit-bounds")?.addEventListener("click", () => {
+    if (mapInstance) {
+      initOrUpdateMap();
+      showToast("Map Centered", "Fitted map view to all destination stops.", "info");
+    }
   });
 
   // Disruption Scenario Buttons
@@ -3784,9 +4342,7 @@ function setupEventListeners() {
 
     closeActivityModal();
     saveToLocalStorage();
-    renderDayTabs();
-    renderDayContent();
-    recalculateBudget();
+    renderDashboard();
     if (state.activeViewMode === "map") initOrUpdateMap();
   });
 
@@ -3856,6 +4412,22 @@ function showToast(title, message, type = "success") {
     setTimeout(() => toast.remove(), 250);
   }, 3500);
 }
+
+// =============================================================================
+// 13. GLOBAL WINDOW EXPORTS FOR RELIABILITY
+// =============================================================================
+
+window.moveActivity = moveActivity;
+window.deleteActivity = deleteActivity;
+window.openEditActivityModal = openEditActivityModal;
+window.openAddActivityModal = openAddActivityModal;
+window.deleteDay = deleteDay;
+window.addNewDay = addNewDay;
+window.switchViewMode = switchViewMode;
+window.applyDisruptionScenario = applyDisruptionScenario;
+window.addTransitActivity = addTransitActivity;
+window.aiAutoRerouteItinerary = aiAutoRerouteItinerary;
+window.initOrUpdateMap = initOrUpdateMap;
 
 </script>
 </body>
