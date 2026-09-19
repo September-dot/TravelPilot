@@ -1,49 +1,46 @@
-# ✈️ TravelPilot — AI Trip Planner for India 🇮🇳
+# ✈️ TravelPilot — Algorithmic Trip Planner & Route Optimizer for India 🇮🇳
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
 [![Stack](https://img.shields.io/badge/Tech-HTML5%20%7C%20CSS3%20%7C%20Vanilla%20JS%20%7C%20Leaflet.js-blue.svg)]()
 [![Responsive](https://img.shields.io/badge/Design-Mobile%20Friendly-emerald.svg)]()
 
-> A clean, modern, and beginner-friendly AI-style trip planner for India featuring dynamic day-by-day itineraries, interactive OpenStreetMap route visualization with live GPS distance badges, transit & cab booking integration, proactive AI delay detection, and automated contingency rerouting.
+> A clean, modern, and beginner-friendly web application for planning trips across India. Features budget-aware itinerary generation, Traveling Salesperson (TSP) route optimization, geodesic distance calculations, interactive OpenStreetMap route visualization, multi-day weather/delay contingency modes, and transit booking links.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Technical Highlights & Features
 
-### 1. 🤖 AI Delay Detection & Automatic Geographic Rerouting
-- **Proactive AI Diagnostics**: Analyzes itinerary routes for high-traffic delay risks (> 10 km commutes), geographic zigzag backtracking, and timing conflicts (e.g. sunset spots placed in morning slots).
-- **⚡ AI Auto-Reroute Engine**: Automatically solves optimal route sequencing using a nearest-neighbor TSP algorithm to minimize daily travel kilometers, eliminate delays, and harmonize time slots.
-- **Visual AI Health Bar**: Instantly indicates route efficiency with calculated travel time savings.
+### 1. 🧭 Exact TSP Route Optimization Engine
+- **Exact Path Permutation Solver**: For daily tours ($n \le 6$), evaluates all possible stop permutations $\sum_{i=0}^{n-2} \text{dist}(p_i, p_{i+1})$ without arbitrary city-center bias to mathematically determine the shortest travel path.
+- **Slot Affinity Constraints**: Preserves optimal visiting times (morning monuments vs. sunset viewpoints and evening cultural shows) while minimizing travel kilometers.
+- **Geodesic Distance & Transit Time**: Employs the Haversine formula for exact point-to-point distances with realistic Indian urban/hill traffic driving estimates.
 
-### 2. 🗺️ Interactive Route Map with Place Markers & Distance Badges (Leaflet.js)
-- **Visible Place Labels**: Every landmark displays a permanent, high-contrast label with stop sequence (`D1-1`, `D1-2`), place name, and timing.
-- **Midpoint Distance Badges**: Realistic geodesic distance (km) and cab drive time badges along polyline connectors (e.g. `🚗 4.8 km (~16m cab)`).
-- **Directions Links**: Interactive popups with direct **Google Maps Navigation** routes.
+### 2. 💰 Budget-Constrained Itinerary Generation
+- **Tiered Cost Optimization**: Calculates target daily budget (`totalBudget / daysCount`) and adjusts scoring:
+  - **Budget Tier (< ₹2,500/day)**: Prioritizes free and low-cost public monuments, stepwells, ghat aartis, and local street dining while filtering expensive commercial activities.
+  - **Moderate Tier (₹2,500 – ₹6,000/day)**: Balanced mix of heritage tickets, guided tours, and standard cafes.
+  - **Luxury Tier (> ₹6,000/day)**: Prioritizes royal high-tea, private boat cruises, and signature cultural performances.
+- **Live Reactive Budget Tracker**: Instant budget bar recalculation with real-time balance/deficit tracking.
 
-### 3. 🚗 Live Distance & Transit Connectors in Itinerary
-- Between consecutive stops, the itinerary displays real-time travel distance badges and drive estimates.
-- 1-click **Get Directions** button opening Google Maps route geometry.
+### 3. 🚨 Multi-Day Disruption & Contingency Engine
+- **Proactive Risk Detection**: Proactively flags weather-sensitive open-air sights and excessive transit distances (> 10 km) before disruptions happen.
+- **🌧️ Monsoon / Rain Contingency**: Scans all days across the itinerary and replaces outdoor open-air forts, water sports, and treks with indoor royal museums, covered havelis, and culinary workshops.
+- **⏱️ Traffic / Flight Delay Mode**: Uses prioritized landmark IDs (`keepIds`) to condense daily itineraries into essential crown jewels with generous time buffers to absorb 2+ hours of travel delay.
+- **😴 Low-Energy Wellness Mode**: Replaces high-exertion treks across all days with relaxing palace high-tea, lakeside lounges, and Ayurvedic spa sessions.
 
-### 4. 🚖 Cabs, Flights & Transit Booking Hub
-- **Intercity Travel**: Direct links for Flights (MakeMyTrip), Trains (IRCTC), and Buses (RedBus).
-- **Local Transit Rates**: Real-time reference fares for Local Taxis/Sedans, Auto-rickshaws, and Rental Scooters.
-- **1-Click Transfers**: Instant buttons to insert Airport/Station cab pickups or Full-Day Tour Taxis directly into the day's schedule and budget.
+### 4. 🗺️ Interactive Route Map (Leaflet.js + OpenStreetMap)
+- **Place Labels on Pins**: Every landmark on the map features a high-contrast label displaying sequence (`D1-1`, `D1-2`), place name, and schedule.
+- **Midpoint Distance Badges**: Visual indicators along polyline connectors showing calculated segment distances in km and drive times.
+- **Navigation Shortcuts**: Direct links to Google Maps directions between consecutive stops.
 
-### 5. 🚨 Dynamic Weather & Delay Contingency Assistant
-- **🌧️ Heavy Rain / Monsoon Plan**: Automatically swaps outdoor forts/beaches/treks with indoor royal palaces, havelis, museums, and cooking classes.
-- **⏱️ Traffic Delay / Express Plan**: Replaces distant excursions with central city landmarks to preserve your schedule.
-- **😴 Relaxed Chill Day**: Replaces intensive treks with relaxing scenic sunset points and cafes.
-- **🔄 Reset to Original Plan**: Easily restore the initial plan at any time.
+### 5. 🚖 Transit Hub & Reference Fare Estimates
+- **Intercity Booking Links**: Direct booking shortcuts for MakeMyTrip (Flights, Trains, Buses) and Uber Outstation.
+- **Reference Fares**: Curated baseline rates for local taxis, auto-rickshaws, and rental scooters.
+- **1-Click Transfer Insertion**: Add airport or railway cab pickups directly into the itinerary and running budget.
 
-### 6. 💰 Live Interactive Budget Tracker
-- Live cost editing that immediately recalculates the running budget.
-- Visual financial progress bar with **Within Budget** (Green) and **Over Budget** (Rose) indicators.
-- Displays Set Budget, Estimated Spend, Daily Average, and Remaining Balance/Deficit.
-
-### 7. 📋 Export & Sharing
-- One-click copy formatted plain-text itinerary for WhatsApp and Notes.
-- Clean print stylesheet optimized for PDF exports.
-- Auto-saves trip state in browser `localStorage`.
+### 6. 🔒 Code Hygiene & Security
+- **HTML Sanitization**: All user-provided text fields (names, notes, custom activities, costs) are sanitized through a robust HTML entity escaper (`escapeHtml`) to prevent injection vulnerabilities.
+- **Data-Driven Architecture**: Standardized place attributes (`slotPreference`, `weatherSensitive`, `exertionLevel`, `costTier`) with zero hardcoded city strings in the core optimizer.
 
 ---
 
@@ -76,10 +73,10 @@ travelpilot/
 ├── index.html                  # Main modular HTML structure with 3 view modes
 ├── style.css                   # Responsive stylesheet with map & transit designs
 ├── data.js                     # Curated destinations, coordinates, transit & contingency data
-├── app.js                      # Application state engine, Leaflet map logic & AI rerouting
+├── app.js                      # Application state engine, Leaflet map logic & TSP route optimizer
 ├── server.py                   # Lightweight local preview server
 ├── travelpilot_single_file.html # Self-contained single-file edition (HTML+CSS+JS in one file)
-└── README.md                   # Project documentation & setup guide
+└── README.md                   # Project documentation & technical specifications
 ```
 
 ---

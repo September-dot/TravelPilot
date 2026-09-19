@@ -1,12 +1,14 @@
 /**
- * TravelPilot - Advanced AI Trip Planner Engine for India
- * Features:
- *  - Live Leaflet.js Route Map with Visible Place Labels & Midpoint Distance Badges
- *  - Geodesic Distance (km) & Cab Travel Time Calculation
- *  - Proactive AI Route Delay & Disruption Analyzer
- *  - Automatic AI Geographic Rerouting & Schedule Optimizer (TSP Nearest-Neighbor)
- *  - Transit & Cab Booking Hub with 1-Click Transfers
- *  - Live Interactive Budget Tracker
+ * TravelPilot - Algorithmic Trip Planner & Route Optimizer for India
+ *
+ * Technical Core:
+ *  - Exact Path Permutation / TSP Solver for daily stops
+ *  - Geodesic Distance (Haversine km) & Estimated Transit Time
+ *  - Proactive Rule-Based Delay, Timing & Weather Risk Analyzer
+ *  - Multi-Day Disruption Contingency Engine (Monsoon, Traffic Delay, Low-Energy)
+ *  - Budget-Constrained Itinerary Generator
+ *  - Interactive Leaflet.js Route Map with Visible Place Labels & Distance Badges
+ *  - Transit Booking Hub & Live Reactive Budget Tracker
  */
 
 // =============================================================================
@@ -34,12 +36,23 @@ let draggedCard = null;
 const DAY_COLORS = ["#ea580c", "#4f46e5", "#059669", "#e11d48", "#d97706", "#7c3aed", "#0284c7"];
 
 // =============================================================================
-// 2. MATHEMATICAL & GEOGRAPHIC HELPERS
+// 2. SECURITY & UTILITY HELPERS
 // =============================================================================
 
-// Haversine Distance Calculation (in Kilometers)
+// Safe HTML escaping for all user-provided / editable text
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Geodesic Distance via Haversine Formula (in Kilometers)
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+  if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return 0;
   const R = 6371; // Earth radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -51,11 +64,38 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   return Number((R * c).toFixed(1));
 }
 
-// Estimate Drive/Cab Time in Minutes (considering Indian urban/hill traffic ~25km/h avg + 5m buffer)
+// Estimate Drive/Cab Time in Minutes (urban/hill speed estimate ~25 km/h + 5m buffer)
 function estimateDriveTimeMin(distKm) {
   if (distKm <= 0.3) return 5;
   const driveMinutes = Math.round((distKm / 25) * 60) + 5;
   return Math.max(driveMinutes, 8);
+}
+
+// Calculate cumulative route distance for an array of activities
+function calculatePathDistance(activities, defaultCenter) {
+  if (!activities || activities.length <= 1) return 0;
+  let total = 0;
+  for (let i = 0; i < activities.length - 1; i++) {
+    const c1 = activities[i].coords || defaultCenter;
+    const c2 = activities[i + 1].coords || defaultCenter;
+    total += calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+  }
+  return Number(total.toFixed(1));
+}
+
+// Generate all permutations of an array
+function getPermutations(arr) {
+  if (arr.length <= 1) return [arr];
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    const current = arr[i];
+    const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
+    const remainingPerms = getPermutations(remaining);
+    for (let j = 0; j < remainingPerms.length; j++) {
+      result.push([current].concat(remainingPerms[j]));
+    }
+  }
+  return result;
 }
 
 // =============================================================================
@@ -95,9 +135,9 @@ function renderInterestChips() {
     const label = document.createElement("label");
     label.className = `interest-chip ${isChecked ? 'selected' : ''}`;
     label.innerHTML = `
-      <input type="checkbox" name="interest" value="${cat.id}" ${isChecked ? 'checked' : ''}>
-      <span>${cat.icon}</span>
-      <span>${cat.label}</span>
+      <input type="checkbox" name="interest" value="${escapeHtml(cat.id)}" ${isChecked ? 'checked' : ''}>
+      <span>${escapeHtml(cat.icon)}</span>
+      <span>${escapeHtml(cat.label)}</span>
     `;
 
     label.querySelector("input").addEventListener("change", (e) => {
@@ -136,7 +176,7 @@ function syncFormWithState() {
 }
 
 // =============================================================================
-// 4. ITINERARY GENERATOR ALGORITHM
+// 4. BUDGET-AWARE ITINERARY GENERATION ENGINE
 // =============================================================================
 
 function generateItinerary() {
@@ -144,25 +184,56 @@ function generateItinerary() {
   const destInfo = DESTINATIONS_DATA[destKey] || DESTINATIONS_DATA.jaipur;
   const allPlaces = [...destInfo.places];
 
+  const numDays = state.daysCount || 3;
+  const targetDailyBudget = (Number(state.totalBudget) || 18000) / numDays;
+
+  // Score places based on interest relevance and budget tier compatibility
   const scoredPlaces = allPlaces.map(p => {
     let score = 0;
-    if (state.selectedInterests.includes(p.category)) score += 5;
+
+    // Interest category match
+    if (state.selectedInterests.includes(p.category)) {
+      score += 6;
+    }
+
+    // Budget shaping: favor activities matching user's financial tier
+    const cost = Number(p.cost) || 0;
+    if (targetDailyBudget < 2500) {
+      // Budget tier (< ₹2,500/day): boost free and inexpensive sights, penalize expensive ones
+      if (cost <= 250) score += 4;
+      else if (cost > 1000) score -= 6;
+    } else if (targetDailyBudget > 6000) {
+      // Luxury tier (> ₹6,000/day): boost signature and premium experiences
+      if (cost >= 800 || p.costTier === "premium") score += 4;
+    } else {
+      // Moderate tier (₹2,500 - ₹6,000/day): balanced mix
+      if (cost <= 750) score += 2;
+    }
+
     return { ...p, score };
   });
 
   scoredPlaces.sort((a, b) => b.score - a.score);
 
-  const numDays = state.daysCount;
   const days = [];
   const usedPlaceIds = new Set();
 
   for (let d = 1; d <= numDays; d++) {
     const dayActivities = [];
+    let dayCost = 0;
+
     for (const place of scoredPlaces) {
       if (dayActivities.length >= 3) break;
       if (!usedPlaceIds.has(place.id)) {
+        // Budget guard: prevent single day from exceeding 1.8x target if alternatives exist
+        const placeCost = Number(place.cost) || 0;
+        if (dayActivities.length >= 2 && (dayCost + placeCost) > (targetDailyBudget * 1.8) && targetDailyBudget < 3000) {
+          continue; // Look for a more economical stop for the last slot
+        }
+
         dayActivities.push(JSON.parse(JSON.stringify(place)));
         usedPlaceIds.add(place.id);
+        dayCost += placeCost;
       }
     }
 
@@ -176,7 +247,11 @@ function generateItinerary() {
         duration: "2 hours",
         description: `Stroll through the local streets, visit nearby markets, and enjoy regional delicacies.`,
         tip: "Ask your hotel host for their favorite hidden dining spot.",
-        coords: destInfo.centerCoords
+        coords: destInfo.centerCoords,
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
       });
     }
 
@@ -188,10 +263,13 @@ function generateItinerary() {
     else if (d === 5) dayTheme = `Day 5: Artisan Bazaars & Wellness`;
     else if (d >= 6) dayTheme = `Day ${d}: Extended Discovery & Leisure`;
 
+    // Apply TSP ordering directly on newly generated day
+    const optimizedActs = optimizeDayPath(dayActivities, destInfo.centerCoords);
+
     days.push({
       dayNum: d,
       title: dayTheme,
-      activities: dayActivities
+      activities: optimizedActs
     });
   }
 
@@ -202,34 +280,129 @@ function generateItinerary() {
 
   saveToLocalStorage();
   renderDashboard();
-  showToast("Custom Itinerary Generated!", `Crafted a personalized ${numDays}-day plan for ${destInfo.name}.`, "success");
+  showToast("Custom Itinerary Generated!", `Crafted an optimized ${numDays}-day plan for ${destInfo.name}.`, "success");
 }
 
 // =============================================================================
-// 5. AI PROACTIVE ROUTE HEALTH & DELAY DIAGNOSTICS
+// 5. EXACT PATH PERMUTATION (TSP) ROUTE OPTIMIZER
+// =============================================================================
+
+function optimizeDayPath(activities, defaultCenter) {
+  if (!activities || activities.length <= 1) return activities;
+
+  const center = defaultCenter || [26.9124, 75.7873];
+  const n = activities.length;
+
+  // Standard chronological time slot sequence
+  const timeSlotTemplates = [
+    "Morning (09:00 AM)",
+    "Morning (11:30 AM)",
+    "Afternoon (02:00 PM)",
+    "Evening (05:30 PM)",
+    "Night (08:00 PM)"
+  ];
+
+  let bestPermutation = activities;
+  let minCost = Infinity;
+
+  // Exact evaluation for small daily tours (n <= 6 is max 720 permutations, evaluates in <1ms)
+  const allPerms = getPermutations(activities);
+
+  for (let p = 0; p < allPerms.length; p++) {
+    const perm = allPerms[p];
+    const dist = calculatePathDistance(perm, center);
+
+    // Slot affinity constraints
+    let slotPenalty = 0;
+    for (let i = 0; i < perm.length; i++) {
+      const pref = perm[i].slotPreference || "any";
+      if (pref === "morning" && i >= n - 1) {
+        slotPenalty += 6.0; // Morning activity at the end
+      } else if ((pref === "evening" || pref === "night") && i === 0) {
+        slotPenalty += 12.0; // Evening/sunset activity at the beginning
+      } else if (pref === "night" && i < n - 1) {
+        slotPenalty += 8.0; // Night venue not in final slot
+      }
+    }
+
+    const totalCost = dist + slotPenalty;
+    if (totalCost < minCost) {
+      minCost = totalCost;
+      bestPermutation = perm;
+    }
+  }
+
+  // Assign clean chronological time slots based on the optimized order
+  const result = bestPermutation.map((act, idx) => {
+    const updated = { ...act };
+    updated.timeSlot = timeSlotTemplates[Math.min(idx, timeSlotTemplates.length - 1)];
+    return updated;
+  });
+
+  return result;
+}
+
+// Auto-reroute all days or target day using TSP optimizer
+function autoRerouteItinerary(targetDayIndex = -1) {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const center = destInfo.centerCoords || [26.9124, 75.7873];
+  let totalKmSaved = 0;
+
+  const daysToOptimize = targetDayIndex === -1 
+    ? state.itinerary 
+    : [state.itinerary[targetDayIndex]].filter(Boolean);
+
+  daysToOptimize.forEach((day) => {
+    if (day.activities.length <= 1) return;
+
+    const initialKm = calculatePathDistance(day.activities, center);
+    const optimized = optimizeDayPath(day.activities, center);
+    const optimizedKm = calculatePathDistance(optimized, center);
+
+    const saved = Math.max(0, initialKm - optimizedKm);
+    totalKmSaved += saved;
+
+    day.activities = optimized;
+  });
+
+  saveToLocalStorage();
+  renderDashboard();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+
+  const savedMins = Math.round((totalKmSaved / 25) * 60);
+  showToast(
+    "Route Optimized! ⚡",
+    totalKmSaved > 0.3 
+      ? `Reordered stops geographically! Saved ~${totalKmSaved.toFixed(1)} km & ~${savedMins} mins of transit delay.`
+      : `Stops sequenced in optimal geographic order with harmonized time slots.`,
+    "success"
+  );
+}
+
+// =============================================================================
+// 6. PROACTIVE DELAY, TIMING & WEATHER RISK ANALYZER
 // =============================================================================
 
 function analyzeItineraryHealth() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const center = destInfo.centerCoords || [26.9124, 75.7873];
   const issues = [];
   let totalTripKm = 0;
   let totalTripDriveMins = 0;
 
   state.itinerary.forEach((day) => {
-    let dayKm = 0;
     const acts = day.activities;
 
     for (let i = 0; i < acts.length; i++) {
       const cur = acts[i];
-      const curCoords = cur.coords || destInfo.centerCoords;
+      const curCoords = cur.coords || center;
 
-      // Check distance to next stop
+      // Check distance & delay to next stop
       if (i < acts.length - 1) {
         const next = acts[i + 1];
-        const nextCoords = next.coords || destInfo.centerCoords;
+        const nextCoords = next.coords || center;
         const dist = calculateDistanceKm(curCoords[0], curCoords[1], nextCoords[0], nextCoords[1]);
         const driveM = estimateDriveTimeMin(dist);
-        dayKm += dist;
         totalTripKm += dist;
         totalTripDriveMins += driveM;
 
@@ -239,31 +412,32 @@ function analyzeItineraryHealth() {
             type: "distance_delay",
             severity: "high",
             tag: `⚠️ Day ${day.dayNum}: ${dist} km commute`,
-            message: `Long travel distance (${dist} km · ~${driveM} min cab) between "${cur.name}" and "${next.name}" — high risk of traffic delay.`
+            message: `Long distance (${dist} km · ~${driveM}m cab) between "${cur.name}" and "${next.name}" — risk of transit delay.`
           });
         }
       }
 
-      // Check Sunset / Nightlife timing conflict in morning slot
-      const lowerName = cur.name.toLowerCase();
-      if ((lowerName.includes("sunset") || lowerName.includes("nightlife") || lowerName.includes("aarti") || cur.category === "nightlife") && cur.timeSlot.toLowerCase().includes("morning")) {
+      // Check slot affinity mismatch
+      const pref = cur.slotPreference || "any";
+      const timeLower = (cur.timeSlot || "").toLowerCase();
+      if ((pref === "evening" || pref === "night") && timeLower.includes("morning")) {
         issues.push({
           dayNum: day.dayNum,
           type: "timing_mismatch",
           severity: "medium",
           tag: `⚠️ Day ${day.dayNum}: Timing Conflict`,
-          message: `"${cur.name}" is scheduled in the Morning, but best experienced during Evening or Sunset.`
+          message: `"${cur.name}" is scheduled in the Morning, but best experienced in the Evening or Sunset.`
         });
       }
 
-      // Check Monsoon/Rain risks
-      if (state.activeDisruption === "rain" && (cur.category === "adventure" || lowerName.includes("fort") || lowerName.includes("trek") || lowerName.includes("rafting"))) {
+      // Proactive Weather Advisory: flag outdoor activities that are rain-vulnerable
+      if (cur.weatherSensitive) {
         issues.push({
           dayNum: day.dayNum,
-          type: "weather_risk",
-          severity: "high",
-          tag: `🌧️ Day ${day.dayNum}: Outdoor Rain Risk`,
-          message: `Outdoor activity "${cur.name}" is vulnerable to rain, slippery trails, or water logging.`
+          type: "weather_advisory",
+          severity: state.activeDisruption === "rain" ? "high" : "low",
+          tag: `🌧️ Day ${day.dayNum}: Outdoor Sights`,
+          message: `"${cur.name}" is an open-air venue vulnerable to rain delays or extreme heat.`
         });
       }
     }
@@ -274,16 +448,29 @@ function analyzeItineraryHealth() {
         type: "overload",
         severity: "medium",
         tag: `⚠️ Day ${day.dayNum}: Overcrowded Day`,
-        message: `${acts.length} stops in Day ${day.dayNum} may cause fatigue and rush-hour delays.`
+        message: `${acts.length} stops in Day ${day.dayNum} may cause travel fatigue.`
       });
     }
   });
 
+  // Filter out duplicate tag labels
+  const uniqueIssues = [];
+  const seenTags = new Set();
+  issues.forEach(iss => {
+    if (!seenTags.has(iss.tag)) {
+      seenTags.add(iss.tag);
+      uniqueIssues.push(iss);
+    }
+  });
+
+  const highSeverityIssues = uniqueIssues.filter(i => i.severity !== "low");
+
   return {
-    issues,
+    issues: uniqueIssues,
+    hasSevereIssues: highSeverityIssues.length > 0,
     totalTripKm: Number(totalTripKm.toFixed(1)),
     totalTripDriveMins,
-    isOptimal: issues.length === 0
+    isOptimal: highSeverityIssues.length === 0
   };
 }
 
@@ -304,16 +491,16 @@ function updateAiDiagnosticsUI() {
   if (health.isOptimal) {
     card.className = "ai-diagnosis-card optimal";
     if (icon) icon.textContent = "✅";
-    if (title) title.innerHTML = `<span>AI Route Diagnostics: Optimal Efficiency</span>`;
-    if (desc) desc.textContent = `All stops are sequenced for minimal travel delays (Total transit: ${health.totalTripKm} km · ~${health.totalTripDriveMins} mins drive across all days).`;
+    if (title) title.innerHTML = `<span>Route Optimization: Optimal Geometry</span>`;
+    if (desc) desc.textContent = `All stops are sequenced for minimal travel distance (Total commute: ${health.totalTripKm} km · ~${health.totalTripDriveMins} mins cab across all days).`;
     if (btnReroute) {
       btnReroute.style.display = "none";
     }
   } else {
     card.className = "ai-diagnosis-card";
-    if (icon) icon.textContent = "🤖";
-    if (title) title.innerHTML = `<span>AI Delay Detection: ${health.issues.length} Travel Risk${health.issues.length > 1 ? 's' : ''} Identified</span>`;
-    if (desc) desc.textContent = `AI detected potential transit bottlenecks, geographic zigzags, or timing conflicts. Click below to automatically reroute & eliminate delays.`;
+    if (icon) icon.textContent = "🧭";
+    if (title) title.innerHTML = `<span>Route Diagnostics: ${health.issues.length} Travel Advisory Item${health.issues.length > 1 ? 's' : ''}</span>`;
+    if (desc) desc.textContent = `Potential transit bottlenecks, geographic zigzags, or outdoor weather vulnerabilities detected. Click below to automatically reorder stops and eliminate delays.`;
     
     health.issues.slice(0, 3).forEach(iss => {
       const tag = document.createElement("span");
@@ -325,113 +512,139 @@ function updateAiDiagnosticsUI() {
 
     if (btnReroute) {
       btnReroute.style.display = "inline-flex";
-      btnReroute.innerHTML = `<span>⚡ AI Auto-Reroute & Fix Delays</span>`;
+      btnReroute.innerHTML = `<span>⚡ Optimize Route & Fix Delays</span>`;
     }
   }
 }
 
-// AI Automatic Geographic Rerouting & Schedule Optimizer (TSP Nearest-Neighbor + Time Harmonizer)
-function aiAutoRerouteItinerary(targetDayIndex = -1) {
+// =============================================================================
+// 7. MULTI-DAY DISRUPTION CONTINGENCY ENGINE
+// =============================================================================
+
+function applyDisruptionScenario(type) {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const center = destInfo.centerCoords || [26.9124, 75.7873];
-  let totalKmSaved = 0;
+  const plans = destInfo.contingencyPlans;
+  if (!plans) return;
 
-  const daysToOptimize = targetDayIndex === -1 
-    ? state.itinerary 
-    : [state.itinerary[targetDayIndex]].filter(Boolean);
+  state.activeDisruption = type;
 
-  daysToOptimize.forEach((day) => {
-    if (day.activities.length <= 1) return;
+  if (type === "rain" && plans.heavyRain) {
+    // Comprehensive Monsoon Reroute: swap weather-sensitive places across ALL days
+    const rainPool = [...plans.heavyRain.replacements];
+    let poolIdx = 0;
 
-    // Calculate initial distance
-    let initialKm = 0;
-    for (let i = 0; i < day.activities.length - 1; i++) {
-      const c1 = day.activities[i].coords || center;
-      const c2 = day.activities[i + 1].coords || center;
-      initialKm += calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
-    }
+    state.itinerary.forEach((day, dIdx) => {
+      day.activities = day.activities.map(act => {
+        if (act.weatherSensitive && poolIdx < rainPool.length) {
+          const replacement = JSON.parse(JSON.stringify(rainPool[poolIdx % rainPool.length]));
+          poolIdx++;
+          return replacement;
+        }
+        return act;
+      });
 
-    // Separate evening-locked activities (sunset, nightlife, evening light shows)
-    const eveningActivities = [];
-    const regularActivities = [];
-
-    day.activities.forEach(act => {
-      const nameL = act.name.toLowerCase();
-      if (nameL.includes("sunset") || nameL.includes("nightlife") || nameL.includes("aarti") || nameL.includes("light show") || nameL.includes("chokhi dhani") || act.category === "nightlife") {
-        eveningActivities.push(act);
-      } else {
-        regularActivities.push(act);
+      // If day was heavily outdoor, update title
+      if (dIdx === 0) {
+        day.title = `Day 1: Sheltered Indoor Palaces & Cultural Masterclasses`;
       }
     });
 
-    // Nearest-neighbor TSP ordering for regular activities
-    const orderedRegular = [];
-    let currentPoint = center;
+    showToast(
+      "Monsoon Contingency Applied 🌧️", 
+      "Swapped outdoor open-air venues across all days with indoor heritage museums, covered havelis, and culinary workshops.", 
+      "success"
+    );
+  } else if (type === "delay" && plans.timeDelay) {
+    // Traffic Delay / Highway Jam: keep prioritized core stops and adjust start time buffers
+    const keepIds = new Set(plans.timeDelay.keepIds || []);
 
-    while (regularActivities.length > 0) {
-      let nearestIdx = 0;
-      let minDistance = Infinity;
-
-      for (let i = 0; i < regularActivities.length; i++) {
-        const c = regularActivities[i].coords || center;
-        const d = calculateDistanceKm(currentPoint[0], currentPoint[1], c[0], c[1]);
-        if (d < minDistance) {
-          minDistance = d;
-          nearestIdx = i;
+    state.itinerary.forEach((day) => {
+      if (day.activities.length > 2) {
+        // Keep activities matching keepIds or the top 2 stops
+        const filtered = day.activities.filter(a => keepIds.has(a.id));
+        if (filtered.length >= 2) {
+          day.activities = filtered.slice(0, 2);
+        } else {
+          day.activities = day.activities.slice(0, 2);
         }
       }
 
-      const selected = regularActivities.splice(nearestIdx, 1)[0];
-      orderedRegular.push(selected);
-      currentPoint = selected.coords || center;
-    }
-
-    // Combine ordered regular activities with evening activities at the end
-    const combined = [...orderedRegular, ...eveningActivities];
-
-    // Harmonize chronological time slots
-    const standardSlots = [
-      "Morning (09:00 AM)",
-      "Morning (11:30 AM)",
-      "Afternoon (02:00 PM)",
-      "Evening (05:30 PM)",
-      "Night (08:00 PM)"
-    ];
-
-    combined.forEach((act, idx) => {
-      act.timeSlot = standardSlots[Math.min(idx, standardSlots.length - 1)];
+      // Add time buffer: start later in the morning
+      if (day.activities[0]) {
+        day.activities[0].timeSlot = "Morning (10:30 AM)";
+      }
+      if (day.activities[1]) {
+        day.activities[1].timeSlot = "Afternoon (03:30 PM)";
+      }
     });
 
-    // Calculate optimized distance
-    let optimizedKm = 0;
-    for (let i = 0; i < combined.length - 1; i++) {
-      const c1 = combined[i].coords || center;
-      const c2 = combined[i + 1].coords || center;
-      optimizedKm += calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+    showToast(
+      "Express Delay Route Applied ⏱️", 
+      "Condensed itinerary to essential crown-jewel stops with generous travel buffers to absorb flight/highway delays.", 
+      "info"
+    );
+  } else if (type === "chill" && plans.lowEnergy) {
+    // Relaxation / Wellness Mode: swap high-exertion activities across all days
+    const chillPool = [...plans.lowEnergy.replacements];
+    let poolIdx = 0;
+
+    state.itinerary.forEach((day) => {
+      day.activities = day.activities.map(act => {
+        if (act.exertionLevel === "high" && poolIdx < chillPool.length) {
+          const replacement = JSON.parse(JSON.stringify(chillPool[poolIdx % chillPool.length]));
+          poolIdx++;
+          return replacement;
+        }
+        return act;
+      });
+    });
+
+    showToast(
+      "Relaxation Mode Active 😴", 
+      "Replaced uphill treks and high-exertion stops with relaxing high-tea lounges and Ayurvedic wellness spots.", 
+      "success"
+    );
+  } else if (type === "reset") {
+    if (state.originalItineraryBackup) {
+      state.itinerary = JSON.parse(JSON.stringify(state.originalItineraryBackup));
+      state.activeDisruption = null;
+      showToast("Route Reset", "Restored original customized itinerary.", "info");
     }
-
-    const saved = Math.max(0, initialKm - optimizedKm);
-    totalKmSaved += saved;
-
-    day.activities = combined;
-  });
+  }
 
   saveToLocalStorage();
   renderDashboard();
   if (state.activeViewMode === "map") initOrUpdateMap();
+}
 
-  const savedMins = Math.round((totalKmSaved / 25) * 60);
-  showToast(
-    "AI Auto-Reroute Complete! ⚡",
-    totalKmSaved > 0.5 
-      ? `Reordered stops geographically! Saved ~${totalKmSaved.toFixed(1)} km & ~${savedMins} mins of traffic delay.`
-      : `Harmonized time slots and verified optimal route geometry.`,
-    "success"
-  );
+function updateDisruptionBarUI() {
+  const title = document.getElementById("disruption-title");
+  const desc = document.getElementById("disruption-desc");
+  const icon = document.getElementById("disruption-icon");
+
+  if (!title || !desc || !icon) return;
+
+  if (state.activeDisruption === "rain") {
+    icon.textContent = "🌧️";
+    title.textContent = "Active: Monsoon / Rain Contingency";
+    desc.textContent = "Outdoor viewpoints and hikes have been safely replaced with indoor heritage havelis & museums.";
+  } else if (state.activeDisruption === "delay") {
+    icon.textContent = "⏱️";
+    title.textContent = "Active: Delay Express Mode";
+    desc.textContent = "Schedule condensed to essential priority sights with time buffers to comfortably handle transit delays.";
+  } else if (state.activeDisruption === "chill") {
+    icon.textContent = "🧘";
+    title.textContent = "Active: Relaxation & Wellness Mode";
+    desc.textContent = "Pace relaxed with calm cafes, tea lounges, and spa treatments.";
+  } else {
+    icon.textContent = "⚡";
+    title.textContent = "Trip Disruption Assistant";
+    desc.textContent = "Unexpected weather, flight delay, or fatigue? Adapt your route and budget in 1 click.";
+  }
 }
 
 // =============================================================================
-// 6. RENDERING & UI SYNC
+// 8. RENDERING & UI SYNC
 // =============================================================================
 
 function renderDashboard() {
@@ -446,7 +659,7 @@ function renderDashboard() {
 
   const highlightsContainer = document.getElementById("dest-highlights-list");
   if (highlightsContainer) {
-    highlightsContainer.innerHTML = destInfo.highlights.map(h => `<span class="meta-chip">✨ ${h}</span>`).join("");
+    highlightsContainer.innerHTML = destInfo.highlights.map(h => `<span class="meta-chip">✨ ${escapeHtml(h)}</span>`).join("");
   }
 
   // Update AI Diagnostics & Disruption Bar
@@ -466,7 +679,6 @@ function renderDashboard() {
   }
 }
 
-// Switch between Itinerary, Map, and Transit Views
 function switchViewMode(mode) {
   state.activeViewMode = mode;
 
@@ -489,7 +701,6 @@ function switchViewMode(mode) {
   }
 }
 
-// Render Day Tabs Navigation
 function renderDayTabs() {
   const tabsContainer = document.getElementById("days-nav-tabs");
   if (!tabsContainer) return;
@@ -545,7 +756,6 @@ function renderDayTabs() {
   tabsContainer.appendChild(addDayBtn);
 }
 
-// Render Active Day Activities with Distance Connectors
 function renderDayContent() {
   const container = document.getElementById("day-content-area");
   if (!container) return;
@@ -566,14 +776,7 @@ function renderDayContent() {
   daysToRender.forEach((day) => {
     const dayIndex = state.itinerary.findIndex(d => d.dayNum === day.dayNum);
     const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
-
-    // Calculate total day distance
-    let totalDayKm = 0;
-    for (let i = 0; i < day.activities.length - 1; i++) {
-      const c1 = day.activities[i].coords || center;
-      const c2 = day.activities[i + 1].coords || center;
-      totalDayKm += calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
-    }
+    const totalDayKm = calculatePathDistance(day.activities, center);
     const totalDayDriveTime = estimateDriveTimeMin(totalDayKm);
 
     const daySection = document.createElement("div");
@@ -583,16 +786,16 @@ function renderDayContent() {
     header.className = "day-header-card";
     header.innerHTML = `
       <div class="day-title-group">
-        <h3>Day ${day.dayNum}: ${day.title.replace(/^Day \d+:\s*/, '')}</h3>
+        <h3>Day ${day.dayNum}: ${escapeHtml(day.title.replace(/^Day \d+:\s*/, ''))}</h3>
         <p>${day.activities.length} activities planned · ${totalDayKm > 0 ? `🚗 ~${totalDayKm} km travel (~${totalDayDriveTime}m cab) · ` : ''}Estimated daily spend</p>
       </div>
       <div class="day-header-actions">
         <span class="day-subtotal-badge">Day Subtotal: ₹${dayCost.toLocaleString('en-IN')}</span>
-        <button class="btn btn-secondary btn-sm" title="AI Optimize this Day" onclick="window.aiAutoRerouteItinerary(${dayIndex})">
-          <span>⚡ AI Optimize</span>
+        <button type="button" class="btn btn-secondary btn-sm" title="Optimize stop order for Day ${day.dayNum}" onclick="window.autoRerouteItinerary(${dayIndex})">
+          <span>⚡ Optimize Day</span>
         </button>
         ${state.itinerary.length > 1 ? `
-          <button class="btn-icon-sm delete" title="Delete this Day" onclick="window.deleteDay(${dayIndex})">
+          <button type="button" class="btn-icon-sm delete" title="Delete this Day" onclick="window.deleteDay(${dayIndex})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         ` : ''}
@@ -605,14 +808,13 @@ function renderDayContent() {
     actList.style.marginTop = "12px";
 
     day.activities.forEach((act, actIndex) => {
-      // Activity Card
       const actCard = document.createElement("div");
       actCard.className = `activity-card ${act.category === 'transit' ? 'is-transit' : ''}`;
       actCard.draggable = true;
       actCard.dataset.dayIndex = dayIndex;
       actCard.dataset.actIndex = actIndex;
 
-      const catClass = `cat-${act.category || 'culture'}`;
+      const catClass = `cat-${escapeHtml(act.category || 'culture')}`;
       const catLabel = getCategoryLabel(act.category);
 
       actCard.innerHTML = `
@@ -622,15 +824,15 @@ function renderDayContent() {
 
         <div class="activity-main">
           <div>
-            <span class="activity-badge-category ${catClass}">${catLabel}</span>
-            <span class="activity-time">⏰ ${act.timeSlot}</span>
+            <span class="activity-badge-category ${catClass}">${escapeHtml(catLabel)}</span>
+            <span class="activity-time">⏰ ${escapeHtml(act.timeSlot || '')}</span>
           </div>
-          <h4 class="activity-name">${act.name}</h4>
-          ${act.description ? `<p class="activity-desc">${act.description}</p>` : ''}
+          <h4 class="activity-name">${escapeHtml(act.name)}</h4>
+          ${act.description ? `<p class="activity-desc">${escapeHtml(act.description)}</p>` : ''}
           ${act.tip ? `
             <div class="activity-tip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              <span><strong>Tip:</strong> ${act.tip}</span>
+              <span><strong>Tip:</strong> ${escapeHtml(act.tip)}</span>
             </div>
           ` : ''}
         </div>
@@ -638,7 +840,7 @@ function renderDayContent() {
         <div class="activity-right">
           <div class="cost-input-wrap" title="Click to edit activity cost">
             <span class="cost-currency">₹</span>
-            <input type="number" class="cost-field" value="${act.cost || 0}" min="0" step="50" data-day="${dayIndex}" data-act="${actIndex}">
+            <input type="number" class="cost-field" value="${Number(act.cost) || 0}" min="0" step="50" data-day="${dayIndex}" data-act="${actIndex}">
           </div>
 
           <div class="activity-actions">
@@ -687,7 +889,7 @@ function renderDayContent() {
             <span class="tc-badge">${distKm} km</span>
             <span>~${driveM} min cab ride</span>
           </div>
-          <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(act.name + ' ' + destInfo.name)}&destination=${encodeURIComponent(nextAct.name + ' ' + destInfo.name)}" target="_blank" rel="noopener" class="tc-link" title="Open GPS directions in Google Maps">
+          <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(act.name + ' ' + destInfo.name)}&destination=${encodeURIComponent(nextAct.name + ' ' + destInfo.name)}" target="_blank" rel="noopener" class="tc-link" title="Open directions in Google Maps">
             <span>🗺️ Directions &rarr;</span>
           </a>
         `;
@@ -732,7 +934,7 @@ function updateDaySubtotalBadges() {
 }
 
 // =============================================================================
-// 7. LIVE LEAFLET MAP VISUALIZER WITH DISTANCE BADGES & LABELS
+// 9. LIVE LEAFLET MAP VISUALIZER
 // =============================================================================
 
 function initOrUpdateMap() {
@@ -787,7 +989,6 @@ function initOrUpdateMap() {
     }
 
     day.activities.forEach((act, actIdx) => {
-      // Find coords or fallback
       let coords = act.coords;
       if (!coords) {
         coords = [
@@ -810,10 +1011,10 @@ function initOrUpdateMap() {
       const popupHtml = `
         <div style="min-width:200px;">
           <div style="font-size:0.7rem; font-weight:700; color:${dayColor}; text-transform:uppercase;">Day ${day.dayNum} · Stop #${actIdx + 1}</div>
-          <div style="font-weight:800; font-size:1rem; margin-top:2px; color:#0f172a;">${act.name}</div>
-          <div style="font-size:0.78rem; color:#64748b; margin-top:3px;">⏰ ${act.timeSlot} · ₹${(act.cost || 0).toLocaleString('en-IN')}</div>
-          ${act.description ? `<p style="font-size:0.75rem; color:#334155; margin-top:5px; line-height:1.35;">${act.description}</p>` : ''}
-          ${act.tip ? `<div style="font-size:0.72rem; color:#d97706; background:#fef3c7; padding:4px 6px; border-radius:4px; margin-top:6px;">💡 ${act.tip}</div>` : ''}
+          <div style="font-weight:800; font-size:1rem; margin-top:2px; color:#0f172a;">${escapeHtml(act.name)}</div>
+          <div style="font-size:0.78rem; color:#64748b; margin-top:3px;">⏰ ${escapeHtml(act.timeSlot)} · ₹${(Number(act.cost) || 0).toLocaleString('en-IN')}</div>
+          ${act.description ? `<p style="font-size:0.75rem; color:#334155; margin-top:5px; line-height:1.35;">${escapeHtml(act.description)}</p>` : ''}
+          ${act.tip ? `<div style="font-size:0.72rem; color:#d97706; background:#fef3c7; padding:4px 6px; border-radius:4px; margin-top:6px;">💡 ${escapeHtml(act.tip)}</div>` : ''}
           <div style="margin-top:10px; border-top:1px solid #e2e8f0; padding-top:6px;">
             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.name + ' ' + destInfo.name)}" target="_blank" rel="noopener" style="color:#ea580c; font-weight:700; font-size:0.78rem; text-decoration:none;">Open in Google Maps &rarr;</a>
           </div>
@@ -822,12 +1023,12 @@ function initOrUpdateMap() {
 
       const marker = L.marker(coords, { icon: icon }).bindPopup(popupHtml);
 
-      // Attach permanent legible tooltip with place name directly above pin
+      // Permanent tooltip label above pin
       const tooltipHtml = `
         <div class="map-label-card">
           <div class="map-label-header" style="color:${dayColor};">Stop ${actIdx + 1} · Day ${day.dayNum}</div>
-          <div class="map-label-title">${act.name}</div>
-          <div class="map-label-meta">⏰ ${act.timeSlot} · ₹${(act.cost || 0).toLocaleString('en-IN')}</div>
+          <div class="map-label-title">${escapeHtml(act.name)}</div>
+          <div class="map-label-meta">⏰ ${escapeHtml(act.timeSlot)} · ₹${(Number(act.cost) || 0).toLocaleString('en-IN')}</div>
         </div>
       `;
 
@@ -840,7 +1041,7 @@ function initOrUpdateMap() {
 
       mapMarkersGroup.addLayer(marker);
 
-      // If there's a subsequent stop on the same day, compute distance badge at midpoint
+      // Midpoint distance badge along polyline segment
       if (actIdx < day.activities.length - 1) {
         const nextAct = day.activities[actIdx + 1];
         const nextCoords = nextAct.coords || center;
@@ -852,7 +1053,7 @@ function initOrUpdateMap() {
 
         const distIcon = L.divIcon({
           className: 'map-dist-badge-wrapper',
-          html: `<div class="map-distance-badge" title="Transit from Stop ${actIdx + 1} to Stop ${actIdx + 2}">🚗 ${distKm} km (~${driveTime}m)</div>`,
+          html: `<div class="map-distance-badge" title="Distance from Stop ${actIdx + 1} to Stop ${actIdx + 2}">🚗 ${distKm} km (~${driveTime}m)</div>`,
           iconSize: [120, 24],
           iconAnchor: [60, 12]
         });
@@ -888,79 +1089,7 @@ function initOrUpdateMap() {
 }
 
 // =============================================================================
-// 8. DYNAMIC WEATHER & DELAY DISRUPTION ASSISTANT
-// =============================================================================
-
-function applyDisruptionScenario(type) {
-  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const plans = destInfo.contingencyPlans;
-  if (!plans) return;
-
-  state.activeDisruption = type;
-
-  if (type === "rain" && plans.heavyRain) {
-    const rainReplacements = plans.heavyRain.replacements;
-    // Replace outdoor activities in Day 1 and Day 2 with indoor ones
-    if (state.itinerary[0] && rainReplacements.length > 0) {
-      state.itinerary[0].title = `Day 1: Rainy Day Indoor Palaces & Masterclasses`;
-      state.itinerary[0].activities = JSON.parse(JSON.stringify(rainReplacements));
-    }
-    showToast("Monsoon Reroute Applied 🌧️", "Swapped open hills/forts for royal indoor museums, havelis, and culinary masterclasses.", "success");
-  } else if (type === "delay" && plans.timeDelay) {
-    // Keep only essential 2 spots
-    state.itinerary.forEach(d => {
-      if (d.activities.length > 2) {
-        d.activities = d.activities.slice(0, 2);
-      }
-    });
-    showToast("Express Reroute Applied ⏱️", "Condensed stops to top 2 must-visit places to absorb 2+ hours of travel delay.", "info");
-  } else if (type === "chill" && plans.lowEnergy) {
-    const chillSpots = plans.lowEnergy.replacements;
-    if (state.itinerary[0] && chillSpots.length > 0) {
-      state.itinerary[0].activities.push(JSON.parse(JSON.stringify(chillSpots[0])));
-    }
-    showToast("Relaxation Mode Active 😴", "Added scenic lakeside high-tea and soothing Ayurvedic wellness spots.", "success");
-  } else if (type === "reset") {
-    if (state.originalItineraryBackup) {
-      state.itinerary = JSON.parse(JSON.stringify(state.originalItineraryBackup));
-      state.activeDisruption = null;
-      showToast("Route Reset", "Restored original customized itinerary.", "info");
-    }
-  }
-
-  saveToLocalStorage();
-  renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
-}
-
-function updateDisruptionBarUI() {
-  const title = document.getElementById("disruption-title");
-  const desc = document.getElementById("disruption-desc");
-  const icon = document.getElementById("disruption-icon");
-
-  if (!title || !desc || !icon) return;
-
-  if (state.activeDisruption === "rain") {
-    icon.textContent = "🌧️";
-    title.textContent = "Active: Monsoon / Heavy Rain Reroute";
-    desc.textContent = "Outdoor viewpoints and hikes have been safely replaced with indoor heritage havelis & museums.";
-  } else if (state.activeDisruption === "delay") {
-    icon.textContent = "⏱️";
-    title.textContent = "Active: Traffic Delay Express Route";
-    desc.textContent = "Day schedule adjusted with time buffers to comfortably handle flight or highway delays.";
-  } else if (state.activeDisruption === "chill") {
-    icon.textContent = "🧘";
-    title.textContent = "Active: Relaxation & Wellness Mode";
-    desc.textContent = "Pace relaxed with calm cafes, tea lounges, and spa treatments.";
-  } else {
-    icon.textContent = "⚡";
-    title.textContent = "Dynamic Trip Disruption Assistant";
-    desc.textContent = "Something unexpected happened during your trip? Auto-adapt your route and budget in 1 click.";
-  }
-}
-
-// =============================================================================
-// 9. TRANSIT & CAB BOOKING HUB
+// 10. TRANSIT & CAB BOOKING HUB
 // =============================================================================
 
 function renderTransitView() {
@@ -974,8 +1103,8 @@ function renderTransitView() {
 
   if (airportElem) {
     airportElem.innerHTML = `
-      <strong>✈️ Airport:</strong> ${transit.airport}<br>
-      <strong>🚆 Railway:</strong> ${transit.railway}
+      <strong>✈️ Airport:</strong> ${escapeHtml(transit.airport)}<br>
+      <strong>🚆 Railway:</strong> ${escapeHtml(transit.railway)}
     `;
   }
 
@@ -987,10 +1116,10 @@ function renderTransitView() {
     localList.innerHTML = transit.localTransport.map(lt => `
       <div class="local-transit-item">
         <div class="lt-left">
-          <span class="lt-name">${lt.type}</span>
-          <span class="lt-sub">${lt.bookingPartner} · ${lt.tip}</span>
+          <span class="lt-name">${escapeHtml(lt.type)}</span>
+          <span class="lt-sub">${escapeHtml(lt.bookingPartner)} · ${escapeHtml(lt.tip)}</span>
         </div>
-        <div class="lt-cost">₹${lt.avgCost}</div>
+        <div class="lt-cost">₹${Number(lt.avgCost) || 0}</div>
       </div>
     `).join("");
   }
@@ -1009,20 +1138,22 @@ function addTransitActivity(name, cost, timeSlot = "Morning (08:30 AM)") {
     duration: "1 hour",
     description: "Dedicated pre-booked transit transfer with door-to-door cab pickup.",
     tip: "Keep driver contact and OTP handy for quick boarding.",
-    coords: DESTINATIONS_DATA[state.destination]?.centerCoords
+    coords: DESTINATIONS_DATA[state.destination]?.centerCoords,
+    slotPreference: "morning",
+    weatherSensitive: false,
+    exertionLevel: "low",
+    costTier: "moderate"
   };
 
   targetDay.activities.unshift(transitItem);
   saveToLocalStorage();
-  renderDayTabs();
-  renderDayContent();
-  recalculateBudget();
+  renderDashboard();
   if (state.activeViewMode === "map") initOrUpdateMap();
   showToast("Transit Added to Day 1!", `Added "${name}" (₹${cost}) to your itinerary and budget.`, "success");
 }
 
 // =============================================================================
-// 10. LIVE BUDGET TRACKER & RECALCULATION
+// 11. LIVE BUDGET TRACKER & FINANCIAL SUMMARY
 // =============================================================================
 
 function recalculateBudget() {
@@ -1095,7 +1226,7 @@ function renderInsights() {
   container.innerHTML = `
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <div><strong>Best Season:</strong> ${destInfo.bestTime} for pleasant weather.</div>
+      <div><strong>Best Season:</strong> ${escapeHtml(destInfo.bestTime)} for outdoor activities.</div>
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -1103,7 +1234,7 @@ function renderInsights() {
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <div><strong>AI Route Health:</strong> Use the ⚡ AI Auto-Reroute button to minimize traffic delays.</div>
+      <div><strong>TSP Route Optimizer:</strong> Evaluates permutations to guarantee shortest travel path between stops.</div>
     </div>
   `;
 }
@@ -1123,7 +1254,7 @@ function getCategoryLabel(cat) {
 }
 
 // =============================================================================
-// 11. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
+// 12. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
 // =============================================================================
 
 function moveActivity(dayIndex, actIndex, direction) {
@@ -1172,7 +1303,11 @@ function addNewDay() {
       duration: "2 hours",
       description: "Relax, explore regional handicraft stores, and try street food snacks.",
       tip: "Great day for casual photography and buying souvenirs.",
-      coords: destInfo.centerCoords
+      coords: destInfo.centerCoords,
+      slotPreference: "evening",
+      weatherSensitive: true,
+      exertionLevel: "low",
+      costTier: "budget"
     });
   }
 
@@ -1249,7 +1384,7 @@ function setupCardDragAndDrop(card, dayIndex, actIndex) {
 }
 
 // =============================================================================
-// 12. MODALS & EVENT LISTENERS
+// 13. MODALS & EVENT LISTENERS
 // =============================================================================
 
 function openAddActivityModal(dayIndex) {
@@ -1285,7 +1420,7 @@ function openEditActivityModal(dayIndex, actIndex) {
   document.getElementById("modal-act-name").value = act.name || "";
   document.getElementById("modal-act-time").value = act.timeSlot || "Morning (10:00 AM)";
   document.getElementById("modal-act-category").value = act.category || "culture";
-  document.getElementById("modal-act-cost").value = act.cost || 0;
+  document.getElementById("modal-act-cost").value = Number(act.cost) || 0;
   document.getElementById("modal-act-duration").value = act.duration || "2 hours";
   document.getElementById("modal-act-desc").value = act.description || "";
   document.getElementById("modal-act-tip").value = act.tip || "";
@@ -1315,9 +1450,9 @@ function setupEventListeners() {
     });
   });
 
-  // AI Auto-Reroute Buttons
-  document.getElementById("btn-ai-auto-reroute")?.addEventListener("click", () => aiAutoRerouteItinerary(-1));
-  document.getElementById("btn-map-optimize")?.addEventListener("click", () => aiAutoRerouteItinerary(-1));
+  // Route Optimizer Buttons
+  document.getElementById("btn-ai-auto-reroute")?.addEventListener("click", () => autoRerouteItinerary(-1));
+  document.getElementById("btn-map-optimize")?.addEventListener("click", () => autoRerouteItinerary(-1));
   document.getElementById("btn-map-fit-bounds")?.addEventListener("click", () => {
     if (mapInstance) {
       initOrUpdateMap();
@@ -1381,7 +1516,17 @@ function setupEventListeners() {
       tip: document.getElementById("modal-act-tip").value.trim(),
       coords: actIndex === -1 
         ? DESTINATIONS_DATA[state.destination]?.centerCoords 
-        : (state.itinerary[dayIndex].activities[actIndex].coords || DESTINATIONS_DATA[state.destination]?.centerCoords)
+        : (state.itinerary[dayIndex].activities[actIndex].coords || DESTINATIONS_DATA[state.destination]?.centerCoords),
+      slotPreference: actIndex === -1 
+        ? "any" 
+        : (state.itinerary[dayIndex].activities[actIndex].slotPreference || "any"),
+      weatherSensitive: actIndex === -1 
+        ? false 
+        : (state.itinerary[dayIndex].activities[actIndex].weatherSensitive || false),
+      exertionLevel: actIndex === -1 
+        ? "moderate" 
+        : (state.itinerary[dayIndex].activities[actIndex].exertionLevel || "moderate"),
+      costTier: "moderate"
     };
 
     if (actIndex === -1) {
@@ -1450,8 +1595,8 @@ function showToast(title, message, type = "success") {
   toast.innerHTML = `
     <span>${type === 'success' ? '✅' : 'ℹ️'}</span>
     <div>
-      <div style="font-weight: 700;">${title}</div>
-      <div style="font-size: 0.78rem; opacity: 0.9;">${message}</div>
+      <div style="font-weight: 700;">${escapeHtml(title)}</div>
+      <div style="font-size: 0.78rem; opacity: 0.9;">${escapeHtml(message)}</div>
     </div>
   `;
 
@@ -1466,7 +1611,7 @@ function showToast(title, message, type = "success") {
 }
 
 // =============================================================================
-// 13. GLOBAL WINDOW EXPORTS FOR RELIABILITY
+// 14. GLOBAL WINDOW EXPORTS FOR EVENT HANDLING
 // =============================================================================
 
 window.moveActivity = moveActivity;
@@ -1478,5 +1623,5 @@ window.addNewDay = addNewDay;
 window.switchViewMode = switchViewMode;
 window.applyDisruptionScenario = applyDisruptionScenario;
 window.addTransitActivity = addTransitActivity;
-window.aiAutoRerouteItinerary = aiAutoRerouteItinerary;
+window.autoRerouteItinerary = autoRerouteItinerary;
 window.initOrUpdateMap = initOrUpdateMap;
