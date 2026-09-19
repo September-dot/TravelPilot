@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — AI Trip Planner for India</title>
-  <meta name="description" content="Clean, simple, and editable day-by-day itinerary & budget planner for top Indian travel destinations.">
+  <title>TravelPilot — AI Trip Planner for India (with Interactive Map & Transit Hub)</title>
+  <meta name="description" content="Clean, editable day-by-day itinerary, interactive route map, transit booking, and dynamic weather/delay contingency rerouting for India.">
   
-  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Leaflet Interactive Maps CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -52,10 +56,10 @@
     <section class="hero-section" id="section-setup">
       <div class="hero-header">
         <div class="hero-pill">
-          <span>🇮🇳 Explore the Magic of India</span>
+          <span>🇮🇳 Explore India with Smart Adaptive AI Planning</span>
         </div>
         <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter your destination, trip duration, budget, and travel vibe. TravelPilot crafts a realistic, fully editable day-by-day itinerary.</p>
+        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Includes live interactive route maps, transit booking hubs, and automatic rain/delay rerouting.</p>
       </div>
 
       <div class="setup-card">
@@ -126,7 +130,7 @@
       </div>
     </section>
 
-    <!-- STEP 2: GENERATED ITINERARY & EDITABLE DASHBOARD -->
+    <!-- STEP 2: GENERATED ITINERARY & ADAPTIVE DASHBOARD -->
     <section class="dashboard-section" id="section-dashboard" style="display: none;">
       
       <!-- Destination Top Banner -->
@@ -155,8 +159,51 @@
         </div>
       </div>
 
-      <!-- Main Dashboard Grid Layout -->
-      <div class="dashboard-grid">
+      <!-- View Mode Selector (Itinerary vs Interactive Map vs Transit Hub) -->
+      <nav class="view-mode-nav">
+        <button class="view-mode-btn active" id="btn-mode-itinerary" data-mode="itinerary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>1. Daily Itinerary</span>
+        </button>
+        <button class="view-mode-btn" id="btn-mode-map" data-mode="map">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <span>2. Interactive Route Map</span>
+        </button>
+        <button class="view-mode-btn" id="btn-mode-transit" data-mode="transit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <span>3. Cabs & Transit Hub</span>
+        </button>
+      </nav>
+
+      <!-- Dynamic Weather / Delay Disruption Assistant Bar -->
+      <div class="disruption-bar-card" id="disruption-bar">
+        <div class="disruption-info">
+          <div class="disruption-icon-wrap" id="disruption-icon">⚡</div>
+          <div class="disruption-text">
+            <h4 id="disruption-title">Dynamic Trip Disruption Assistant</h4>
+            <p id="disruption-desc">Something unexpected happened during your trip? Auto-adapt your route and budget in 1 click.</p>
+          </div>
+        </div>
+        <div class="disruption-actions">
+          <button class="btn-disruption-scenario" id="btn-scenario-rain" title="Auto-reroute for heavy rain">
+            <span>🌧️ Heavy Rain Alert</span>
+          </button>
+          <button class="btn-disruption-scenario" id="btn-scenario-delay" title="Auto-condense for flight/traffic delay">
+            <span>⏱️ 2+ Hr Traffic Delay</span>
+          </button>
+          <button class="btn-disruption-scenario" id="btn-scenario-chill" title="Switch to relaxed wellness day">
+            <span>😴 Relaxed Chill Day</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-reset-reroute" style="font-size:0.75rem; color:#78350f;">
+            <span>Reset Route</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- VIEW 1: ITINERARY DASHBOARD                                   -->
+      <!-- ============================================================= -->
+      <div class="dashboard-grid" id="view-section-itinerary">
         
         <!-- Left Pane: Day Tabs & Activities -->
         <div class="itinerary-left-pane">
@@ -234,6 +281,100 @@
         </div>
 
       </div>
+
+      <!-- ============================================================= -->
+      <!-- VIEW 2: INTERACTIVE ROUTE MAP                                 -->
+      <!-- ============================================================= -->
+      <div class="map-view-section" id="view-section-map">
+        <div class="map-card-wrapper">
+          <div class="map-header-row">
+            <h3 class="map-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              <span>Interactive Day-by-Day Route Visualizer</span>
+            </h3>
+            <span class="meta-chip">Click any pin for place info & directions</span>
+          </div>
+          
+          <div id="travel-map-container" class="map-canvas"></div>
+
+          <div class="map-legend-pills" id="map-legend-pills">
+            <!-- Populated with color badges for Day 1, Day 2, Day 3... -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- VIEW 3: TRANSIT & CAB BOOKING HUB                             -->
+      <!-- ============================================================= -->
+      <div class="transit-view-section" id="view-section-transit">
+        <div class="transit-grid">
+          
+          <!-- Intercity Travel Booking (Flights, Trains, Buses) -->
+          <div class="transit-card">
+            <div class="transit-card-header">
+              <h3 class="transit-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/></svg>
+                <span>Intercity Travel & Flight Booking</span>
+              </h3>
+              <span class="meta-chip">Direct Booking Links</span>
+            </div>
+
+            <p style="font-size: 0.82rem; color: var(--text-secondary);" id="transit-airport-info">
+              Nearest Airport: Loading airport details...
+            </p>
+
+            <div class="transit-links-row">
+              <a href="https://www.makemytrip.com/flights/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>✈️ Search Flights (MakeMyTrip)</span>
+              </a>
+              <a href="https://www.irctc.co.in/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>🚆 Book Trains (IRCTC)</span>
+              </a>
+              <a href="https://www.redbus.in/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>🚌 AC Buses (RedBus)</span>
+              </a>
+              <a href="https://www.uber.com/in/en/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>🚗 Intercity Cab (Uber Outstation)</span>
+              </a>
+            </div>
+
+            <div style="margin-top: 14px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+              <h5 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Add Airport/Station Cab Transfer to Itinerary:</h5>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary btn-sm" id="btn-add-airport-pickup">
+                  <span>+ Add Airport Pickup Cab (₹750)</span>
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-add-station-transfer">
+                  <span>+ Add Station Cab (₹400)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local Cab, Auto & Scooter Rentals -->
+          <div class="transit-card">
+            <div class="transit-card-header">
+              <h3 class="transit-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--emerald);"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                <span>Local Cabs, Autos & Rental Scooters</span>
+              </h3>
+              <span class="meta-chip" id="local-transit-avg-badge">Avg ₹600/day</span>
+            </div>
+
+            <div class="local-transport-list" id="local-transport-options-list">
+              <!-- Populated dynamically -->
+            </div>
+
+            <div style="margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+              <button class="btn btn-primary btn-sm full-width" id="btn-add-daily-cab">
+                <span>+ Add Full-Day Private Tour Cab to Day 1 (₹1,800)</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </section>
 
   </main>
@@ -271,6 +412,7 @@
                 <option value="nightlife">🍸 Nightlife & Cafes</option>
                 <option value="wellness">🧘 Wellness & Yoga</option>
                 <option value="shopping">🛍️ Shopping & Bazaars</option>
+                <option value="transit">🚗 Transport & Cab</option>
               </select>
             </div>
           </div>

@@ -3,26 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — AI Trip Planner for India (Single File Edition)</title>
-  <meta name="description" content="Clean, simple, and editable day-by-day itinerary & budget planner for top Indian travel destinations.">
+  <title>TravelPilot — AI Trip Planner for India (with Interactive Map & Transit Hub)</title>
+  <meta name="description" content="Clean, editable day-by-day itinerary, interactive route map, transit booking, and dynamic weather/delay contingency rerouting for India.">
   
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Leaflet Interactive Maps CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
   <style>
 /* ==========================================================================
    TRAVELPILOT - Modern Minimalist AI Trip Planner for India
-   Light, Clean, Neutral Palette with Generous Whitespace & Card Layout
+   With Interactive Map, Transit Hub, & Dynamic Weather/Delay Disruption Assistant
    ========================================================================== */
 
 :root {
+  /* Color Palette - Warm Minimalist Light Theme */
   --bg-app: #fbfaf8;
   --bg-surface: #ffffff;
   --bg-subtle: #f4f2ee;
   --bg-hover: #edeae3;
   --bg-accent-light: #fff7ed;
   
+  /* Primary Terracotta & Indigo Accents */
   --primary: #ea580c;
   --primary-hover: #c2410c;
   --primary-glow: rgba(234, 88, 12, 0.15);
@@ -30,6 +37,7 @@
   --indigo: #4f46e5;
   --indigo-light: #eef2ff;
   
+  /* Status & Financial Indicators */
   --emerald: #059669;
   --emerald-bg: #ecfdf5;
   --emerald-border: #a7f3d0;
@@ -40,12 +48,19 @@
   
   --amber: #d97706;
   --amber-bg: #fffbeb;
+  --amber-border: #fde68a;
   
+  --sky: #0284c7;
+  --sky-bg: #f0f9ff;
+  --sky-border: #bae6fd;
+  
+  /* Typography Tokens */
   --text-main: #1c1917;
   --text-secondary: #57534e;
   --text-muted: #8c857b;
   --text-dim: #a8a29e;
   
+  /* Borders & Shadows */
   --border-subtle: #e7e5e0;
   --border-medium: #d6d3cc;
   --border-focus: #ea580c;
@@ -62,10 +77,13 @@
   --shadow-hover: 0 10px 30px -4px rgba(28, 25, 23, 0.09), 0 4px 10px -2px rgba(28, 25, 23, 0.04);
   --shadow-modal: 0 25px 60px -15px rgba(28, 25, 23, 0.2);
 
+  /* Fonts */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Outfit', var(--font-sans);
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* Reset & Base Rules */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -87,13 +105,15 @@ body {
   flex-direction: column;
 }
 
+/* Container */
 .container {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 0 24px;
   width: 100%;
 }
 
+/* Header & Nav */
 .app-header {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
@@ -102,6 +122,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: all 0.2s ease;
 }
 
 .header-inner {
@@ -165,17 +186,18 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
+/* Hero & Setup Form Section */
 .hero-section {
-  padding: 40px 0 20px;
+  padding: 36px 0 20px;
 }
 
 .hero-header {
   text-align: center;
   max-width: 680px;
-  margin: 0 auto 32px;
+  margin: 0 auto 28px;
 }
 
 .hero-pill {
@@ -190,12 +212,12 @@ body {
   font-weight: 600;
   color: var(--text-secondary);
   box-shadow: var(--shadow-sm);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .hero-title {
   font-family: var(--font-heading);
-  font-size: 2.6rem;
+  font-size: 2.5rem;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.03em;
@@ -210,11 +232,12 @@ body {
 }
 
 .hero-subtitle {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 
+/* Trip Setup Form Card */
 .setup-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -289,6 +312,7 @@ select.input-control {
   cursor: pointer;
 }
 
+/* Interests Section */
 .interests-group {
   margin-bottom: 28px;
 }
@@ -324,7 +348,7 @@ select.input-control {
   color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .interest-chip input {
@@ -344,6 +368,7 @@ select.input-control {
   box-shadow: 0 2px 8px var(--primary-glow);
 }
 
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -356,7 +381,7 @@ select.input-control {
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
 }
 
@@ -369,6 +394,7 @@ select.input-control {
 .btn-primary:hover {
   background: var(--primary-hover);
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.25);
 }
 
 .btn-secondary {
@@ -422,34 +448,31 @@ select.input-control {
   color: var(--rose);
 }
 
+/* Itinerary Dashboard Layout */
 .dashboard-section {
-  padding: 24px 0 60px;
+  padding: 20px 0 60px;
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 28px;
-  align-items: start;
-}
-
+/* Destination Banner Card */
 .destination-banner {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 28px 32px;
-  margin-bottom: 24px;
+  padding: 24px 30px;
+  margin-bottom: 20px;
   box-shadow: var(--shadow-card);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .dest-badge-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .dest-title {
@@ -469,7 +492,7 @@ select.input-control {
 .dest-meta-chips {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .meta-chip {
@@ -486,12 +509,133 @@ select.input-control {
   gap: 10px;
 }
 
+/* Dashboard View Switcher Navigation (Itinerary vs Map vs Transit) */
+.view-mode-nav {
+  display: flex;
+  background: var(--bg-surface);
+  padding: 5px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  width: fit-content;
+}
+
+.view-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+  color: var(--text-main);
+}
+
+.view-mode-btn.active {
+  background: var(--text-main);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(28, 25, 23, 0.15);
+}
+
+.view-mode-btn.active svg {
+  color: var(--primary);
+}
+
+/* Dynamic Weather / Disruption Assistant Card */
+.disruption-bar-card {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.disruption-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.disruption-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.disruption-text h4 {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #78350f;
+  margin-bottom: 2px;
+}
+
+.disruption-text p {
+  font-size: 0.78rem;
+  color: #92400e;
+}
+
+.disruption-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-disruption-scenario {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-disruption-scenario:hover {
+  background: #fef08a;
+  transform: translateY(-1px);
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Day Tabs Navigation */
 .days-nav {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   scrollbar-width: none;
 }
 
@@ -547,6 +691,7 @@ select.input-control {
   color: #fdba74;
 }
 
+/* Day Itinerary Card */
 .day-container {
   display: flex;
   flex-direction: column;
@@ -557,7 +702,7 @@ select.input-control {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 18px 24px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -566,30 +711,31 @@ select.input-control {
 
 .day-title-group h3 {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 800;
 }
 
 .day-title-group p {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
 .day-header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .day-subtotal-badge {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 6px 14px;
+  padding: 5px 12px;
   background: var(--bg-subtle);
   border-radius: var(--radius-full);
   color: var(--text-main);
 }
 
+/* Activities List & Cards */
 .activities-list {
   display: flex;
   flex-direction: column;
@@ -600,19 +746,25 @@ select.input-control {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 18px 20px;
   box-shadow: var(--shadow-card);
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 16px;
   align-items: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
 }
 
 .activity-card:hover {
   box-shadow: var(--shadow-hover);
   border-color: var(--border-medium);
   transform: translateY(-2px);
+}
+
+.activity-card.is-transit {
+  background: var(--sky-bg);
+  border-color: var(--sky-border);
 }
 
 .drag-handle {
@@ -622,6 +774,10 @@ select.input-control {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.drag-handle:hover {
+  color: var(--text-main);
 }
 
 .activity-badge-category {
@@ -642,6 +798,7 @@ select.input-control {
 .cat-nightlife { background: #f3e8ff; color: #6b21a8; }
 .cat-wellness { background: #e0f2fe; color: #075985; }
 .cat-shopping { background: #fce7f3; color: #9d174d; }
+.cat-transit { background: #e0f2fe; color: #0369a1; }
 
 .activity-time {
   font-size: 0.78rem;
@@ -671,6 +828,13 @@ select.input-control {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.activity-tip svg {
+  width: 14px;
+  height: 14px;
+  color: var(--amber);
+  flex-shrink: 0;
 }
 
 .activity-right {
@@ -738,6 +902,174 @@ select.input-control {
   background: var(--bg-accent-light);
 }
 
+/* ==========================================================================
+   INTERACTIVE MAP VIEW STYLES
+   ========================================================================== */
+.map-view-section {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-card-wrapper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.map-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 14px;
+}
+
+.map-title {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-canvas {
+  width: 100%;
+  height: 520px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  z-index: 10;
+}
+
+.map-legend-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 8px 0;
+}
+
+.map-pill-item {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   TRANSIT & CAB BOOKING HUB STYLES
+   ========================================================================== */
+.transit-view-section {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.transit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.transit-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.transit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.transit-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transit-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.transit-partner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.transit-partner-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-medium);
+  transform: translateY(-1px);
+}
+
+.local-transport-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.local-transit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.lt-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.lt-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.lt-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.lt-cost {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--emerald);
+}
+
+/* Right Sticky Sidebar: Budget & Summary */
 .sidebar-sticky {
   position: sticky;
   top: 92px;
@@ -789,6 +1121,7 @@ select.input-control {
   border: 1px solid var(--rose-border);
 }
 
+/* Budget Visual Progress Meter */
 .budget-meter-wrap {
   margin-bottom: 20px;
 }
@@ -804,7 +1137,7 @@ select.input-control {
 .budget-bar-fill {
   height: 100%;
   border-radius: var(--radius-full);
-  transition: width 0.4s ease;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
 }
 
 .budget-bar-fill.within { background: linear-gradient(90deg, #10b981, #059669); }
@@ -838,6 +1171,7 @@ select.input-control {
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .b-num-val {
@@ -851,6 +1185,7 @@ select.input-control {
 .b-num-val.green { color: var(--emerald); }
 .b-num-val.red { color: var(--rose); }
 
+/* Quick Trip Insights Card */
 .insights-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -892,19 +1227,24 @@ select.input-control {
   margin-top: 2px;
 }
 
+/* Modals */
 .modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(28, 25, 23, 0.45);
   backdrop-filter: blur(6px);
-  z-index: 200;
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  animation: fadeIn 0.2s ease;
 }
 
-.modal-backdrop.hidden { display: none; }
+.modal-backdrop.hidden {
+  display: none;
+}
 
 .modal-card {
   background: var(--bg-surface);
@@ -913,6 +1253,7 @@ select.input-control {
   width: 520px;
   max-width: 100%;
   overflow: hidden;
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-header {
@@ -944,11 +1285,12 @@ select.input-control {
   border-top: 1px solid var(--border-subtle);
 }
 
+/* Toast Notifications */
 .toast-container {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 300;
+  z-index: 3000;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -967,32 +1309,73 @@ select.input-control {
   align-items: center;
   gap: 10px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .toast.success { background: #065f46; color: #ecfdf5; }
 .toast.info { background: #1c1917; color: #ffffff; }
 
+/* Leaflet Custom Marker & Popup Styles */
+.custom-map-pin {
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 11px;
+  border-radius: 50%;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-modal) !important;
+}
+
+.leaflet-popup-content {
+  font-family: var(--font-sans) !important;
+  font-size: 0.82rem !important;
+  line-height: 1.4 !important;
+  margin: 12px 14px !important;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
 @media (max-width: 900px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
+  .transit-grid { grid-template-columns: 1fr; }
+  .disruption-bar-card { flex-direction: column; align-items: flex-start; }
   .destination-banner { flex-direction: column; align-items: flex-start; gap: 16px; }
   .hero-title { font-size: 2rem; }
+  .map-canvas { height: 380px; }
 }
-  </style>
+
+</style>
 </head>
 <body>
 
+  <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
 
+  <!-- Header Navigation -->
   <header class="app-header">
     <div class="container header-inner">
       <a class="brand-wrap" id="btn-brand-home">
         <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/>
           </svg>
         </div>
-        <h1 class="brand-title">Travel<span>Pilot</span></h1>
+        <div>
+          <h1 class="brand-title">Travel<span>Pilot</span></h1>
+        </div>
         <span class="brand-badge">India Edition</span>
       </a>
 
@@ -1001,27 +1384,33 @@ select.input-control {
           <span>✨ Quick Example (Jaipur)</span>
         </button>
         <button class="btn btn-secondary btn-sm" id="btn-reset-form">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           <span>New Trip</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- Main Content Viewport -->
   <main class="container">
+
+    <!-- STEP 1: TRIP SETUP FORM -->
     <section class="hero-section" id="section-setup">
       <div class="hero-header">
         <div class="hero-pill">
-          <span>🇮🇳 Explore the Magic of India</span>
+          <span>🇮🇳 Explore India with Smart Adaptive AI Planning</span>
         </div>
         <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter your destination, trip duration, budget, and travel vibe. TravelPilot crafts a realistic, fully editable day-by-day itinerary.</p>
+        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Includes live interactive route maps, transit booking hubs, and automatic rain/delay rerouting.</p>
       </div>
 
       <div class="setup-card">
         <form id="trip-planner-form">
           <div class="form-grid">
+            <!-- Destination Input -->
             <div class="form-group">
               <label class="form-label" for="select-destination">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 <span>Destination (India)</span>
               </label>
               <select id="select-destination" class="input-control" required>
@@ -1034,8 +1423,10 @@ select.input-control {
               </select>
             </div>
 
+            <!-- Duration Input -->
             <div class="form-group">
               <label class="form-label" for="input-days">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 <span>Trip Duration</span>
               </label>
               <select id="input-days" class="input-control" required>
@@ -1048,32 +1439,43 @@ select.input-control {
               </select>
             </div>
 
+            <!-- Total Budget in INR -->
             <div class="form-group">
               <label class="form-label" for="input-budget">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 <span>Total Budget (₹ INR)</span>
               </label>
               <input type="number" id="input-budget" class="input-control" placeholder="e.g. 20000" value="18000" min="2000" step="500" required>
             </div>
           </div>
 
+          <!-- Interests Checkboxes -->
           <div class="interests-group">
             <div class="interests-header">
               <label class="form-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 <span>What are your interests?</span>
               </label>
               <span class="interests-hint">Select all that apply</span>
             </div>
-            <div class="interests-grid" id="interests-container"></div>
+
+            <div class="interests-grid" id="interests-container">
+              <!-- Dynamically populated chips -->
+            </div>
           </div>
 
           <button type="submit" class="btn btn-primary full-width" style="height: 52px; font-size: 1.05rem;" id="btn-generate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             <span>Generate Custom Itinerary</span>
           </button>
         </form>
       </div>
     </section>
 
+    <!-- STEP 2: GENERATED ITINERARY & ADAPTIVE DASHBOARD -->
     <section class="dashboard-section" id="section-dashboard" style="display: none;">
+      
+      <!-- Destination Top Banner -->
       <div class="destination-banner" id="dest-banner">
         <div>
           <div class="dest-badge-row">
@@ -1082,34 +1484,97 @@ select.input-control {
           </div>
           <h2 class="dest-title" id="dest-title">Jaipur Itinerary</h2>
           <p class="dest-subtitle" id="dest-tagline">The Pink City of Royal Forts, Palaces & Vibrant Bazaars</p>
-          <div class="dest-meta-chips" id="dest-highlights-list"></div>
+          <div class="dest-meta-chips" id="dest-highlights-list">
+            <!-- Dynamic highlights -->
+          </div>
         </div>
 
         <div class="dest-actions">
-          <button class="btn btn-secondary btn-sm" id="btn-copy-itinerary">
+          <button class="btn btn-secondary btn-sm" id="btn-copy-itinerary" title="Copy Text Itinerary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             <span>Copy Plan</span>
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-print-itinerary">
+          <button class="btn btn-secondary btn-sm" id="btn-print-itinerary" title="Print or Save as PDF">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Print / PDF</span>
           </button>
         </div>
       </div>
 
-      <div class="dashboard-grid">
+      <!-- View Mode Selector (Itinerary vs Interactive Map vs Transit Hub) -->
+      <nav class="view-mode-nav">
+        <button class="view-mode-btn active" id="btn-mode-itinerary" data-mode="itinerary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>1. Daily Itinerary</span>
+        </button>
+        <button class="view-mode-btn" id="btn-mode-map" data-mode="map">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <span>2. Interactive Route Map</span>
+        </button>
+        <button class="view-mode-btn" id="btn-mode-transit" data-mode="transit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <span>3. Cabs & Transit Hub</span>
+        </button>
+      </nav>
+
+      <!-- Dynamic Weather / Delay Disruption Assistant Bar -->
+      <div class="disruption-bar-card" id="disruption-bar">
+        <div class="disruption-info">
+          <div class="disruption-icon-wrap" id="disruption-icon">⚡</div>
+          <div class="disruption-text">
+            <h4 id="disruption-title">Dynamic Trip Disruption Assistant</h4>
+            <p id="disruption-desc">Something unexpected happened during your trip? Auto-adapt your route and budget in 1 click.</p>
+          </div>
+        </div>
+        <div class="disruption-actions">
+          <button class="btn-disruption-scenario" id="btn-scenario-rain" title="Auto-reroute for heavy rain">
+            <span>🌧️ Heavy Rain Alert</span>
+          </button>
+          <button class="btn-disruption-scenario" id="btn-scenario-delay" title="Auto-condense for flight/traffic delay">
+            <span>⏱️ 2+ Hr Traffic Delay</span>
+          </button>
+          <button class="btn-disruption-scenario" id="btn-scenario-chill" title="Switch to relaxed wellness day">
+            <span>😴 Relaxed Chill Day</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-reset-reroute" style="font-size:0.75rem; color:#78350f;">
+            <span>Reset Route</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- VIEW 1: ITINERARY DASHBOARD                                   -->
+      <!-- ============================================================= -->
+      <div class="dashboard-grid" id="view-section-itinerary">
+        
+        <!-- Left Pane: Day Tabs & Activities -->
         <div class="itinerary-left-pane">
-          <div class="days-nav" id="days-nav-tabs"></div>
-          <div class="day-container" id="day-content-area"></div>
+          
+          <!-- Day Tabs Selector -->
+          <div class="days-nav" id="days-nav-tabs">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Active Day Container -->
+          <div class="day-container" id="day-content-area">
+            <!-- Populated dynamically with active day's itinerary -->
+          </div>
         </div>
 
+        <!-- Right Pane: Live Editable Budget & Insights -->
         <div class="sidebar-sticky">
+          
+          <!-- Real-Time Budget Summary Card -->
           <div class="budget-card">
             <div class="budget-card-header">
               <h3 class="budget-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; color: var(--primary);"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 <span>Trip Budget Tracker</span>
               </h3>
               <span class="budget-status-pill within" id="budget-status-badge">Within Budget</span>
             </div>
 
+            <!-- Progress Meter -->
             <div class="budget-meter-wrap">
               <div class="budget-bar-track">
                 <div class="budget-bar-fill within" id="budget-bar-fill" style="width: 65%;"></div>
@@ -1120,6 +1585,7 @@ select.input-control {
               </div>
             </div>
 
+            <!-- Core Financial Figures Grid -->
             <div class="budget-numbers-grid">
               <div class="budget-num-item">
                 <span class="b-num-lbl">Set Budget</span>
@@ -1144,17 +1610,118 @@ select.input-control {
             </p>
           </div>
 
+          <!-- Destination Insights Card -->
           <div class="insights-card">
             <h4 class="insights-title">
               <span>✈️ TravelPilot Insider Tips</span>
             </h4>
-            <div class="insights-list" id="destination-insights-list"></div>
+            <div class="insights-list" id="destination-insights-list">
+              <!-- Dynamic insights -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- VIEW 2: INTERACTIVE ROUTE MAP                                 -->
+      <!-- ============================================================= -->
+      <div class="map-view-section" id="view-section-map">
+        <div class="map-card-wrapper">
+          <div class="map-header-row">
+            <h3 class="map-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              <span>Interactive Day-by-Day Route Visualizer</span>
+            </h3>
+            <span class="meta-chip">Click any pin for place info & directions</span>
+          </div>
+          
+          <div id="travel-map-container" class="map-canvas"></div>
+
+          <div class="map-legend-pills" id="map-legend-pills">
+            <!-- Populated with color badges for Day 1, Day 2, Day 3... -->
           </div>
         </div>
       </div>
+
+      <!-- ============================================================= -->
+      <!-- VIEW 3: TRANSIT & CAB BOOKING HUB                             -->
+      <!-- ============================================================= -->
+      <div class="transit-view-section" id="view-section-transit">
+        <div class="transit-grid">
+          
+          <!-- Intercity Travel Booking (Flights, Trains, Buses) -->
+          <div class="transit-card">
+            <div class="transit-card-header">
+              <h3 class="transit-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/></svg>
+                <span>Intercity Travel & Flight Booking</span>
+              </h3>
+              <span class="meta-chip">Direct Booking Links</span>
+            </div>
+
+            <p style="font-size: 0.82rem; color: var(--text-secondary);" id="transit-airport-info">
+              Nearest Airport: Loading airport details...
+            </p>
+
+            <div class="transit-links-row">
+              <a href="https://www.makemytrip.com/flights/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>✈️ Search Flights (MakeMyTrip)</span>
+              </a>
+              <a href="https://www.irctc.co.in/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>🚆 Book Trains (IRCTC)</span>
+              </a>
+              <a href="https://www.redbus.in/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>🚌 AC Buses (RedBus)</span>
+              </a>
+              <a href="https://www.uber.com/in/en/" target="_blank" rel="noopener" class="transit-partner-btn">
+                <span>🚗 Intercity Cab (Uber Outstation)</span>
+              </a>
+            </div>
+
+            <div style="margin-top: 14px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+              <h5 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Add Airport/Station Cab Transfer to Itinerary:</h5>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary btn-sm" id="btn-add-airport-pickup">
+                  <span>+ Add Airport Pickup Cab (₹750)</span>
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-add-station-transfer">
+                  <span>+ Add Station Cab (₹400)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local Cab, Auto & Scooter Rentals -->
+          <div class="transit-card">
+            <div class="transit-card-header">
+              <h3 class="transit-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--emerald);"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                <span>Local Cabs, Autos & Rental Scooters</span>
+              </h3>
+              <span class="meta-chip" id="local-transit-avg-badge">Avg ₹600/day</span>
+            </div>
+
+            <div class="local-transport-list" id="local-transport-options-list">
+              <!-- Populated dynamically -->
+            </div>
+
+            <div style="margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+              <button class="btn btn-primary btn-sm full-width" id="btn-add-daily-cab">
+                <span>+ Add Full-Day Private Tour Cab to Day 1 (₹1,800)</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </section>
+
   </main>
 
+  <!-- MODAL: ADD / EDIT PLACE OR ACTIVITY -->
   <div class="modal-backdrop hidden" id="modal-activity">
     <div class="modal-card">
       <div class="modal-header">
@@ -1187,6 +1754,7 @@ select.input-control {
                 <option value="nightlife">🍸 Nightlife & Cafes</option>
                 <option value="wellness">🧘 Wellness & Yoga</option>
                 <option value="shopping">🛍️ Shopping & Bazaars</option>
+                <option value="transit">🚗 Transport & Cab</option>
               </select>
             </div>
           </div>
@@ -1221,514 +1789,2074 @@ select.input-control {
     </div>
   </div>
 
+  <!-- Scripts -->
   <script>
-  // Complete Destinations Data
-  const DESTINATIONS_DATA = {
-    jaipur: {
-      name: "Jaipur",
-      state: "Rajasthan",
-      tagline: "The Pink City of Royal Forts, Palaces & Vibrant Bazaars",
-      bestTime: "October to March",
-      avgDailyTransport: 600,
-      highlights: ["Amber Fort", "Hawa Mahal", "Nahargarh Sunset", "Chokhi Dhani"],
-      places: [
-        { id: "jpr-1", name: "Amber Fort & Palace Tour", timeSlot: "Morning (09:00 AM)", category: "culture", cost: 500, duration: "3 hours", description: "Explore the hilltop majestic Rajput fort, Sheesh Mahal, and Maota Lake views.", tip: "Reach before 10 AM to beat the crowd and heat." },
-        { id: "jpr-2", name: "Panna Meena ka Kund Stepwell", timeSlot: "Morning (11:30 AM)", category: "culture", cost: 0, duration: "45 mins", description: "Marvel at the 16th-century geometric symmetrical stepwell near Amer.", tip: "Great photo spot with clean symmetrical stairs." },
-        { id: "jpr-3", name: "Authentic Rajasthani Thali at LMB / Rawat", timeSlot: "Afternoon (01:00 PM)", category: "food", cost: 650, duration: "1.5 hours", description: "Indulge in Dal Baati Churma, Gatte ki Sabzi, Pyaaz Kachori, and Ghewar.", tip: "Try the iconic Pyaaz Kachori at Rawat." },
-        { id: "jpr-4", name: "Hawa Mahal & City Palace Walk", timeSlot: "Afternoon (03:30 PM)", category: "culture", cost: 400, duration: "2.5 hours", description: "The 953-window Palace of Winds and royal museums inside City Palace.", tip: "Sip chai at Wind View Cafe directly opposite Hawa Mahal." },
-        { id: "jpr-5", name: "Shopping in Bapu Bazaar & Johari Bazaar", timeSlot: "Evening (05:30 PM)", category: "shopping", cost: 1200, duration: "2 hours", description: "Shop for handcrafted Jaipuri quilts, mojris, blue pottery, and silver jewelry.", tip: "Friendly bargaining is expected and customary." },
-        { id: "jpr-6", name: "Sunset at Nahargarh Fort (Padao Cafe)", timeSlot: "Evening (06:30 PM)", category: "nature", cost: 300, duration: "2 hours", description: "Witness the sun setting over the entire glowing pink city from the Aravalli hilltop.", tip: "Take a prepaid cab or auto that agrees to wait." },
-        { id: "jpr-7", name: "Cultural Village Experience at Chokhi Dhani", timeSlot: "Night (07:30 PM)", category: "culture", cost: 1100, duration: "3.5 hours", description: "Traditional folk dance, puppet shows, camel rides, and unlimited royal dining.", tip: "Come on an empty stomach for the grand dinner." },
-        { id: "jpr-8", name: "Jantar Mantar Astronomical Observatory", timeSlot: "Morning (10:00 AM)", category: "culture", cost: 200, duration: "1.5 hours", description: "UNESCO World Heritage site featuring the world's largest stone sundial.", tip: "Hiring a guide brings the instruments to life." }
-      ]
+/**
+ * TravelPilot - Curated Destination Dataset for India
+ * Authentic places with GPS coordinates, estimated costs (₹), time slots, transit options, and disruption contingency data.
+ */
+
+const DESTINATIONS_DATA = {
+  jaipur: {
+    name: "Jaipur",
+    state: "Rajasthan",
+    tagline: "The Pink City of Royal Forts, Palaces & Vibrant Bazaars",
+    coverGradient: "linear-gradient(135deg, #f97316 0%, #ec4899 100%)",
+    bestTime: "October to March",
+    avgDailyTransport: 600,
+    centerCoords: [26.9124, 75.7873],
+    highlights: ["Amber Fort", "Hawa Mahal", "Nahargarh Sunset", "Chokhi Dhani"],
+    transitInfo: {
+      airport: "Jaipur International Airport (JAI) - 12 km from city center",
+      railway: "Jaipur Junction (JP) & Gandhinagar Jaipur (GADJ) - Vande Bharat & Shatabdi",
+      localTransport: [
+        { type: "Private Sightseeing Cab (8 hrs/80 km)", avgCost: 1800, bookingPartner: "Uber / Ola / Local Tour Taxi", tip: "Best for visiting Amber Fort & Nahargarh hill together" },
+        { type: "Auto-Rickshaws (Tuk-Tuk)", avgCost: 500, bookingPartner: "Rapido / Metered Auto", tip: "Ideal for hopping between Old City bazaars and Hawa Mahal" },
+        { type: "Jaipur Metro (Mansarovar to Badi Chaupar)", avgCost: 40, bookingPartner: "JMRC Station Counter", tip: "Fastest way to reach the walled Pink City without traffic" },
+        { type: "Scooter / Bike Rental", avgCost: 450, bookingPartner: "OnnBikes / Royal Brothers", tip: "Great for solo travelers; carry a valid driving license" }
+      ],
+      intercityLinks: {
+        flights: "https://www.makemytrip.com/flights/",
+        trains: "https://www.irctc.co.in/",
+        cabs: "https://www.uber.com/in/en/",
+        buses: "https://www.redbus.in/"
+      }
     },
-    goa: {
-      name: "Goa",
-      state: "Goa",
-      tagline: "Sun-Kissed Beaches, Portuguese Heritage & Laidback Coastal Vibes",
-      bestTime: "November to March",
-      avgDailyTransport: 800,
-      highlights: ["Baga Beach", "Dudhsagar Falls", "Fontainhas", "Fort Aguada"],
-      places: [
-        { id: "goa-1", name: "Fontainhas Latin Quarter Heritage Walk", timeSlot: "Morning (09:00 AM)", category: "culture", cost: 150, duration: "2 hours", description: "Stroll along vibrant pastel Portuguese villas, tiled roofs, and quaint balconies in Panjim.", tip: "Grab fresh poi bread at 31st January Bakery." },
-        { id: "goa-2", name: "Basilica of Bom Jesus & Old Goa", timeSlot: "Morning (11:30 AM)", category: "culture", cost: 50, duration: "1.5 hours", description: "16th-century baroque cathedral holding sacred relics of St. Francis Xavier.", tip: "Modest dress required covering shoulders and knees." },
-        { id: "goa-3", name: "Authentic Goan Fish Thali at Ritz Classic", timeSlot: "Afternoon (01:30 PM)", category: "food", cost: 450, duration: "1 hour", description: "Traditional Kingfish fry, prawn curry, kismur, sol kadhi, and rice.", tip: "Ask for freshly prepared Sol Kadhi." },
-        { id: "goa-4", name: "Fort Aguada & Lighthouse Viewpoint", timeSlot: "Afternoon (04:00 PM)", category: "culture", cost: 100, duration: "1.5 hours", description: "17th-century Portuguese fortress offering panoramic views where Mandovi River meets the sea.", tip: "Visit the lower fort for sunset photography." },
-        { id: "goa-5", name: "Water Sports at Baga / Calangute Beach", timeSlot: "Morning (10:00 AM)", category: "adventure", cost: 1500, duration: "2.5 hours", description: "Parasailing, Jet Ski rides, Banana Boat, and Bumper rides over azure waves.", tip: "Book package combos on the beach directly." },
-        { id: "goa-6", name: "Sunset & Dining at Thalassa / Curlies", timeSlot: "Evening (06:00 PM)", category: "nightlife", cost: 1400, duration: "2.5 hours", description: "Cliffside dining with panoramic Arabian Sea sunset views and chill electronic beats.", tip: "Reserve cliffside tables in advance." }
-      ]
+    contingencyPlans: {
+      heavyRain: {
+        title: "Monsoon / Waterlogging Contingency",
+        desc: "Hilltop forts and outdoor bazaars replaced with indoor royal museums, covered havelis, and heritage culinary workshops.",
+        replacements: [
+          {
+            id: "jpr-alt-1",
+            name: "Albert Hall Museum & Royal Armor Gallery (Indoor)",
+            timeSlot: "Morning (10:00 AM)",
+            category: "culture",
+            cost: 300,
+            duration: "2.5 hours",
+            description: "Explore Rajasthan's oldest museum with 16 indoor galleries, Egyptian mummies, miniature paintings, and royal artifacts.",
+            tip: "Completely sheltered from rain; audio guides available at the entrance.",
+            coords: [26.9116, 75.8194]
+          },
+          {
+            id: "jpr-alt-2",
+            name: "Traditional Block Printing Workshop at Anokhi Museum",
+            timeSlot: "Afternoon (02:00 PM)",
+            category: "culture",
+            cost: 450,
+            duration: "2 hours",
+            description: "Hands-on indoor heritage textile block-printing session inside a restored 16th-century stone mansion.",
+            tip: "You get to take home your own hand-printed cotton scarf.",
+            coords: [26.9855, 75.8507]
+          },
+          {
+            id: "jpr-alt-3",
+            name: "Indoor Royal Cooking Masterclass & LMB Dining",
+            timeSlot: "Evening (06:00 PM)",
+            category: "food",
+            cost: 850,
+            duration: "2 hours",
+            description: "Learn the secrets of Laal Maas, Ker Sangri, and Ghewar followed by sheltered luxury dining.",
+            tip: "Advance reservation recommended for masterclass.",
+            coords: [26.9205, 75.8267]
+          }
+        ]
+      },
+      timeDelay: {
+        title: "Flight Delay / Traffic Jam Expressway Mode",
+        desc: "Condensed 2-stop priority route hitting the crown jewels of Jaipur without rushing.",
+        keepIds: ["jpr-1", "jpr-4"]
+      },
+      lowEnergy: {
+        title: "Relaxed Leisure & Palace High Tea Mode",
+        desc: "Swap uphill fort hikes with leisurely palace garden strolls and royal high-tea at Taj Rambagh.",
+        replacements: [
+          {
+            id: "jpr-alt-4",
+            name: "Royal Afternoon High Tea at Taj Rambagh Palace",
+            timeSlot: "Afternoon (03:30 PM)",
+            category: "food",
+            cost: 1600,
+            duration: "2 hours",
+            description: "Sip fine Darjeeling teas with scones, pastries, and peacock garden views at the former Maharaja residence.",
+            tip: "Smart casual dress code required.",
+            coords: [26.8974, 75.8078]
+          }
+        ]
+      }
     },
-    manali: {
-      name: "Manali",
-      state: "Himachal Pradesh",
-      tagline: "Snow-Capped Himalayan Peaks, Pine Valleys & High-Altitude Adventure",
-      bestTime: "March to June / Dec to Feb",
-      avgDailyTransport: 700,
-      highlights: ["Solang Valley", "Atal Tunnel & Sissu", "Hadimba Temple", "Old Manali Cafes"],
-      places: [
-        { id: "mnl-1", name: "Hadimba Devi Temple in Cedar Forest", timeSlot: "Morning (09:00 AM)", category: "culture", cost: 50, duration: "1.5 hours", description: "Ancient 1553 AD pagoda-style wooden temple inside towering deodar forests.", tip: "Look out for Himalayan yak photo ops outside." },
-        { id: "mnl-2", name: "Solang Valley Adventure Sports", timeSlot: "Morning (11:00 AM)", category: "adventure", cost: 2000, duration: "3.5 hours", description: "Paragliding, Zorbing, ATV quad biking, and ropeway cable car rides.", tip: "Always check weather conditions before paragliding." },
-        { id: "mnl-3", name: "Traditional Himachali Siddu & Trout", timeSlot: "Afternoon (02:00 PM)", category: "food", cost: 450, duration: "1 hour", description: "Steamed wheat walnut Siddu with desi ghee and fresh river-caught Tandoori Trout.", tip: "Try local cafes in Old Manali." },
-        { id: "mnl-4", name: "Old Manali Cafe Hopping & Live Music", timeSlot: "Evening (05:00 PM)", category: "nightlife", cost: 750, duration: "2.5 hours", description: "Bohemian vibes, wood-fired pizza at Cafe 1947, riverside outdoor seating.", tip: "Cafe 1947 by the river is legendary." }
-      ]
+    places: [
+      {
+        id: "jpr-1",
+        name: "Amber Fort & Palace Tour",
+        timeSlot: "Morning (09:00 AM)",
+        category: "culture",
+        cost: 500,
+        duration: "3 hours",
+        description: "Explore the hilltop majestic Rajput fort, Sheesh Mahal (Mirror Palace), and Maota Lake views.",
+        tip: "Reach before 10 AM to beat the crowd and heat.",
+        coords: [26.9855, 75.8513]
+      },
+      {
+        id: "jpr-2",
+        name: "Panna Meena ka Kund Stepwell",
+        timeSlot: "Morning (11:30 AM)",
+        category: "culture",
+        cost: 0,
+        duration: "45 mins",
+        description: "Marvel at the 16th-century geometric symmetrical stepwell near Amer.",
+        tip: "Great photo spot with clean symmetrical stairs.",
+        coords: [26.9893, 75.8541]
+      },
+      {
+        id: "jpr-3",
+        name: "Authentic Rajasthani Thali at LMB / Rawat",
+        timeSlot: "Afternoon (01:00 PM)",
+        category: "food",
+        cost: 650,
+        duration: "1.5 hours",
+        description: "Indulge in Dal Baati Churma, Gatte ki Sabzi, Pyaaz Kachori, and Ghewar.",
+        tip: "Try the iconic Pyaaz Kachori at Rawat Mishtan Bhandar.",
+        coords: [26.9205, 75.8267]
+      },
+      {
+        id: "jpr-4",
+        name: "Hawa Mahal & City Palace Walk",
+        timeSlot: "Afternoon (03:30 PM)",
+        category: "culture",
+        cost: 400,
+        duration: "2.5 hours",
+        description: "The 953-window Palace of Winds and royal museums inside City Palace.",
+        tip: "Sip chai at Wind View Cafe directly opposite Hawa Mahal.",
+        coords: [26.9239, 75.8267]
+      },
+      {
+        id: "jpr-5",
+        name: "Shopping in Bapu Bazaar & Johari Bazaar",
+        timeSlot: "Evening (05:30 PM)",
+        category: "shopping",
+        cost: 1200,
+        duration: "2 hours",
+        description: "Shop for handcrafted Jaipuri quilts, mojris (juttis), blue pottery, and silver jewelry.",
+        tip: "Friendly bargaining is expected and customary.",
+        coords: [26.9192, 75.8239]
+      },
+      {
+        id: "jpr-6",
+        name: "Sunset at Nahargarh Fort (Padao Cafe)",
+        timeSlot: "Evening (06:30 PM)",
+        category: "nature",
+        cost: 300,
+        duration: "2 hours",
+        description: "Witness the sun setting over the entire glowing pink city from the Aravalli hilltop.",
+        tip: "Take a prepaid cab or auto that agrees to wait for the return trip.",
+        coords: [26.9372, 75.8155]
+      },
+      {
+        id: "jpr-7",
+        name: "Cultural Village Experience at Chokhi Dhani",
+        timeSlot: "Night (07:30 PM)",
+        category: "culture",
+        cost: 1100,
+        duration: "3.5 hours",
+        description: "Traditional folk dance, puppet shows, camel rides, and unlimited royal dining.",
+        tip: "Come on an empty stomach for the grand dinner.",
+        coords: [26.7667, 75.8385]
+      },
+      {
+        id: "jpr-8",
+        name: "Jantar Mantar Astronomical Observatory",
+        timeSlot: "Morning (10:00 AM)",
+        category: "culture",
+        cost: 200,
+        duration: "1.5 hours",
+        description: "UNESCO World Heritage site featuring the world's largest stone sundial.",
+        tip: "Hiring a registered guide brings the astronomical instruments to life.",
+        coords: [26.9248, 75.8246]
+      },
+      {
+        id: "jpr-9",
+        name: "Jal Mahal (Water Palace) Promenade Walk",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 0,
+        duration: "45 mins",
+        description: "Scenic evening walk along Man Sagar Lake with the floating palace in the center.",
+        tip: "Street vendors sell delicious roasted corn and kulhad chai.",
+        coords: [26.9535, 75.8462]
+      },
+      {
+        id: "jpr-10",
+        name: "Albert Hall Museum Light Show",
+        timeSlot: "Night (08:00 PM)",
+        category: "culture",
+        cost: 150,
+        duration: "1 hour",
+        description: "Indo-Saracenic architectural masterpiece illuminated with dynamic night lighting.",
+        tip: "Watch hundreds of pigeons outside in the morning, or the lights at night.",
+        coords: [26.9116, 75.8194]
+      },
+      {
+        id: "jpr-11",
+        name: "Patrika Gate & Jawahar Circle Garden",
+        timeSlot: "Morning (08:30 AM)",
+        category: "culture",
+        cost: 0,
+        duration: "1 hour",
+        description: "Stunning hand-painted pastel arches representing Rajasthani culture and history.",
+        tip: "Best lighting for colorful photos before 9:30 AM.",
+        coords: [26.8378, 75.8078]
+      }
+    ]
+  },
+
+  goa: {
+    name: "Goa",
+    state: "Goa",
+    tagline: "Sun-Kissed Beaches, Portuguese Heritage & Laidback Coastal Vibes",
+    coverGradient: "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)",
+    bestTime: "November to March",
+    avgDailyTransport: 800,
+    centerCoords: [15.4989, 73.8278],
+    highlights: ["Baga Beach", "Dudhsagar Falls", "Fontainhas", "Fort Aguada"],
+    transitInfo: {
+      airport: "Dabolim Airport (GOI) & Manohar International Mopa (GOX)",
+      railway: "Madgaon Junction (MAO) & Thivim (THVM) - Vande Bharat from Mumbai/Bangalore",
+      localTransport: [
+        { type: "Self-Drive Car / Thar Rental", avgCost: 1500, bookingPartner: "Local Verified Operators", tip: "Full freedom to explore North & South Goa at your own pace" },
+        { type: "Scooter / Activa Rental", avgCost: 400, bookingPartner: "Beachside rental stalls", tip: "Most popular way to commute; helmets are mandatory" },
+        { type: "GoaMiles App Taxi", avgCost: 1100, bookingPartner: "GoaMiles Official App", tip: "Government-approved prepaid taxi app with fixed rates" },
+        { type: "Hop-On Hop-Off Sightseeing Bus", avgCost: 350, bookingPartner: "GTDC Tourism Counter", tip: "Connects Panaji, Old Goa churches, and Miramar beach" }
+      ],
+      intercityLinks: {
+        flights: "https://www.makemytrip.com/flights/",
+        trains: "https://www.irctc.co.in/",
+        cabs: "https://www.goamiles.com/",
+        buses: "https://www.redbus.in/"
+      }
     },
-    kerala: {
-      name: "Kerala",
-      state: "Kerala",
-      tagline: "God's Own Country: Emerald Backwaters, Tea Hills & Ayurvedic Bliss",
-      bestTime: "September to March",
-      avgDailyTransport: 750,
-      highlights: ["Alleppey Houseboat", "Munnar Tea Gardens", "Fort Kochi", "Kathakali Performance"],
-      places: [
-        { id: "ker-1", name: "Alleppey Backwater Cruise & Canoe", timeSlot: "Morning (09:30 AM)", category: "nature", cost: 1600, duration: "4 hours", description: "Glide through serene palm-fringed canals, paddy fields, and lagoons.", tip: "Take a narrow shikara to reach village inner canals." },
-        { id: "ker-2", name: "Munnar Tea Gardens & Museum Tour", timeSlot: "Morning (10:00 AM)", category: "nature", cost: 250, duration: "2.5 hours", description: "Endless rolling green tea carpet hills and historic factory processing tour.", tip: "Buy fresh black tea at factory rates." },
-        { id: "ker-3", name: "Traditional Kerala Sadhya Feast", timeSlot: "Afternoon (01:00 PM)", category: "food", cost: 400, duration: "1.5 hours", description: "Grand vegetarian feast of 24 dishes on banana leaf including Avial and Payasam.", tip: "Eat with clean hands to enjoy traditional flavor." },
-        { id: "ker-4", name: "Fort Kochi & Chinese Fishing Nets", timeSlot: "Evening (04:30 PM)", category: "culture", cost: 100, duration: "2 hours", description: "Explore colonial Jewish Town, Santa Cruz Basilica, and cantilever fishing nets.", tip: "Try fresh catch of fish marinated in spices." }
-      ]
+    contingencyPlans: {
+      heavyRain: {
+        title: "Tropical Downpour Contingency",
+        desc: "Open beach watersports moved to covered Portuguese havelis, Latin Quarter art galleries, and sheltered spice plantation pavilions.",
+        replacements: [
+          {
+            id: "goa-alt-1",
+            name: "Houses of Goa Architectural Museum",
+            timeSlot: "Morning (10:00 AM)",
+            category: "culture",
+            cost: 200,
+            duration: "2 hours",
+            description: "Unique multi-level ship-shaped museum showcasing the fusion of Portuguese and Hindu domestic architecture.",
+            tip: "Indoor and fully protected from rain.",
+            coords: [15.5342, 73.8344]
+          },
+          {
+            id: "goa-alt-2",
+            name: "Covered Spice Plantation Buffet & Feni Tasting",
+            timeSlot: "Afternoon (01:00 PM)",
+            category: "food",
+            cost: 700,
+            duration: "2.5 hours",
+            description: "Sheltered traditional Goan dining with organic spices, warm fish curry, and heritage cashew feni distillation demo.",
+            tip: "Relaxing rain sounds amidst the tropical foliage.",
+            coords: [15.4294, 74.0242]
+          }
+        ]
+      },
+      timeDelay: {
+        title: "Late Flight / Delay Quick Route",
+        desc: "Streamlined coastal sunset and dining itinerary in North Goa.",
+        keepIds: ["goa-1", "goa-6"]
+      },
+      lowEnergy: {
+        title: "South Goa Silent Retreat Mode",
+        desc: "Calm beachfront lounging at Palolem with gentle Ayurvedic massage and coconut smoothies.",
+        replacements: [
+          {
+            id: "goa-alt-3",
+            name: "Ayurvedic Beachside Spa & Yoga at Palolem",
+            timeSlot: "Afternoon (03:00 PM)",
+            category: "wellness",
+            cost: 1500,
+            duration: "2 hours",
+            description: "Warm herbal oil relaxation massage right next to the gentle ocean waves.",
+            tip: "Best for post-flight muscle relaxation.",
+            coords: [15.0100, 74.0232]
+          }
+        ]
+      }
     },
-    rishikesh: {
-      name: "Rishikesh",
-      state: "Uttarakhand",
-      tagline: "Yoga Capital of the World, Sacred Ganga Aarti & River Rafting",
-      bestTime: "Sept to Nov / March to May",
-      avgDailyTransport: 500,
-      highlights: ["Triveni Ghat Aarti", "Ganga White Water Rafting", "Beatles Ashram", "Neer Garh Waterfall"],
-      places: [
-        { id: "rsh-1", name: "Sunrise Yoga & Meditation by Ganga", timeSlot: "Morning (06:30 AM)", category: "wellness", cost: 300, duration: "1.5 hours", description: "Calming morning Pranayama and Hatha yoga overlooking the holy river.", tip: "Carry a comfortable yoga mat or cotton towel." },
-        { id: "rsh-2", name: "White Water River Rafting (Shivpuri)", timeSlot: "Morning (09:30 AM)", category: "adventure", cost: 1200, duration: "3 hours", description: "16 km thrilling ride tackling Grade III rapids like Roller Coaster and Golf Course.", tip: "Body surfing in calm river sections is a must-do." },
-        { id: "rsh-3", name: "Brunch at Little Buddha Cafe", timeSlot: "Afternoon (01:30 PM)", category: "food", cost: 450, duration: "1.5 hours", description: "Treehouse style cafe overlooking Laxman Jhula with smoothies and healthy bowls.", tip: "Get a top-floor seat with river breeze." },
-        { id: "rsh-4", name: "Grand Maha Ganga Aarti at Triveni Ghat", timeSlot: "Evening (06:00 PM)", category: "culture", cost: 50, duration: "1.5 hours", description: "Soul-stirring prayer with burning brass lamps, Vedic chanting, and floating diyas.", tip: "Arrive by 5:30 PM to secure a front step seat." }
-      ]
+    places: [
+      {
+        id: "goa-1",
+        name: "Fontainhas Latin Quarter Heritage Walk",
+        timeSlot: "Morning (09:00 AM)",
+        category: "culture",
+        cost: 150,
+        duration: "2 hours",
+        description: "Stroll along vibrant pastel Portuguese villas, tiled roofs, and quaint wooden balconies in Panjim.",
+        tip: "Grab fresh poi bread and pastel de nata at 31st January Bakery.",
+        coords: [15.4989, 73.8312]
+      },
+      {
+        id: "goa-2",
+        name: "Basilica of Bom Jesus & Old Goa Churches",
+        timeSlot: "Morning (11:30 AM)",
+        category: "culture",
+        cost: 50,
+        duration: "1.5 hours",
+        description: "UNESCO World Heritage 16th-century baroque cathedral holding the sacred relics of St. Francis Xavier.",
+        tip: "Modest dress required covering shoulders and knees.",
+        coords: [15.5009, 73.9116]
+      },
+      {
+        id: "goa-3",
+        name: "Authentic Goan Fish Thali at Ritz Classic",
+        timeSlot: "Afternoon (01:30 PM)",
+        category: "food",
+        cost: 450,
+        duration: "1 hour",
+        description: "Traditional Kingfish fry, prawn curry, kismur, sol kadhi, and rice.",
+        tip: "Ask for freshly prepared Sol Kadhi to beat the afternoon heat.",
+        coords: [15.4938, 73.8239]
+      },
+      {
+        id: "goa-4",
+        name: "Fort Aguada & Lighthouse Viewpoint",
+        timeSlot: "Afternoon (04:00 PM)",
+        category: "culture",
+        cost: 100,
+        duration: "1.5 hours",
+        description: "17th-century Portuguese fortress offering panoramic views where Mandovi River meets the Arabian Sea.",
+        tip: "Visit the lower fort for sunset photography.",
+        coords: [15.4925, 73.7736]
+      },
+      {
+        id: "goa-5",
+        name: "Water Sports at Baga Beach",
+        timeSlot: "Morning (10:00 AM)",
+        category: "adventure",
+        cost: 1500,
+        duration: "2.5 hours",
+        description: "Parasailing, Jet Ski rides, Banana Boat, and Bumper rides over azure waves.",
+        tip: "Book package combos on the beach directly for discounted rates.",
+        coords: [15.5553, 73.7517]
+      },
+      {
+        id: "goa-6",
+        name: "Sunset & Dining at Thalassa / Curlies",
+        timeSlot: "Evening (06:00 PM)",
+        category: "nightlife",
+        cost: 1400,
+        duration: "2.5 hours",
+        description: "Cliffside Greek dining with panoramic Arabian Sea sunset views and chill electronic beats.",
+        tip: "Reserve cliffside tables 2-3 days in advance.",
+        coords: [15.5898, 73.7385]
+      },
+      {
+        id: "goa-7",
+        name: "Dudhsagar Waterfall Jeep Safari Tour",
+        timeSlot: "Morning (07:30 AM)",
+        category: "adventure",
+        cost: 1800,
+        duration: "5 hours",
+        description: "Thrilling 4x4 jungle jeep safari through Bhagwan Mahavir Sanctuary to India's 4-tiered giant waterfall.",
+        tip: "Life jackets are mandatory for swimming in the natural pool.",
+        coords: [15.3144, 74.3143]
+      }
+    ]
+  },
+
+  manali: {
+    name: "Manali",
+    state: "Himachal Pradesh",
+    tagline: "Snow-Capped Himalayan Peaks, Pine Valleys & High-Altitude Adventure",
+    coverGradient: "linear-gradient(135deg, #0284c7 0%, #0d9488 100%)",
+    bestTime: "March to June / Dec to Feb",
+    avgDailyTransport: 700,
+    centerCoords: [32.2396, 77.1887],
+    highlights: ["Solang Valley", "Atal Tunnel & Sissu", "Hadimba Temple", "Old Manali Cafes"],
+    transitInfo: {
+      airport: "Bhuntar Airport (KUU) - 50 km / Chandigarh (IXC) - 290 km",
+      railway: "Chandigarh (CDG) / Kalka (KLK) connected to Volvo AC Sleeper buses",
+      localTransport: [
+        { type: "Union Sightseeing Taxi (Full Day)", avgCost: 2200, bookingPartner: "Manali Taxi Union Counter", tip: "Fixed government union rates for Solang, Rohtang, and Atal Tunnel" },
+        { type: "Royal Enfield Himalayan Rental", avgCost: 1200, bookingPartner: "Mall Road Bike Rentals", tip: "Best for thrilling rides across Atal Tunnel to Sissu waterfall" },
+        { type: "Local Green Electric Buses", avgCost: 50, bookingPartner: "HRTC Counter", tip: "Eco-friendly and scenic ride between Manali and Naggar" }
+      ],
+      intercityLinks: {
+        flights: "https://www.makemytrip.com/flights/",
+        trains: "https://www.irctc.co.in/",
+        cabs: "https://www.makemytrip.com/cabs/",
+        buses: "https://www.redbus.in/"
+      }
     },
-    udaipur: {
-      name: "Udaipur",
-      state: "Rajasthan",
-      tagline: "The City of Lakes, Marble Palaces & Royal Romance",
-      bestTime: "September to March",
-      avgDailyTransport: 550,
-      highlights: ["City Palace", "Lake Pichola Boat Cruise", "Bagore Ki Haveli", "Sajjangarh Monsoon Palace"],
-      places: [
-        { id: "udp-1", name: "City Palace Complex & Crystal Gallery", timeSlot: "Morning (09:30 AM)", category: "culture", cost: 450, duration: "3 hours", description: "Rajasthan's largest royal palace complex with intricate mirror work and lake views.", tip: "Take combined ticket for museum and royal gardens." },
-        { id: "udp-2", name: "Lake Pichola Sunset Boat Cruise", timeSlot: "Evening (05:00 PM)", category: "nature", cost: 650, duration: "1.5 hours", description: "Scenic boat ride passing Lake Palace and stopping at Jagmandir marble island.", tip: "5:00 PM sunset departure has magical reflections." },
-        { id: "udp-3", name: "Bagore Ki Haveli Evening Folk Dance", timeSlot: "Evening (07:00 PM)", category: "culture", cost: 150, duration: "1.5 hours", description: "High-energy Chari fire dance, puppet storytelling, and 11-pot balancing act.", tip: "Queue at haveli counter by 5:45 PM." },
-        { id: "udp-4", name: "Lakeside Dining at Ambrai / Upré", timeSlot: "Night (08:30 PM)", category: "food", cost: 1300, duration: "2 hours", description: "Romantic candlelit dining directly on the water overlooking illuminated City Palace.", tip: "Try the Mewari Laal Maas or Ker Sangri." }
-      ]
+    contingencyPlans: {
+      heavyRain: {
+        title: "Mountain Rain & Landslide Contingency",
+        desc: "High-altitude passes rerouted to Naggar Castle galleries, indoor heated cafes in Old Manali, and hot sulfur mineral springs in Vashisht.",
+        replacements: [
+          {
+            id: "mnl-alt-1",
+            name: "Museum of Himachal Culture & Folk Art",
+            timeSlot: "Morning (10:00 AM)",
+            category: "culture",
+            cost: 100,
+            duration: "2 hours",
+            description: "Indoor gallery featuring antique Himalayan temples models, traditional attire, and wooden handicraft instruments.",
+            tip: "Located right next to Hadimba temple.",
+            coords: [32.2490, 77.1700]
+          },
+          {
+            id: "mnl-alt-2",
+            name: "Naggar Castle Heritage & Indoor Art Gallery",
+            timeSlot: "Afternoon (02:00 PM)",
+            category: "culture",
+            cost: 200,
+            duration: "2.5 hours",
+            description: "500-year-old wooden castle with Nicholas Roerich Himalayan painting gallery, sheltered from bad weather.",
+            tip: "Enjoy apple pie at the covered courtyard cafe.",
+            coords: [32.1158, 77.1717]
+          }
+        ]
+      },
+      timeDelay: {
+        title: "Express Valley Highlights Route",
+        desc: "Optimized route focusing on Hadimba Forest and Old Manali riverside dining.",
+        keepIds: ["mnl-1", "mnl-4"]
+      },
+      lowEnergy: {
+        title: "Heated Thermal Springs & Wellness Mode",
+        desc: "Natural hot sulfur baths at Vashisht followed by warm herbal tea by the Beas river.",
+        replacements: [
+          {
+            id: "mnl-alt-3",
+            name: "Private Hot Sulfur Thermal Mineral Baths (Vashisht)",
+            timeSlot: "Morning (10:30 AM)",
+            category: "wellness",
+            cost: 250,
+            duration: "1.5 hours",
+            description: "Natural geothermal warm healing springs believed to cure body fatigue and joint aches.",
+            tip: "Private clean family baths available near temple.",
+            coords: [32.2612, 77.1873]
+          }
+        ]
+      }
+    },
+    places: [
+      {
+        id: "mnl-1",
+        name: "Hadimba Devi Temple in Cedar Forest",
+        timeSlot: "Morning (09:00 AM)",
+        category: "culture",
+        cost: 50,
+        duration: "1.5 hours",
+        description: "Ancient 1553 AD pagoda-style wooden temple nestled inside towering Dhungri deodar forests.",
+        tip: "Look out for Himalayan yak photo ops outside the temple complex.",
+        coords: [32.2483, 77.1692]
+      },
+      {
+        id: "mnl-2",
+        name: "Solang Valley Adventure Sports",
+        timeSlot: "Morning (11:00 AM)",
+        category: "adventure",
+        cost: 2000,
+        duration: "3.5 hours",
+        description: "Paragliding, Zorbing, ATV quad biking, and ropeway cable car rides with mountain views.",
+        tip: "Always check weather conditions before booking paragliding.",
+        coords: [32.3166, 77.1578]
+      },
+      {
+        id: "mnl-3",
+        name: "Traditional Himachali Siddu & Trout Lunch",
+        timeSlot: "Afternoon (02:00 PM)",
+        category: "food",
+        cost: 450,
+        duration: "1 hour",
+        description: "Steamed wheat walnut Siddu with desi ghee and fresh river-caught Tandoori Trout fish.",
+        tip: "Try local cafes in Old Manali for authentic homemade walnut Siddu.",
+        coords: [32.2546, 77.1752]
+      },
+      {
+        id: "mnl-4",
+        name: "Old Manali Cafe Hopping & Live Indie Music",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nightlife",
+        cost: 750,
+        duration: "2.5 hours",
+        description: "Bohemian vibes, wood-fired pizza at Cafe 1947, riverside outdoor seating, and live acoustic music.",
+        tip: "Cafe 1947 by the Manalsu River is legendary for river sounds and woodfired pizza.",
+        coords: [32.2562, 77.1741]
+      },
+      {
+        id: "mnl-5",
+        name: "Atal Tunnel & Sissu Waterfall Day Excursion",
+        timeSlot: "Morning (08:30 AM)",
+        category: "nature",
+        cost: 1200,
+        duration: "4.5 hours",
+        description: "Drive through the 9.02 km high-altitude engineering marvel into Lahaul Valley's glacial landscapes and Sissu waterfall.",
+        tip: "Start early to avoid tunnel checkpoint queues.",
+        coords: [32.4764, 77.1235]
+      }
+    ]
+  },
+
+  kerala: {
+    name: "Kerala",
+    state: "Kerala",
+    tagline: "God's Own Country: Emerald Backwaters, Tea Hills & Ayurvedic Bliss",
+    coverGradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+    bestTime: "September to March",
+    avgDailyTransport: 750,
+    centerCoords: [9.9312, 76.2673],
+    highlights: ["Alleppey Houseboat", "Munnar Tea Gardens", "Fort Kochi", "Kathakali Performance"],
+    transitInfo: {
+      airport: "Cochin International Airport (COK) - World's 1st 100% solar powered airport",
+      railway: "Ernakulam Junction (ERS) & Alappuzha (ALLP) - Superfast trains",
+      localTransport: [
+        { type: "Private AC Cab for Hills & Backwaters", avgCost: 2400, bookingPartner: "Kerala Tourism Approved Taxis", tip: "Most seamless for 3-day multi-destination tour (Kochi - Munnar - Alleppey)" },
+        { type: "Government Backwater Water Bus / Ferry", avgCost: 30, bookingPartner: "SWTD Jetty Counters", tip: "Super scenic and ultra-cheap way to see backwaters like a local" },
+        { type: "Auto-Rickshaws (Kochi/Munnar)", avgCost: 400, bookingPartner: "Local Auto Stands", tip: "Fast and breezy for city monument hops in Fort Kochi" }
+      ],
+      intercityLinks: {
+        flights: "https://www.makemytrip.com/flights/",
+        trains: "https://www.irctc.co.in/",
+        cabs: "https://www.uber.com/in/en/",
+        buses: "https://www.redbus.in/"
+      }
+    },
+    contingencyPlans: {
+      heavyRain: {
+        title: "Monsoon Serenity Contingency",
+        desc: "Open shikaras moved to luxury covered glass-window houseboats, indoor Kathakali makeup demonstrations, and Ayurvedic spa sessions.",
+        replacements: [
+          {
+            id: "ker-alt-1",
+            name: "Kerala Folklore Museum (3-Tiered Architectural Jewel)",
+            timeSlot: "Morning (10:30 AM)",
+            category: "culture",
+            cost: 350,
+            duration: "2 hours",
+            description: "World-class indoor museum with 4,000+ artifacts, wood carvings, and classical musical instruments.",
+            tip: "Fully indoor and breathtaking wooden architecture.",
+            coords: [9.9333, 76.3055]
+          },
+          {
+            id: "ker-alt-2",
+            name: "Abhyanga Full-Body Warm Ayurvedic Herbal Massage",
+            timeSlot: "Afternoon (03:00 PM)",
+            category: "wellness",
+            cost: 1800,
+            duration: "1.5 hours",
+            description: "Monsoon is traditionally the best season in Ayurveda for herbal rejuvenation and body detox.",
+            tip: "Certified therapists and herbal steam bath included.",
+            coords: [9.9654, 76.2421]
+          }
+        ]
+      },
+      timeDelay: {
+        title: "Fort Kochi & Sunset Cruise Express",
+        desc: "Relaxed historic harbor stroll and traditional Sadhya dining.",
+        keepIds: ["ker-3", "ker-4"]
+      },
+      lowEnergy: {
+        title: "Backwater Hammock & Village Tea Chill",
+        desc: "Laze on a shaded houseboat deck sipping fresh tender coconut water.",
+        replacements: [
+          {
+            id: "ker-alt-3",
+            name: "Shaded Kettuvallam Day Lounge & Fresh Seafood Lunch",
+            timeSlot: "Morning (11:00 AM)",
+            category: "nature",
+            cost: 1400,
+            duration: "3.5 hours",
+            description: "Glide silently past paddy fields while onboard chef prepares fresh Karimeen Pollichathu.",
+            tip: "Zero walking required; ultimate relaxation.",
+            coords: [9.4981, 76.3388]
+          }
+        ]
+      }
+    },
+    places: [
+      {
+        id: "ker-1",
+        name: "Alleppey Backwater Day Cruise & Canoe Ride",
+        timeSlot: "Morning (09:30 AM)",
+        category: "nature",
+        cost: 1600,
+        duration: "4 hours",
+        description: "Glide through serene palm-fringed canals, village paddy fields, and lagoons on a traditional Kettuvallam.",
+        tip: "Take a narrow shikara or canoe to reach the tiny village inner canals.",
+        coords: [9.4981, 76.3388]
+      },
+      {
+        id: "ker-2",
+        name: "Munnar Tea Gardens & KDHP Tea Museum Tour",
+        timeSlot: "Morning (10:00 AM)",
+        category: "nature",
+        cost: 250,
+        duration: "2.5 hours",
+        description: "Endless rolling green tea carpet hills, tea leaf plucking demo, and historic factory processing tour.",
+        tip: "Buy authentic freshly ground single-estate black tea at factory rates.",
+        coords: [10.0889, 77.0595]
+      },
+      {
+        id: "ker-3",
+        name: "Traditional Kerala Sadhya on Banana Leaf",
+        timeSlot: "Afternoon (01:00 PM)",
+        category: "food",
+        cost: 400,
+        duration: "1.5 hours",
+        description: "Grand vegetarian feast of 24 dishes including Avial, Thoran, Sambar, Payasam, and crispy banana chips.",
+        tip: "Eat with clean hands to enjoy the traditional texture and flavor.",
+        coords: [9.9654, 76.2421]
+      },
+      {
+        id: "ker-4",
+        name: "Fort Kochi Heritage Walk & Chinese Fishing Nets",
+        timeSlot: "Evening (04:30 PM)",
+        category: "culture",
+        cost: 100,
+        duration: "2 hours",
+        description: "Explore colonial Jewish Town, Santa Cruz Basilica, Mattancherry Palace, and iconic cantilevers at sunset.",
+        tip: "Try fresh catch of fish marinated in spices directly at the Kochi pier stalls.",
+        coords: [9.9654, 76.2421]
+      },
+      {
+        id: "ker-5",
+        name: "Kathakali & Kalaripayattu Live Cultural Show",
+        timeSlot: "Evening (06:30 PM)",
+        category: "culture",
+        cost: 450,
+        duration: "2 hours",
+        description: "Live classical facial expression dance drama and Kerala's ancient 3000-year-old martial arts demonstration.",
+        tip: "Arrive 30 mins early at 6 PM to watch the actors apply organic makeup.",
+        coords: [9.9678, 76.2452]
+      }
+    ]
+  },
+
+  rishikesh: {
+    name: "Rishikesh",
+    state: "Uttarakhand",
+    tagline: "Yoga Capital of the World, Sacred Ganga Aarti & River Rafting",
+    coverGradient: "linear-gradient(135deg, #0d9488 0%, #06b6d4 100%)",
+    bestTime: "September to November / March to May",
+    avgDailyTransport: 500,
+    centerCoords: [30.0869, 78.2676],
+    highlights: ["Triveni Ghat Aarti", "Ganga White Water Rafting", "Beatles Ashram", "Neer Garh Waterfall"],
+    transitInfo: {
+      airport: "Dehradun Jolly Grant Airport (DED) - 20 km (30 mins drive)",
+      railway: "Yog Nagari Rishikesh (YNRK) & Haridwar Junction (HW)",
+      localTransport: [
+        { type: "Shared Vikram / Electric Auto", avgCost: 250, bookingPartner: "Ghat Route Stand", tip: "Super affordable for trips between Ram Jhula, Laxman Jhula & Triveni Ghat" },
+        { type: "Scooter / Royal Enfield Rental", avgCost: 500, bookingPartner: "Tapovan Bike Rentals", tip: "Best way to climb uphill to Neer Garh waterfall or Shivpuri rafting camps" },
+        { type: "Private Rafting & Camp Transfer Cabs", avgCost: 900, bookingPartner: "Rafting Agency Fleet", tip: "Included in most Shivpuri river rafting packages" }
+      ],
+      intercityLinks: {
+        flights: "https://www.makemytrip.com/flights/",
+        trains: "https://www.irctc.co.in/",
+        cabs: "https://www.uber.com/in/en/",
+        buses: "https://www.redbus.in/"
+      }
+    },
+    contingencyPlans: {
+      heavyRain: {
+        title: "Monsoon River Swell Contingency",
+        desc: "Rafting suspended due to river currents; swapped with sheltered Beatles Ashram graffiti domes, sound healing studios, and indoor Ganga cafe viewings.",
+        replacements: [
+          {
+            id: "rsh-alt-1",
+            name: "Beatles Ashram Indoor Domes & Photo Gallery",
+            timeSlot: "Morning (10:00 AM)",
+            category: "culture",
+            cost: 200,
+            duration: "2.5 hours",
+            description: "Explore the sheltered stone meditation caves and the historic 1968 Beatles photo gallery.",
+            tip: "Rain makes the surrounding Rajaji forest lush green and fragrant.",
+            coords: [30.1147, 78.3142]
+          },
+          {
+            id: "rsh-alt-2",
+            name: "Tibetan Singing Bowl Sound Therapy & Meditation",
+            timeSlot: "Afternoon (03:30 PM)",
+            category: "wellness",
+            cost: 500,
+            duration: "1.5 hours",
+            description: "Indoor deep restorative acoustic frequency meditation session in Tapovan.",
+            tip: "Helps calm travel fatigue and re-energize.",
+            coords: [30.1312, 78.3214]
+          }
+        ]
+      },
+      timeDelay: {
+        title: "Tapovan Cafe & Evening Aarti Express",
+        desc: "Focused spiritual highlights: treehouse cafe brunch and front-row seats for the Triveni Ghat Aarti.",
+        keepIds: ["rsh-3", "rsh-5"]
+      },
+      lowEnergy: {
+        title: "Spiritual Detox & Gentle Pranayama Mode",
+        desc: "Gentle sunrise breathing by the river and ayurvedic herbal tea at Little Buddha Cafe.",
+        replacements: [
+          {
+            id: "rsh-alt-3",
+            name: "Gentle Sunset Meditation & Ganga Diya Offering",
+            timeSlot: "Evening (05:30 PM)",
+            category: "wellness",
+            cost: 100,
+            duration: "1.5 hours",
+            description: "Peaceful quiet seating on the steps with a floating floral diya light on the water.",
+            tip: "Sit near Parmarth Niketan for tranquil chants.",
+            coords: [30.1189, 78.3115]
+          }
+        ]
+      }
+    },
+    places: [
+      {
+        id: "rsh-1",
+        name: "Sunrise Yoga & Meditation Session by the Ganges",
+        timeSlot: "Morning (06:30 AM)",
+        category: "wellness",
+        cost: 300,
+        duration: "1.5 hours",
+        description: "Calming morning Pranayama and Hatha yoga session overlooking the flowing holy river.",
+        tip: "Carry a comfortable yoga mat or light cotton towel.",
+        coords: [30.1250, 78.3200]
+      },
+      {
+        id: "rsh-2",
+        name: "White Water River Rafting (Shivpuri to NIM Beach)",
+        timeSlot: "Morning (09:30 AM)",
+        category: "adventure",
+        cost: 1200,
+        duration: "3 hours",
+        description: "16 km thrilling ride tackling Grade III rapids like Roller Coaster, Golf Course, and Clubhouse.",
+        tip: "Body surfing in calm river sections with your lifejacket is a must-do.",
+        coords: [30.1412, 78.3842]
+      },
+      {
+        id: "rsh-3",
+        name: "Healthy Organic Brunch at Little Buddha Cafe",
+        timeSlot: "Afternoon (01:30 PM)",
+        category: "food",
+        cost: 450,
+        duration: "1.5 hours",
+        description: "Treehouse style cafe overlooking Laxman Jhula with Israeli platters, fresh smoothies, and lemon ginger tea.",
+        tip: "Get a top-floor floor-cushion seat with river breeze.",
+        coords: [30.1287, 78.3289]
+      },
+      {
+        id: "rsh-4",
+        name: "The Beatles Ashram (Chaurasi Kutia) Tour",
+        timeSlot: "Afternoon (03:30 PM)",
+        category: "culture",
+        cost: 200,
+        duration: "2 hours",
+        description: "Walk inside the 1968 Maharishi Mahesh Yogi ashram where the Beatles composed the White Album, surrounded by vibrant graffiti.",
+        tip: "Visit the meditation domes and the Beatles photo gallery inside.",
+        coords: [30.1147, 78.3142]
+      },
+      {
+        id: "rsh-5",
+        name: "Grand Maha Ganga Aarti at Triveni Ghat",
+        timeSlot: "Evening (06:00 PM)",
+        category: "culture",
+        cost: 50,
+        duration: "1.5 hours",
+        description: "Soul-stirring prayer with burning brass lamps, Vedic chanting, conch shells, and floating flower diyas.",
+        tip: "Arrive by 5:30 PM to secure a front step seat right near the priests.",
+        coords: [30.0869, 78.2882]
+      }
+    ]
+  },
+
+  udaipur: {
+    name: "Udaipur",
+    state: "Rajasthan",
+    tagline: "The City of Lakes, Marble Palaces & Royal Romance",
+    coverGradient: "linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)",
+    bestTime: "September to March",
+    avgDailyTransport: 550,
+    centerCoords: [24.5854, 73.7125],
+    highlights: ["City Palace", "Lake Pichola Boat Cruise", "Bagore Ki Haveli", "Sajjangarh Monsoon Palace"],
+    transitInfo: {
+      airport: "Maharana Pratap Airport (UDR) - 22 km from Old City",
+      railway: "Udaipur City Railway Station (UDZ) - Chetak Express & Royal Rajasthan Trains",
+      localTransport: [
+        { type: "Private Lake City Sightseeing Taxi", avgCost: 1600, bookingPartner: "Uber / Local Travel Desk", tip: "Great for Monsoon Palace hilltop and Shilpgram crafts village" },
+        { type: "Auto-Rickshaws for Old City Alleys", avgCost: 400, bookingPartner: "Local Auto Stands", tip: "Cars cannot enter narrow lakeside lanes; autos are essential" },
+        { type: "Sunset Lake Pichola Motorboats", avgCost: 650, bookingPartner: "City Palace Jetty (RMC)", tip: "Magical golden-hour cruise stopping at Jag Mandir island" }
+      ],
+      intercityLinks: {
+        flights: "https://www.makemytrip.com/flights/",
+        trains: "https://www.irctc.co.in/",
+        cabs: "https://www.uber.com/in/en/",
+        buses: "https://www.redbus.in/"
+      }
+    },
+    contingencyPlans: {
+      heavyRain: {
+        title: "Monsoon Lake Swell Contingency",
+        desc: "Outdoor boat rides and hill climbs swapped for City Palace indoor crystal gallery, covered haveli folk shows, and vintage car collection.",
+        replacements: [
+          {
+            id: "udp-alt-1",
+            name: "Vintage & Classic Car Museum (Maharajas Collection)",
+            timeSlot: "Morning (10:30 AM)",
+            category: "culture",
+            cost: 400,
+            duration: "1.5 hours",
+            description: "Indoor garage displaying 1934 Rolls-Royce Phantom, Cadillacs, and convertibles used in James Bond Octopussy.",
+            tip: "Fully covered indoor gallery with historic photography.",
+            coords: [24.5772, 73.6966]
+          },
+          {
+            id: "udp-alt-2",
+            name: "Covered Dharohar Folk Dance Show at Bagore Ki Haveli",
+            timeSlot: "Evening (07:00 PM)",
+            category: "culture",
+            cost: 150,
+            duration: "1.5 hours",
+            description: "Sheltered traditional Rajasthani fire-pot dance, puppet performance, and 11-brass pot balancing on glass.",
+            tip: "The courtyard has covered awnings during rainy days.",
+            coords: [24.5794, 73.6828]
+          }
+        ]
+      },
+      timeDelay: {
+        title: "Palace & Sunset Lake Express",
+        desc: "Core palace exploration and romantic candlelit lakeside dining at Ambrai Ghat.",
+        keepIds: ["udp-1", "udp-4"]
+      },
+      lowEnergy: {
+        title: "Romantic Rooftop & Spa Retreat Mode",
+        desc: "Gentle palace terrace walk followed by rooftop cold coffee and soothing Rajasthani head massage.",
+        replacements: [
+          {
+            id: "udp-alt-3",
+            name: "Lakeside Rooftop Chill at Jheel's Ginger Coffee Bar",
+            timeSlot: "Afternoon (04:00 PM)",
+            category: "food",
+            cost: 350,
+            duration: "2 hours",
+            description: "Sit on lake-edge marble jharokhas enjoying cold coffee, woodfired bagels, and serene water ripples.",
+            tip: "Best relaxed spot right next to Gangaur Ghat.",
+            coords: [24.5802, 73.6824]
+          }
+        ]
+      }
+    },
+    places: [
+      {
+        id: "udp-1",
+        name: "City Palace Complex & Crystal Gallery",
+        timeSlot: "Morning (09:30 AM)",
+        category: "culture",
+        cost: 450,
+        duration: "3 hours",
+        description: "Rajasthan's largest royal palace complex with intricate mirror work, royal courtyards, and Lake Pichola panoramas.",
+        tip: "Take the combined ticket for City Palace museum and royal gardens.",
+        coords: [24.5764, 73.6835]
+      },
+      {
+        id: "udp-2",
+        name: "Lake Pichola Sunset Boat Cruise to Jag Mandir",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 650,
+        duration: "1.5 hours",
+        description: "Scenic boat ride passing the Lake Palace (Taj) and stopping at the island marble palace Jagmandir.",
+        tip: "The 5:00 PM sunset departure has the most magical golden-hour reflection.",
+        coords: [24.5739, 73.6800]
+      },
+      {
+        id: "udp-3",
+        name: "Bagore Ki Haveli Evening Folk Dance Show",
+        timeSlot: "Evening (07:00 PM)",
+        category: "culture",
+        cost: 150,
+        duration: "1.5 hours",
+        description: "High-energy Chari dance with fire pots, puppet storytelling, and famous 11-pot balancing act on glass.",
+        tip: "Tickets sell out quickly; queue at the haveli counter by 5:45 PM.",
+        coords: [24.5794, 73.6828]
+      },
+      {
+        id: "udp-4",
+        name: "Lakeside Rooftop Dining at Ambrai / Upré",
+        timeSlot: "Night (08:30 PM)",
+        category: "food",
+        cost: 1300,
+        duration: "2 hours",
+        description: "Romantic candlelit dining directly on the water overlooking illuminated City Palace facades.",
+        tip: "Try the Mewari Laal Maas (spicy mutton) or Ker Sangri with butter naan.",
+        coords: [24.5790, 73.6802]
+      },
+      {
+        id: "udp-5",
+        name: "Saheliyon Ki Bari (Garden of the Maidens)",
+        timeSlot: "Morning (11:30 AM)",
+        category: "nature",
+        cost: 50,
+        duration: "1 hour",
+        description: "Historic royal garden designed with marble elephant fountains, lotus pools, and rose gardens.",
+        tip: "The fountains operate entirely on natural water gravity pressure with zero pumps.",
+        coords: [24.6041, 73.6874]
+      },
+      {
+        id: "udp-6",
+        name: "Monsoon Palace (Sajjangarh) Hilltop Sunset",
+        timeSlot: "Evening (05:30 PM)",
+        category: "nature",
+        cost: 300,
+        duration: "2 hours",
+        description: "Hilltop fortress overlooking all five lakes of Udaipur and the rugged Aravalli mountains.",
+        tip: "Shared tourist jeeps are available from the base gate.",
+        coords: [24.5908, 73.6394]
+      }
+    ]
+  }
+};
+
+const INTEREST_CATEGORIES = [
+  { id: "culture", label: "Culture & Heritage", icon: "🏛️" },
+  { id: "nature", label: "Nature & Scenic", icon: "🌿" },
+  { id: "adventure", label: "Adventure & Thrills", icon: "⚡" },
+  { id: "food", label: "Food & Street Eats", icon: "🍛" },
+  { id: "nightlife", label: "Nightlife & Cafes", icon: "🍸" },
+  { id: "wellness", label: "Wellness & Spiritual", icon: "🧘" },
+  { id: "shopping", label: "Shopping & Bazaars", icon: "🛍️" }
+];
+
+
+/**
+ * TravelPilot - Interactive Trip Planner Engine with Live Leaflet Map, Transit Booking & Dynamic Disruption Assistant
+ */
+
+// =============================================================================
+// 1. APPLICATION STATE
+// =============================================================================
+
+let state = {
+  destination: "jaipur",
+  daysCount: 3,
+  totalBudget: 18000,
+  selectedInterests: ["culture", "food", "nature"],
+  activeDayTab: 0, // 0 for Day 1, -1 for "All Days"
+  activeViewMode: "itinerary", // "itinerary" | "map" | "transit"
+  itinerary: [],
+  originalItineraryBackup: null,
+  activeDisruption: null // "rain" | "delay" | "chill" | null
+};
+
+let mapInstance = null;
+let mapMarkersGroup = null;
+let mapPolylinesGroup = null;
+
+// Day Pin Palette
+const DAY_COLORS = ["#ea580c", "#4f46e5", "#059669", "#e11d48", "#d97706", "#7c3aed", "#0284c7"];
+
+// =============================================================================
+// 2. INITIALIZATION & EVENT HANDLERS
+// =============================================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderInterestChips();
+  setupEventListeners();
+
+  // Load from localStorage if present
+  const saved = localStorage.getItem("travelpilot_saved_trip");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.itinerary && parsed.itinerary.length > 0) {
+        state = parsed;
+        syncFormWithState();
+        renderDashboard();
+        return;
+      }
+    } catch (e) {
+      console.warn("Could not load saved trip:", e);
     }
-  };
+  }
 
-  const INTEREST_CATEGORIES = [
-    { id: "culture", label: "Culture & Heritage", icon: "🏛️" },
-    { id: "nature", label: "Nature & Scenic", icon: "🌿" },
-    { id: "adventure", label: "Adventure & Thrills", icon: "⚡" },
-    { id: "food", label: "Food & Street Eats", icon: "🍛" },
-    { id: "nightlife", label: "Nightlife & Cafes", icon: "🍸" },
-    { id: "wellness", label: "Wellness & Spiritual", icon: "🧘" },
-    { id: "shopping", label: "Shopping & Bazaars", icon: "🛍️" }
-  ];
+  generateItinerary();
+});
 
-  let state = {
-    destination: "jaipur",
-    daysCount: 3,
-    totalBudget: 18000,
-    selectedInterests: ["culture", "food", "nature"],
-    activeDayTab: 0,
-    itinerary: []
-  };
+function renderInterestChips() {
+  const container = document.getElementById("interests-container");
+  if (!container) return;
+  container.innerHTML = "";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    renderInterestChips();
-    setupEventListeners();
-    generateItinerary();
+  INTEREST_CATEGORIES.forEach(cat => {
+    const isChecked = state.selectedInterests.includes(cat.id);
+    const label = document.createElement("label");
+    label.className = `interest-chip ${isChecked ? 'selected' : ''}`;
+    label.innerHTML = `
+      <input type="checkbox" name="interest" value="${cat.id}" ${isChecked ? 'checked' : ''}>
+      <span>${cat.icon}</span>
+      <span>${cat.label}</span>
+    `;
+
+    label.querySelector("input").addEventListener("change", (e) => {
+      if (e.target.checked) {
+        if (!state.selectedInterests.includes(cat.id)) state.selectedInterests.push(cat.id);
+        label.classList.add("selected");
+      } else {
+        state.selectedInterests = state.selectedInterests.filter(id => id !== cat.id);
+        label.classList.remove("selected");
+      }
+    });
+
+    container.appendChild(label);
+  });
+}
+
+function syncFormWithState() {
+  const destSelect = document.getElementById("select-destination");
+  const daysSelect = document.getElementById("input-days");
+  const budgetInput = document.getElementById("input-budget");
+
+  if (destSelect) destSelect.value = state.destination;
+  if (daysSelect) daysSelect.value = String(state.daysCount);
+  if (budgetInput) budgetInput.value = state.totalBudget;
+
+  const chips = document.querySelectorAll(".interest-chip");
+  chips.forEach(chip => {
+    const input = chip.querySelector("input");
+    if (input) {
+      const isChecked = state.selectedInterests.includes(input.value);
+      input.checked = isChecked;
+      if (isChecked) chip.classList.add("selected");
+      else chip.classList.remove("selected");
+    }
+  });
+}
+
+// =============================================================================
+// 3. ITINERARY GENERATOR ALGORITHM
+// =============================================================================
+
+function generateItinerary() {
+  const destKey = state.destination;
+  const destInfo = DESTINATIONS_DATA[destKey] || DESTINATIONS_DATA.jaipur;
+  const allPlaces = [...destInfo.places];
+
+  const scoredPlaces = allPlaces.map(p => {
+    let score = 0;
+    if (state.selectedInterests.includes(p.category)) score += 5;
+    return { ...p, score };
   });
 
-  function renderInterestChips() {
-    const container = document.getElementById("interests-container");
-    if (!container) return;
-    container.innerHTML = "";
+  scoredPlaces.sort((a, b) => b.score - a.score);
 
-    INTEREST_CATEGORIES.forEach(cat => {
-      const isChecked = state.selectedInterests.includes(cat.id);
-      const label = document.createElement("label");
-      label.className = `interest-chip ${isChecked ? 'selected' : ''}`;
-      label.innerHTML = `
-        <input type="checkbox" name="interest" value="${cat.id}" ${isChecked ? 'checked' : ''}>
-        <span>${cat.icon}</span>
-        <span>${cat.label}</span>
-      `;
-      label.querySelector("input").addEventListener("change", (e) => {
-        if (e.target.checked) {
-          if (!state.selectedInterests.includes(cat.id)) state.selectedInterests.push(cat.id);
-          label.classList.add("selected");
-        } else {
-          state.selectedInterests = state.selectedInterests.filter(id => id !== cat.id);
-          label.classList.remove("selected");
-        }
-      });
-      container.appendChild(label);
-    });
-  }
+  const numDays = state.daysCount;
+  const days = [];
+  const usedPlaceIds = new Set();
 
-  function generateItinerary() {
-    const destKey = state.destination;
-    const destInfo = DESTINATIONS_DATA[destKey] || DESTINATIONS_DATA.jaipur;
-    const allPlaces = [...destInfo.places];
-
-    const scoredPlaces = allPlaces.map(p => {
-      let score = 0;
-      if (state.selectedInterests.includes(p.category)) score += 5;
-      return { ...p, score };
-    });
-    scoredPlaces.sort((a, b) => b.score - a.score);
-
-    const numDays = state.daysCount;
-    const days = [];
-    const usedPlaceIds = new Set();
-
-    for (let d = 1; d <= numDays; d++) {
-      const dayActivities = [];
-      for (const place of scoredPlaces) {
-        if (dayActivities.length >= 3) break;
-        if (!usedPlaceIds.has(place.id)) {
-          dayActivities.push(JSON.parse(JSON.stringify(place)));
-          usedPlaceIds.add(place.id);
-        }
+  for (let d = 1; d <= numDays; d++) {
+    const dayActivities = [];
+    for (const place of scoredPlaces) {
+      if (dayActivities.length >= 3) break;
+      if (!usedPlaceIds.has(place.id)) {
+        dayActivities.push(JSON.parse(JSON.stringify(place)));
+        usedPlaceIds.add(place.id);
       }
+    }
 
-      if (dayActivities.length === 0) {
-        dayActivities.push({
-          id: `custom-chill-${d}`,
-          name: `Leisure & Local Cafe Exploration in ${destInfo.name}`,
-          timeSlot: "Afternoon (02:00 PM)",
-          category: "food",
-          cost: 400,
-          duration: "2 hours",
-          description: `Stroll through the local streets, visit nearby markets, and enjoy regional delicacies.`,
-          tip: "Ask your hotel host for their favorite hidden dining spot."
-        });
-      }
-
-      days.push({
-        dayNum: d,
-        title: `Day ${d}: Highlights of ${destInfo.name}`,
-        activities: dayActivities
+    if (dayActivities.length === 0) {
+      dayActivities.push({
+        id: `custom-chill-${d}`,
+        name: `Leisure & Local Cafe Exploration in ${destInfo.name}`,
+        timeSlot: "Afternoon (02:00 PM)",
+        category: "food",
+        cost: 400,
+        duration: "2 hours",
+        description: `Stroll through the local streets, visit nearby markets, and enjoy regional delicacies.`,
+        tip: "Ask your hotel host for their favorite hidden dining spot.",
+        coords: destInfo.centerCoords
       });
     }
 
-    state.itinerary = days;
-    state.activeDayTab = 0;
-    renderDashboard();
-    showToast("Custom Itinerary Generated!", `Crafted a personalized ${numDays}-day plan for ${destInfo.name}.`, "success");
+    let dayTheme = `Day ${d}: Highlights of ${destInfo.name}`;
+    if (d === 1) dayTheme = `Day 1: Iconic Landmarks & First Impressions`;
+    else if (d === 2) dayTheme = `Day 2: Heritage, Culture & Local Flavors`;
+    else if (d === 3) dayTheme = `Day 3: Scenic Vistas & Sunset Magic`;
+    else if (d === 4) dayTheme = `Day 4: Adventure & Offbeat Trails`;
+    else if (d === 5) dayTheme = `Day 5: Artisan Bazaars & Wellness`;
+    else if (d >= 6) dayTheme = `Day ${d}: Extended Discovery & Leisure`;
+
+    days.push({
+      dayNum: d,
+      title: dayTheme,
+      activities: dayActivities
+    });
   }
 
-  function renderDashboard() {
-    const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-    document.getElementById("section-dashboard").style.display = "block";
+  state.itinerary = days;
+  state.originalItineraryBackup = JSON.parse(JSON.stringify(days));
+  state.activeDayTab = 0;
+  state.activeDisruption = null;
 
-    document.getElementById("dest-title").textContent = `${destInfo.name} — ${state.daysCount} Day Itinerary`;
-    document.getElementById("dest-tagline").textContent = destInfo.tagline;
-    document.getElementById("dest-state-badge").textContent = destInfo.state;
-    document.getElementById("dest-time-badge").textContent = `Best Time: ${destInfo.bestTime}`;
+  saveToLocalStorage();
+  renderDashboard();
+  showToast("Custom Itinerary Generated!", `Crafted a personalized ${numDays}-day plan for ${destInfo.name}.`, "success");
+}
 
-    const highlightsContainer = document.getElementById("dest-highlights-list");
-    if (highlightsContainer) {
-      highlightsContainer.innerHTML = destInfo.highlights.map(h => `<span class="meta-chip">✨ ${h}</span>`).join("");
-    }
+// =============================================================================
+// 4. RENDERING & UI SYNC
+// =============================================================================
 
+function renderDashboard() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  document.getElementById("section-dashboard").style.display = "block";
+
+  // Banner Details
+  document.getElementById("dest-title").textContent = `${destInfo.name} — ${state.daysCount} Day Adaptive Itinerary`;
+  document.getElementById("dest-tagline").textContent = destInfo.tagline;
+  document.getElementById("dest-state-badge").textContent = destInfo.state;
+  document.getElementById("dest-time-badge").textContent = `Best Time: ${destInfo.bestTime}`;
+
+  const highlightsContainer = document.getElementById("dest-highlights-list");
+  if (highlightsContainer) {
+    highlightsContainer.innerHTML = destInfo.highlights.map(h => `<span class="meta-chip">✨ ${h}</span>`).join("");
+  }
+
+  // Update Disruption Bar
+  updateDisruptionBarUI();
+
+  // Render Sub-Views
+  renderDayTabs();
+  renderDayContent();
+  recalculateBudget();
+  renderInsights();
+  renderTransitView();
+
+  // If map is currently active view, render map
+  if (state.activeViewMode === "map") {
+    setTimeout(initOrUpdateMap, 100);
+  }
+}
+
+// Switch between Itinerary, Map, and Transit Views
+function switchViewMode(mode) {
+  state.activeViewMode = mode;
+
+  const buttons = document.querySelectorAll(".view-mode-btn");
+  buttons.forEach(btn => {
+    if (btn.dataset.mode === mode) btn.classList.add("active");
+    else btn.classList.remove("active");
+  });
+
+  const secItinerary = document.getElementById("view-section-itinerary");
+  const secMap = document.getElementById("view-section-map");
+  const secTransit = document.getElementById("view-section-transit");
+
+  if (secItinerary) secItinerary.style.display = mode === "itinerary" ? "grid" : "none";
+  if (secMap) secMap.style.display = mode === "map" ? "flex" : "none";
+  if (secTransit) secTransit.style.display = mode === "transit" ? "flex" : "none";
+
+  if (mode === "map") {
+    setTimeout(initOrUpdateMap, 50);
+  }
+}
+
+// Render Day Tabs Navigation
+function renderDayTabs() {
+  const tabsContainer = document.getElementById("days-nav-tabs");
+  if (!tabsContainer) return;
+  tabsContainer.innerHTML = "";
+
+  const allTab = document.createElement("button");
+  allTab.className = `day-tab-btn ${state.activeDayTab === -1 ? 'active' : ''}`;
+  allTab.innerHTML = `
+    <span class="tab-day-label">Overview</span>
+    <span class="tab-day-title">All Days (${state.itinerary.length})</span>
+    <span class="tab-day-cost">Full Itinerary</span>
+  `;
+  allTab.addEventListener("click", () => {
+    state.activeDayTab = -1;
     renderDayTabs();
     renderDayContent();
-    recalculateBudget();
-    renderInsights();
-  }
+    if (state.activeViewMode === "map") initOrUpdateMap();
+  });
+  tabsContainer.appendChild(allTab);
 
-  function renderDayTabs() {
-    const tabsContainer = document.getElementById("days-nav-tabs");
-    if (!tabsContainer) return;
-    tabsContainer.innerHTML = "";
-
-    const allTab = document.createElement("button");
-    allTab.className = `day-tab-btn ${state.activeDayTab === -1 ? 'active' : ''}`;
-    allTab.innerHTML = `
-      <span class="tab-day-label">Overview</span>
-      <span class="tab-day-title">All Days (${state.itinerary.length})</span>
-      <span class="tab-day-cost">Full Itinerary</span>
+  state.itinerary.forEach((day, idx) => {
+    const dayCost = day.activities.reduce((sum, act) => sum + (Number(act.cost) || 0), 0);
+    const tabBtn = document.createElement("button");
+    tabBtn.className = `day-tab-btn ${state.activeDayTab === idx ? 'active' : ''}`;
+    tabBtn.innerHTML = `
+      <span class="tab-day-label">Day ${day.dayNum}</span>
+      <span class="tab-day-title">${day.activities.length} Stops</span>
+      <span class="tab-day-cost">₹${dayCost.toLocaleString('en-IN')}</span>
     `;
-    allTab.addEventListener("click", () => {
-      state.activeDayTab = -1;
+
+    tabBtn.addEventListener("click", () => {
+      state.activeDayTab = idx;
       renderDayTabs();
       renderDayContent();
+      if (state.activeViewMode === "map") initOrUpdateMap();
     });
-    tabsContainer.appendChild(allTab);
 
-    state.itinerary.forEach((day, idx) => {
-      const dayCost = day.activities.reduce((sum, act) => sum + (Number(act.cost) || 0), 0);
-      const tabBtn = document.createElement("button");
-      tabBtn.className = `day-tab-btn ${state.activeDayTab === idx ? 'active' : ''}`;
-      tabBtn.innerHTML = `
-        <span class="tab-day-label">Day ${day.dayNum}</span>
-        <span class="tab-day-title">${day.activities.length} Stops</span>
-        <span class="tab-day-cost">₹${dayCost.toLocaleString('en-IN')}</span>
-      `;
-      tabBtn.addEventListener("click", () => {
-        state.activeDayTab = idx;
-        renderDayTabs();
-        renderDayContent();
-      });
-      tabsContainer.appendChild(tabBtn);
-    });
+    tabsContainer.appendChild(tabBtn);
+  });
+
+  const addDayBtn = document.createElement("button");
+  addDayBtn.className = "day-tab-btn";
+  addDayBtn.style.borderStyle = "dashed";
+  addDayBtn.innerHTML = `
+    <span class="tab-day-label">Extend Trip</span>
+    <span class="tab-day-title">+ Add Day</span>
+    <span class="tab-day-cost">Add Day ${state.itinerary.length + 1}</span>
+  `;
+  addDayBtn.addEventListener("click", addNewDay);
+  tabsContainer.appendChild(addDayBtn);
+}
+
+// Render Active Day Activities
+function renderDayContent() {
+  const container = document.getElementById("day-content-area");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const daysToRender = state.activeDayTab === -1 
+    ? state.itinerary 
+    : [state.itinerary[state.activeDayTab]].filter(Boolean);
+
+  if (daysToRender.length === 0) {
+    container.innerHTML = `<div class="day-header-card"><p>No activities scheduled for this day.</p></div>`;
+    return;
   }
 
-  function renderDayContent() {
-    const container = document.getElementById("day-content-area");
-    if (!container) return;
-    container.innerHTML = "";
+  daysToRender.forEach((day) => {
+    const dayIndex = state.itinerary.findIndex(d => d.dayNum === day.dayNum);
+    const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
 
-    const daysToRender = state.activeDayTab === -1 ? state.itinerary : [state.itinerary[state.activeDayTab]].filter(Boolean);
+    const daySection = document.createElement("div");
+    daySection.style.marginBottom = "24px";
 
-    daysToRender.forEach((day) => {
-      const dayIndex = state.itinerary.findIndex(d => d.dayNum === day.dayNum);
-      const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
+    const header = document.createElement("div");
+    header.className = "day-header-card";
+    header.innerHTML = `
+      <div class="day-title-group">
+        <h3>Day ${day.dayNum}: ${day.title.replace(/^Day \d+:\s*/, '')}</h3>
+        <p>${day.activities.length} activities planned · Estimated daily spend</p>
+      </div>
+      <div class="day-header-actions">
+        <span class="day-subtotal-badge">Day Subtotal: ₹${dayCost.toLocaleString('en-IN')}</span>
+        ${state.itinerary.length > 1 ? `
+          <button class="btn-icon-sm delete" title="Delete this Day" onclick="deleteDay(${dayIndex})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        ` : ''}
+      </div>
+    `;
+    daySection.appendChild(header);
 
-      const daySection = document.createElement("div");
-      daySection.style.marginBottom = "24px";
+    const actList = document.createElement("div");
+    actList.className = "activities-list";
+    actList.style.marginTop = "12px";
 
-      const header = document.createElement("div");
-      header.className = "day-header-card";
-      header.innerHTML = `
-        <div class="day-title-group">
-          <h3>Day ${day.dayNum}: ${day.title.replace(/^Day \d+:\s*/, '')}</h3>
-          <p>${day.activities.length} activities planned</p>
+    day.activities.forEach((act, actIndex) => {
+      const actCard = document.createElement("div");
+      actCard.className = `activity-card ${act.category === 'transit' ? 'is-transit' : ''}`;
+      actCard.draggable = true;
+      actCard.dataset.dayIndex = dayIndex;
+      actCard.dataset.actIndex = actIndex;
+
+      const catClass = `cat-${act.category || 'culture'}`;
+      const catLabel = getCategoryLabel(act.category);
+
+      actCard.innerHTML = `
+        <div class="drag-handle" title="Drag to Reorder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
         </div>
-        <div class="day-header-actions">
-          <span class="day-subtotal-badge">Day Subtotal: ₹${dayCost.toLocaleString('en-IN')}</span>
+
+        <div class="activity-main">
+          <div>
+            <span class="activity-badge-category ${catClass}">${catLabel}</span>
+            <span class="activity-time">⏰ ${act.timeSlot}</span>
+          </div>
+          <h4 class="activity-name">${act.name}</h4>
+          ${act.description ? `<p class="activity-desc">${act.description}</p>` : ''}
+          ${act.tip ? `
+            <div class="activity-tip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span><strong>Tip:</strong> ${act.tip}</span>
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="activity-right">
+          <div class="cost-input-wrap" title="Click to edit activity cost">
+            <span class="cost-currency">₹</span>
+            <input type="number" class="cost-field" value="${act.cost || 0}" min="0" step="50" data-day="${dayIndex}" data-act="${actIndex}">
+          </div>
+
+          <div class="activity-actions">
+            <button class="btn-icon-sm" title="Move Up" onclick="moveActivity(${dayIndex}, ${actIndex}, -1)" ${actIndex === 0 ? 'disabled style="opacity:0.3;"' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="18 15 12 9 6 15"/></svg>
+            </button>
+            <button class="btn-icon-sm" title="Move Down" onclick="moveActivity(${dayIndex}, ${actIndex}, 1)" ${actIndex === day.activities.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <button class="btn-icon-sm" title="Edit Place Details" onclick="openEditActivityModal(${dayIndex}, ${actIndex})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-icon-sm delete" title="Delete Activity" onclick="deleteActivity(${dayIndex}, ${actIndex})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
         </div>
       `;
-      daySection.appendChild(header);
 
-      const actList = document.createElement("div");
-      actList.className = "activities-list";
-      actList.style.marginTop = "12px";
+      setupCardDragAndDrop(actCard, dayIndex, actIndex);
 
-      day.activities.forEach((act, actIndex) => {
-        const actCard = document.createElement("div");
-        actCard.className = "activity-card";
-        const catClass = `cat-${act.category || 'culture'}`;
-
-        actCard.innerHTML = `
-          <div class="drag-handle">📍</div>
-          <div class="activity-main">
-            <div>
-              <span class="activity-badge-category ${catClass}">${act.category || 'culture'}</span>
-              <span class="activity-time">⏰ ${act.timeSlot}</span>
-            </div>
-            <h4 class="activity-name">${act.name}</h4>
-            ${act.description ? `<p class="activity-desc">${act.description}</p>` : ''}
-            ${act.tip ? `<div class="activity-tip">💡 Tip: ${act.tip}</div>` : ''}
-          </div>
-          <div class="activity-right">
-            <div class="cost-input-wrap">
-              <span class="cost-currency">₹</span>
-              <input type="number" class="cost-field" value="${act.cost || 0}" min="0" step="50" data-day="${dayIndex}" data-act="${actIndex}">
-            </div>
-            <div class="activity-actions">
-              <button class="btn-icon-sm" onclick="moveActivity(${dayIndex}, ${actIndex}, -1)" ${actIndex === 0 ? 'disabled' : ''}>▲</button>
-              <button class="btn-icon-sm" onclick="moveActivity(${dayIndex}, ${actIndex}, 1)" ${actIndex === day.activities.length - 1 ? 'disabled' : ''}>▼</button>
-              <button class="btn-icon-sm" onclick="openEditActivityModal(${dayIndex}, ${actIndex})">✏️</button>
-              <button class="btn-icon-sm delete" onclick="deleteActivity(${dayIndex}, ${actIndex})">🗑️</button>
-            </div>
-          </div>
-        `;
-
-        const costInput = actCard.querySelector(".cost-field");
-        costInput.addEventListener("input", (e) => {
-          state.itinerary[dayIndex].activities[actIndex].cost = Number(e.target.value) || 0;
-          recalculateBudget();
-          renderDayTabs();
-        });
-
-        actList.appendChild(actCard);
+      const costInput = actCard.querySelector(".cost-field");
+      costInput.addEventListener("input", (e) => {
+        const newCost = Number(e.target.value) || 0;
+        state.itinerary[dayIndex].activities[actIndex].cost = newCost;
+        recalculateBudget();
+        updateDaySubtotalBadges();
+        saveToLocalStorage();
       });
 
-      const addBtn = document.createElement("button");
-      addBtn.className = "add-activity-btn";
-      addBtn.style.marginTop = "8px";
-      addBtn.textContent = `+ Add New Place to Day ${day.dayNum}`;
-      addBtn.addEventListener("click", () => openAddActivityModal(dayIndex));
-      actList.appendChild(addBtn);
-
-      daySection.appendChild(actList);
-      container.appendChild(daySection);
+      actList.appendChild(actCard);
     });
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "add-activity-btn";
+    addBtn.style.marginTop = "8px";
+    addBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span>Add New Place / Activity to Day ${day.dayNum}</span>
+    `;
+    addBtn.addEventListener("click", () => openAddActivityModal(dayIndex));
+    actList.appendChild(addBtn);
+
+    daySection.appendChild(actList);
+    container.appendChild(daySection);
+  });
+}
+
+function updateDaySubtotalBadges() {
+  const tabs = document.querySelectorAll(".day-tab-btn");
+  state.itinerary.forEach((day, idx) => {
+    const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
+    if (tabs[idx + 1]) {
+      const costSpan = tabs[idx + 1].querySelector(".tab-day-cost");
+      if (costSpan) costSpan.textContent = `₹${dayCost.toLocaleString('en-IN')}`;
+    }
+  });
+
+  const headerBadges = document.querySelectorAll(".day-subtotal-badge");
+  headerBadges.forEach((badge, i) => {
+    const targetDay = state.activeDayTab === -1 ? state.itinerary[i] : state.itinerary[state.activeDayTab];
+    if (targetDay) {
+      const dayCost = targetDay.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
+      badge.textContent = `Day Subtotal: ₹${dayCost.toLocaleString('en-IN')}`;
+    }
+  });
+}
+
+// =============================================================================
+// 5. LIVE LEAFLET MAP VISUALIZER
+// =============================================================================
+
+function initOrUpdateMap() {
+  const mapContainer = document.getElementById("travel-map-container");
+  if (!mapContainer) return;
+
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const center = destInfo.centerCoords || [26.9124, 75.7873];
+
+  if (!mapInstance) {
+    mapInstance = L.map('travel-map-container', {
+      center: center,
+      zoom: 12,
+      scrollWheelZoom: false
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapInstance);
+
+    mapMarkersGroup = L.layerGroup().addTo(mapInstance);
+    mapPolylinesGroup = L.layerGroup().addTo(mapInstance);
+  } else {
+    mapInstance.setView(center, 12);
+    mapMarkersGroup.clearLayers();
+    mapPolylinesGroup.clearLayers();
   }
 
-  function recalculateBudget() {
-    let totalCost = 0;
-    state.itinerary.forEach(day => {
-      day.activities.forEach(act => {
-        totalCost += (Number(act.cost) || 0);
+  // Determine which days to plot
+  const daysToPlot = state.activeDayTab === -1
+    ? state.itinerary
+    : [state.itinerary[state.activeDayTab]].filter(Boolean);
+
+  const allLatLngs = [];
+  const legendContainer = document.getElementById("map-legend-pills");
+  if (legendContainer) legendContainer.innerHTML = "";
+
+  daysToPlot.forEach((day, dayIdx) => {
+    const dayColor = DAY_COLORS[day.dayNum % DAY_COLORS.length] || "#ea580c";
+    const dayLatLngs = [];
+
+    // Add legend pill
+    if (legendContainer) {
+      const pill = document.createElement("span");
+      pill.className = "map-pill-item";
+      pill.style.background = `${dayColor}18`;
+      pill.style.color = dayColor;
+      pill.style.border = `1px solid ${dayColor}40`;
+      pill.innerHTML = `● Day ${day.dayNum}: ${day.activities.length} Stops`;
+      legendContainer.appendChild(pill);
+    }
+
+    day.activities.forEach((act, actIdx) => {
+      // Find coords or fallback
+      let coords = act.coords;
+      if (!coords) {
+        coords = [
+          center[0] + (Math.random() - 0.5) * 0.04,
+          center[1] + (Math.random() - 0.5) * 0.04
+        ];
+      }
+
+      dayLatLngs.push(coords);
+      allLatLngs.push(coords);
+
+      // Custom HTML pin
+      const icon = L.divIcon({
+        className: 'custom-pin-wrapper',
+        html: `<div class="custom-map-pin" style="background:${dayColor};">D${day.dayNum}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
       });
+
+      const popupHtml = `
+        <div style="min-width:180px;">
+          <div style="font-size:0.7rem; font-weight:700; color:${dayColor}; text-transform:uppercase;">Day ${day.dayNum} · Stop #${actIdx + 1}</div>
+          <div style="font-weight:700; font-size:0.95rem; margin-top:2px;">${act.name}</div>
+          <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">⏰ ${act.timeSlot} · ₹${act.cost}</div>
+          ${act.tip ? `<div style="font-size:0.72rem; color:#d97706; margin-top:4px;">💡 ${act.tip}</div>` : ''}
+          <div style="margin-top:8px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.name + ' ' + destInfo.name)}" target="_blank" style="color:#ea580c; font-weight:700; font-size:0.75rem; text-decoration:none;">Open in Google Maps &rarr;</a>
+          </div>
+        </div>
+      `;
+
+      const marker = L.marker(coords, { icon: icon }).bindPopup(popupHtml);
+      mapMarkersGroup.addLayer(marker);
     });
 
-    const setBudget = Number(state.totalBudget) || 18000;
-    const remaining = setBudget - totalCost;
-    const spentPct = setBudget > 0 ? Math.min(Math.round((totalCost / setBudget) * 100), 100) : 100;
-    const numDays = state.itinerary.length || 1;
-    const dailyAvg = Math.round(totalCost / numDays);
+    // Draw route connecting lines for the day
+    if (dayLatLngs.length > 1) {
+      const polyline = L.polyline(dayLatLngs, {
+        color: dayColor,
+        weight: 3.5,
+        opacity: 0.75,
+        dashArray: '6, 8'
+      });
+      mapPolylinesGroup.addLayer(polyline);
+    }
+  });
 
-    document.getElementById("val-set-budget").textContent = `₹${setBudget.toLocaleString('en-IN')}`;
-    document.getElementById("val-total-cost").textContent = `₹${totalCost.toLocaleString('en-IN')}`;
-    document.getElementById("val-daily-avg").textContent = `₹${dailyAvg.toLocaleString('en-IN')} / day`;
+  // Fit bounds to markers
+  if (allLatLngs.length > 0) {
+    try {
+      const bounds = L.latLngBounds(allLatLngs);
+      mapInstance.fitBounds(bounds, { padding: [40, 40] });
+    } catch (e) {
+      // Handled
+    }
+  }
 
-    const statusBadge = document.getElementById("budget-status-badge");
-    const barFill = document.getElementById("budget-bar-fill");
-    const spentPctText = document.getElementById("budget-spent-pct");
-    const remainingText = document.getElementById("budget-remaining-text");
-    const valBalance = document.getElementById("val-balance");
-    const lblBalance = document.getElementById("lbl-balance-status");
+  mapInstance.invalidateSize();
+}
 
+// =============================================================================
+// 6. DYNAMIC WEATHER & DELAY DISRUPTION ASSISTANT
+// =============================================================================
+
+function applyDisruptionScenario(type) {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const plans = destInfo.contingencyPlans;
+  if (!plans) return;
+
+  state.activeDisruption = type;
+
+  if (type === "rain" && plans.heavyRain) {
+    const rainReplacements = plans.heavyRain.replacements;
+    // Replace outdoor activities in Day 1 and Day 2 with indoor ones
+    if (state.itinerary[0] && rainReplacements.length > 0) {
+      state.itinerary[0].title = `Day 1: Rainy Day Indoor Palaces & Masterclasses`;
+      state.itinerary[0].activities = JSON.parse(JSON.stringify(rainReplacements));
+    }
+    showToast("Monsoon Reroute Applied 🌧️", "Swapped open hills/forts for royal indoor museums, havelis, and culinary masterclasses.", "success");
+  } else if (type === "delay" && plans.timeDelay) {
+    // Keep only essential 2 spots
+    state.itinerary.forEach(d => {
+      if (d.activities.length > 2) {
+        d.activities = d.activities.slice(0, 2);
+      }
+    });
+    showToast("Express Reroute Applied ⏱️", "Condensed stops to top 2 must-visit places to absorb 2+ hours of travel delay.", "info");
+  } else if (type === "chill" && plans.lowEnergy) {
+    const chillSpots = plans.lowEnergy.replacements;
+    if (state.itinerary[0] && chillSpots.length > 0) {
+      state.itinerary[0].activities.push(JSON.parse(JSON.stringify(chillSpots[0])));
+    }
+    showToast("Relaxation Mode Active 😴", "Added scenic lakeside high-tea and soothing Ayurvedic wellness spots.", "success");
+  } else if (type === "reset") {
+    if (state.originalItineraryBackup) {
+      state.itinerary = JSON.parse(JSON.stringify(state.originalItineraryBackup));
+      state.activeDisruption = null;
+      showToast("Route Reset", "Restored original customized itinerary.", "info");
+    }
+  }
+
+  saveToLocalStorage();
+  renderDashboard();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+}
+
+function updateDisruptionBarUI() {
+  const title = document.getElementById("disruption-title");
+  const desc = document.getElementById("disruption-desc");
+  const icon = document.getElementById("disruption-icon");
+
+  if (!title || !desc || !icon) return;
+
+  if (state.activeDisruption === "rain") {
+    icon.textContent = "🌧️";
+    title.textContent = "Active: Monsoon / Heavy Rain Reroute";
+    desc.textContent = "Outdoor viewpoints and hikes have been safely replaced with indoor heritage havelis & museums.";
+  } else if (state.activeDisruption === "delay") {
+    icon.textContent = "⏱️";
+    title.textContent = "Active: Traffic Delay Express Route";
+    desc.textContent = "Day schedule adjusted with time buffers to comfortably handle flight or highway delays.";
+  } else if (state.activeDisruption === "chill") {
+    icon.textContent = "🧘";
+    title.textContent = "Active: Relaxation & Wellness Mode";
+    desc.textContent = "Pace relaxed with calm cafes, tea lounges, and spa treatments.";
+  } else {
+    icon.textContent = "⚡";
+    title.textContent = "Dynamic Trip Disruption Assistant";
+    desc.textContent = "Something unexpected happened during your trip? Auto-adapt your route and budget in 1 click.";
+  }
+}
+
+// =============================================================================
+// 7. TRANSIT & CAB BOOKING HUB
+// =============================================================================
+
+function renderTransitView() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const transit = destInfo.transitInfo;
+  if (!transit) return;
+
+  const airportElem = document.getElementById("transit-airport-info");
+  const localList = document.getElementById("local-transport-options-list");
+  const avgBadge = document.getElementById("local-transit-avg-badge");
+
+  if (airportElem) {
+    airportElem.innerHTML = `
+      <strong>✈️ Airport:</strong> ${transit.airport}<br>
+      <strong>🚆 Railway:</strong> ${transit.railway}
+    `;
+  }
+
+  if (avgBadge) {
+    avgBadge.textContent = `Avg ₹${destInfo.avgDailyTransport}/day`;
+  }
+
+  if (localList) {
+    localList.innerHTML = transit.localTransport.map(lt => `
+      <div class="local-transit-item">
+        <div class="lt-left">
+          <span class="lt-name">${lt.type}</span>
+          <span class="lt-sub">${lt.bookingPartner} · ${lt.tip}</span>
+        </div>
+        <div class="lt-cost">₹${lt.avgCost}</div>
+      </div>
+    `).join("");
+  }
+}
+
+function addTransitActivity(name, cost, timeSlot = "Morning (08:30 AM)") {
+  const targetDay = state.itinerary[0];
+  if (!targetDay) return;
+
+  const transitItem = {
+    id: `transit-${Date.now()}`,
+    name: name,
+    timeSlot: timeSlot,
+    category: "transit",
+    cost: Number(cost) || 750,
+    duration: "1 hour",
+    description: "Dedicated pre-booked transit transfer with door-to-door cab pickup.",
+    tip: "Keep driver contact and OTP handy for quick boarding.",
+    coords: DESTINATIONS_DATA[state.destination]?.centerCoords
+  };
+
+  targetDay.activities.unshift(transitItem);
+  saveToLocalStorage();
+  renderDayTabs();
+  renderDayContent();
+  recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+  showToast("Transit Added to Day 1!", `Added "${name}" (₹${cost}) to your itinerary and budget.`, "success");
+}
+
+// =============================================================================
+// 8. LIVE BUDGET TRACKER & RECALCULATION
+// =============================================================================
+
+function recalculateBudget() {
+  let totalCost = 0;
+  state.itinerary.forEach(day => {
+    day.activities.forEach(act => {
+      totalCost += (Number(act.cost) || 0);
+    });
+  });
+
+  const setBudget = Number(state.totalBudget) || 18000;
+  const remaining = setBudget - totalCost;
+  const spentPct = setBudget > 0 ? Math.min(Math.round((totalCost / setBudget) * 100), 100) : 100;
+  const numDays = state.itinerary.length || 1;
+  const dailyAvg = Math.round(totalCost / numDays);
+
+  const statusBadge = document.getElementById("budget-status-badge");
+  const barFill = document.getElementById("budget-bar-fill");
+  const spentPctText = document.getElementById("budget-spent-pct");
+  const remainingText = document.getElementById("budget-remaining-text");
+  const valSetBudget = document.getElementById("val-set-budget");
+  const valTotalCost = document.getElementById("val-total-cost");
+  const valDailyAvg = document.getElementById("val-daily-avg");
+  const valBalance = document.getElementById("val-balance");
+  const lblBalance = document.getElementById("lbl-balance-status");
+
+  if (valSetBudget) valSetBudget.textContent = `₹${setBudget.toLocaleString('en-IN')}`;
+  if (valTotalCost) valTotalCost.textContent = `₹${totalCost.toLocaleString('en-IN')}`;
+  if (valDailyAvg) valDailyAvg.textContent = `₹${dailyAvg.toLocaleString('en-IN')} / day`;
+
+  if (barFill) {
     barFill.style.width = `${Math.min((totalCost / setBudget) * 100, 100)}%`;
+  }
 
-    if (remaining >= 0) {
+  if (remaining >= 0) {
+    if (statusBadge) {
       statusBadge.textContent = "✓ Within Budget";
       statusBadge.className = "budget-status-pill within";
-      barFill.className = "budget-bar-fill within";
-      spentPctText.textContent = `${spentPct}% allocated`;
-      remainingText.textContent = `₹${remaining.toLocaleString('en-IN')} remaining`;
-      lblBalance.textContent = "Remaining Balance";
+    }
+    if (barFill) barFill.className = "budget-bar-fill within";
+    if (spentPctText) spentPctText.textContent = `${spentPct}% allocated`;
+    if (remainingText) remainingText.textContent = `₹${remaining.toLocaleString('en-IN')} remaining`;
+    if (lblBalance) lblBalance.textContent = "Remaining Balance";
+    if (valBalance) {
       valBalance.textContent = `+ ₹${remaining.toLocaleString('en-IN')}`;
       valBalance.className = "b-num-val green";
-    } else {
-      const overAmt = Math.abs(remaining);
+    }
+  } else {
+    const overAmt = Math.abs(remaining);
+    if (statusBadge) {
       statusBadge.textContent = `⚠️ Over Budget by ₹${overAmt.toLocaleString('en-IN')}`;
       statusBadge.className = "budget-status-pill over";
-      barFill.className = "budget-bar-fill over";
-      spentPctText.textContent = `${Math.round((totalCost / setBudget) * 100)}% allocated`;
-      remainingText.textContent = `₹${overAmt.toLocaleString('en-IN')} deficit`;
-      lblBalance.textContent = "Over Budget By";
+    }
+    if (barFill) barFill.className = "budget-bar-fill over";
+    if (spentPctText) spentPctText.textContent = `${Math.round((totalCost / setBudget) * 100)}% allocated`;
+    if (remainingText) remainingText.textContent = `₹${overAmt.toLocaleString('en-IN')} deficit`;
+    if (lblBalance) lblBalance.textContent = "Over Budget By";
+    if (valBalance) {
       valBalance.textContent = `- ₹${overAmt.toLocaleString('en-IN')}`;
       valBalance.className = "b-num-val red";
     }
   }
+}
 
-  function renderInsights() {
-    const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-    document.getElementById("destination-insights-list").innerHTML = `
-      <div class="insight-item"><div><strong>Best Season:</strong> ${destInfo.bestTime}</div></div>
-      <div class="insight-item"><div><strong>Local Commute:</strong> Avg ₹${destInfo.avgDailyTransport}/day for Autos & Cabs.</div></div>
-      <div class="insight-item"><div><strong>Travel Smart:</strong> Book top monument tickets online in advance.</div></div>
-    `;
+function renderInsights() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const container = document.getElementById("destination-insights-list");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="insight-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div><strong>Best Season:</strong> ${destInfo.bestTime} for outdoor travel.</div>
+    </div>
+    <div class="insight-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      <div><strong>Local Commute:</strong> Avg ₹${destInfo.avgDailyTransport}/day for Autos, Scooters & Taxis.</div>
+    </div>
+    <div class="insight-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div><strong>Dynamic Defense:</strong> Use the ⚡ Disruption Assistant if rain or traffic delays your day.</div>
+    </div>
+  `;
+}
+
+function getCategoryLabel(cat) {
+  switch (cat) {
+    case "culture": return "🏛️ Culture";
+    case "nature": return "🌿 Nature";
+    case "adventure": return "⚡ Adventure";
+    case "food": return "🍛 Food";
+    case "nightlife": return "🍸 Nightlife";
+    case "wellness": return "🧘 Wellness";
+    case "shopping": return "🛍️ Shopping";
+    case "transit": return "🚗 Transport";
+    default: return "📍 Attraction";
+  }
+}
+
+// =============================================================================
+// 9. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
+// =============================================================================
+
+function moveActivity(dayIndex, actIndex, direction) {
+  const activities = state.itinerary[dayIndex].activities;
+  const targetIndex = actIndex + direction;
+  if (targetIndex < 0 || targetIndex >= activities.length) return;
+
+  const temp = activities[actIndex];
+  activities[actIndex] = activities[targetIndex];
+  activities[targetIndex] = temp;
+
+  saveToLocalStorage();
+  renderDayContent();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+  showToast("Reordered", `Moved activity ${direction < 0 ? 'up' : 'down'}.`, "info");
+}
+
+function deleteActivity(dayIndex, actIndex) {
+  const actName = state.itinerary[dayIndex].activities[actIndex]?.name || "Activity";
+  state.itinerary[dayIndex].activities.splice(actIndex, 1);
+  saveToLocalStorage();
+  renderDayTabs();
+  renderDayContent();
+  recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+  showToast("Activity Removed", `Deleted ${actName} from Day ${state.itinerary[dayIndex].dayNum}.`, "info");
+}
+
+function addNewDay() {
+  const newDayNum = state.itinerary.length + 1;
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  
+  const existingNames = new Set();
+  state.itinerary.forEach(d => d.activities.forEach(a => existingNames.add(a.name)));
+  const available = destInfo.places.filter(p => !existingNames.has(p.name));
+  const newActivities = [];
+
+  if (available.length > 0) {
+    newActivities.push(JSON.parse(JSON.stringify(available[0])));
+    if (available.length > 1) newActivities.push(JSON.parse(JSON.stringify(available[1])));
+  } else {
+    newActivities.push({
+      id: `custom-chill-${newDayNum}`,
+      name: `Local Market & Sunset Walk in ${destInfo.name}`,
+      timeSlot: "Evening (05:00 PM)",
+      category: "nature",
+      cost: 200,
+      duration: "2 hours",
+      description: "Relax, explore regional handicraft stores, and try street food snacks.",
+      tip: "Great day for casual photography and buying souvenirs.",
+      coords: destInfo.centerCoords
+    });
   }
 
-  window.moveActivity = function(dayIndex, actIndex, direction) {
-    const activities = state.itinerary[dayIndex].activities;
-    const targetIndex = actIndex + direction;
-    if (targetIndex < 0 || targetIndex >= activities.length) return;
-    const temp = activities[actIndex];
-    activities[actIndex] = activities[targetIndex];
-    activities[targetIndex] = temp;
-    renderDayContent();
-  };
+  state.itinerary.push({
+    dayNum: newDayNum,
+    title: `Day ${newDayNum}: Extended Highlights of ${destInfo.name}`,
+    activities: newActivities
+  });
 
-  window.deleteActivity = function(dayIndex, actIndex) {
-    state.itinerary[dayIndex].activities.splice(actIndex, 1);
+  state.daysCount = state.itinerary.length;
+  state.activeDayTab = state.itinerary.length - 1;
+  saveToLocalStorage();
+  renderDayTabs();
+  renderDayContent();
+  recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+  showToast(`Day ${newDayNum} Added!`, `Trip extended to ${state.daysCount} days.`, "success");
+}
+
+function deleteDay(dayIndex) {
+  if (state.itinerary.length <= 1) {
+    alert("Your trip must have at least 1 day.");
+    return;
+  }
+  state.itinerary.splice(dayIndex, 1);
+  state.itinerary.forEach((d, i) => {
+    d.dayNum = i + 1;
+    d.title = d.title.replace(/^Day \d+/, `Day ${i + 1}`);
+  });
+  state.daysCount = state.itinerary.length;
+  if (state.activeDayTab >= state.itinerary.length) {
+    state.activeDayTab = state.itinerary.length - 1;
+  }
+  saveToLocalStorage();
+  renderDayTabs();
+  renderDayContent();
+  recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+  showToast("Day Deleted", `Trip adjusted to ${state.daysCount} days.`, "info");
+}
+
+function setupCardDragAndDrop(card, dayIndex, actIndex) {
+  card.addEventListener("dragstart", (e) => {
+    draggedCard = { dayIndex, actIndex };
+    card.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  card.addEventListener("dragend", () => {
+    card.classList.remove("dragging");
+    draggedCard = null;
+  });
+
+  card.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  });
+
+  card.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (!draggedCard) return;
+
+    const fromDay = draggedCard.dayIndex;
+    const fromAct = draggedCard.actIndex;
+    const toDay = dayIndex;
+    const toAct = actIndex;
+
+    if (fromDay === toDay && fromAct === toAct) return;
+
+    const movedItem = state.itinerary[fromDay].activities.splice(fromAct, 1)[0];
+    state.itinerary[toDay].activities.splice(toAct, 0, movedItem);
+
+    saveToLocalStorage();
+    renderDayContent();
+    renderDayTabs();
+    recalculateBudget();
+    if (state.activeViewMode === "map") initOrUpdateMap();
+    showToast("Reordered via Drag & Drop", "Moved to new position.", "info");
+  });
+}
+
+// =============================================================================
+// 10. MODALS & EVENT LISTENERS
+// =============================================================================
+
+function openAddActivityModal(dayIndex) {
+  const modal = document.getElementById("modal-activity");
+  const title = document.getElementById("modal-activity-title");
+  if (!modal) return;
+
+  document.getElementById("modal-day-index").value = dayIndex;
+  document.getElementById("modal-act-index").value = "-1";
+  title.textContent = `Add Place / Activity to Day ${state.itinerary[dayIndex].dayNum}`;
+
+  document.getElementById("modal-act-name").value = "";
+  document.getElementById("modal-act-time").value = "Morning (10:00 AM)";
+  document.getElementById("modal-act-category").value = "culture";
+  document.getElementById("modal-act-cost").value = 250;
+  document.getElementById("modal-act-duration").value = "2 hours";
+  document.getElementById("modal-act-desc").value = "";
+  document.getElementById("modal-act-tip").value = "";
+
+  modal.classList.remove("hidden");
+}
+
+function openEditActivityModal(dayIndex, actIndex) {
+  const modal = document.getElementById("modal-activity");
+  const title = document.getElementById("modal-activity-title");
+  const act = state.itinerary[dayIndex].activities[actIndex];
+  if (!modal || !act) return;
+
+  document.getElementById("modal-day-index").value = dayIndex;
+  document.getElementById("modal-act-index").value = actIndex;
+  title.textContent = `Edit Details: ${act.name}`;
+
+  document.getElementById("modal-act-name").value = act.name || "";
+  document.getElementById("modal-act-time").value = act.timeSlot || "Morning (10:00 AM)";
+  document.getElementById("modal-act-category").value = act.category || "culture";
+  document.getElementById("modal-act-cost").value = act.cost || 0;
+  document.getElementById("modal-act-duration").value = act.duration || "2 hours";
+  document.getElementById("modal-act-desc").value = act.description || "";
+  document.getElementById("modal-act-tip").value = act.tip || "";
+
+  modal.classList.remove("hidden");
+}
+
+function closeActivityModal() {
+  document.getElementById("modal-activity")?.classList.add("hidden");
+}
+
+function setupEventListeners() {
+  // Form Submit
+  document.getElementById("trip-planner-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    state.destination = document.getElementById("select-destination").value;
+    state.daysCount = Number(document.getElementById("input-days").value) || 3;
+    state.totalBudget = Number(document.getElementById("input-budget").value) || 18000;
+    generateItinerary();
+  });
+
+  // View Mode Switcher buttons
+  document.querySelectorAll(".view-mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode;
+      switchViewMode(mode);
+    });
+  });
+
+  // Disruption Scenario Buttons
+  document.getElementById("btn-scenario-rain")?.addEventListener("click", () => applyDisruptionScenario("rain"));
+  document.getElementById("btn-scenario-delay")?.addEventListener("click", () => applyDisruptionScenario("delay"));
+  document.getElementById("btn-scenario-chill")?.addEventListener("click", () => applyDisruptionScenario("chill"));
+  document.getElementById("btn-reset-reroute")?.addEventListener("click", () => applyDisruptionScenario("reset"));
+
+  // Quick Transit Add Buttons
+  document.getElementById("btn-add-airport-pickup")?.addEventListener("click", () => {
+    addTransitActivity("Airport to Hotel Private AC Cab Pickup", 750, "Morning (08:30 AM)");
+  });
+
+  document.getElementById("btn-add-station-transfer")?.addEventListener("click", () => {
+    addTransitActivity("Railway Station to Hotel Auto/Cab Transfer", 400, "Morning (09:00 AM)");
+  });
+
+  document.getElementById("btn-add-daily-cab")?.addEventListener("click", () => {
+    addTransitActivity("Full-Day Private Sightseeing AC Taxi (8 hrs)", 1800, "Morning (09:00 AM)");
+  });
+
+  // Quick Sample Trip
+  document.getElementById("btn-sample-trip")?.addEventListener("click", () => {
+    state.destination = "jaipur";
+    state.daysCount = 3;
+    state.totalBudget = 18000;
+    state.selectedInterests = ["culture", "food", "nature"];
+    syncFormWithState();
+    generateItinerary();
+  });
+
+  // Brand Home Reset
+  document.getElementById("btn-brand-home")?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  document.getElementById("btn-reset-form")?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("select-destination").focus();
+  });
+
+  // Modal Submit
+  document.getElementById("form-activity-edit")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const dayIndex = Number(document.getElementById("modal-day-index").value);
+    const actIndex = Number(document.getElementById("modal-act-index").value);
+
+    const updatedActivity = {
+      id: actIndex === -1 ? `custom-${Date.now()}` : state.itinerary[dayIndex].activities[actIndex].id,
+      name: document.getElementById("modal-act-name").value.trim(),
+      timeSlot: document.getElementById("modal-act-time").value.trim(),
+      category: document.getElementById("modal-act-category").value,
+      cost: Number(document.getElementById("modal-act-cost").value) || 0,
+      duration: document.getElementById("modal-act-duration").value.trim(),
+      description: document.getElementById("modal-act-desc").value.trim(),
+      tip: document.getElementById("modal-act-tip").value.trim(),
+      coords: actIndex === -1 
+        ? DESTINATIONS_DATA[state.destination]?.centerCoords 
+        : (state.itinerary[dayIndex].activities[actIndex].coords || DESTINATIONS_DATA[state.destination]?.centerCoords)
+    };
+
+    if (actIndex === -1) {
+      state.itinerary[dayIndex].activities.push(updatedActivity);
+      showToast("Activity Added", `Added "${updatedActivity.name}" to Day ${state.itinerary[dayIndex].dayNum}.`, "success");
+    } else {
+      state.itinerary[dayIndex].activities[actIndex] = updatedActivity;
+      showToast("Activity Updated", `Updated details for "${updatedActivity.name}".`, "success");
+    }
+
+    closeActivityModal();
+    saveToLocalStorage();
     renderDayTabs();
     renderDayContent();
     recalculateBudget();
-  };
+    if (state.activeViewMode === "map") initOrUpdateMap();
+  });
 
-  window.openAddActivityModal = function(dayIndex) {
-    const modal = document.getElementById("modal-activity");
-    document.getElementById("modal-day-index").value = dayIndex;
-    document.getElementById("modal-act-index").value = "-1";
-    document.getElementById("modal-act-name").value = "";
-    document.getElementById("modal-act-time").value = "Morning (10:00 AM)";
-    document.getElementById("modal-act-cost").value = 250;
-    document.getElementById("modal-act-desc").value = "";
-    document.getElementById("modal-act-tip").value = "";
-    modal.classList.remove("hidden");
-  };
+  document.getElementById("btn-close-modal")?.addEventListener("click", closeActivityModal);
+  document.getElementById("btn-cancel-modal")?.addEventListener("click", closeActivityModal);
 
-  window.openEditActivityModal = function(dayIndex, actIndex) {
-    const modal = document.getElementById("modal-activity");
-    const act = state.itinerary[dayIndex].activities[actIndex];
-    document.getElementById("modal-day-index").value = dayIndex;
-    document.getElementById("modal-act-index").value = actIndex;
-    document.getElementById("modal-act-name").value = act.name;
-    document.getElementById("modal-act-time").value = act.timeSlot;
-    document.getElementById("modal-act-cost").value = act.cost;
-    document.getElementById("modal-act-desc").value = act.description || "";
-    document.getElementById("modal-act-tip").value = act.tip || "";
-    modal.classList.remove("hidden");
-  };
+  document.getElementById("btn-print-itinerary")?.addEventListener("click", () => window.print());
+  document.getElementById("btn-copy-itinerary")?.addEventListener("click", copyItineraryToClipboard);
+}
 
-  function setupEventListeners() {
-    document.getElementById("trip-planner-form")?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      state.destination = document.getElementById("select-destination").value;
-      state.daysCount = Number(document.getElementById("input-days").value) || 3;
-      state.totalBudget = Number(document.getElementById("input-budget").value) || 18000;
-      generateItinerary();
-    });
+function copyItineraryToClipboard() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  let text = `✈️ TravelPilot Itinerary: ${destInfo.name}, India (${state.daysCount} Days)\n`;
+  text += `💰 Budget: ₹${state.totalBudget.toLocaleString('en-IN')}\n\n`;
 
-    document.getElementById("btn-sample-trip")?.addEventListener("click", () => {
-      state.destination = "jaipur";
-      state.daysCount = 3;
-      state.totalBudget = 18000;
-      document.getElementById("select-destination").value = "jaipur";
-      document.getElementById("input-days").value = "3";
-      document.getElementById("input-budget").value = "18000";
-      generateItinerary();
+  state.itinerary.forEach(day => {
+    const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
+    text += `═══════════════════════════════════\n`;
+    text += `📅 DAY ${day.dayNum}: ${day.title.replace(/^Day \d+:\s*/, '')} (Subtotal: ₹${dayCost.toLocaleString('en-IN')})\n`;
+    text += `═══════════════════════════════════\n`;
+    
+    day.activities.forEach((act, i) => {
+      text += `${i + 1}. [${act.timeSlot}] ${act.name} — ₹${act.cost}\n`;
+      if (act.description) text += `   • ${act.description}\n`;
+      if (act.tip) text += `   💡 Tip: ${act.tip}\n`;
     });
+    text += `\n`;
+  });
 
-    document.getElementById("btn-reset-form")?.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
+  text += `Generated with TravelPilot India Trip Planner.\n`;
 
-    document.getElementById("form-activity-edit")?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const dayIndex = Number(document.getElementById("modal-day-index").value);
-      const actIndex = Number(document.getElementById("modal-act-index").value);
-      const item = {
-        id: actIndex === -1 ? `custom-${Date.now()}` : state.itinerary[dayIndex].activities[actIndex].id,
-        name: document.getElementById("modal-act-name").value.trim(),
-        timeSlot: document.getElementById("modal-act-time").value.trim(),
-        category: document.getElementById("modal-act-category").value,
-        cost: Number(document.getElementById("modal-act-cost").value) || 0,
-        description: document.getElementById("modal-act-desc").value.trim(),
-        tip: document.getElementById("modal-act-tip").value.trim()
-      };
-      if (actIndex === -1) {
-        state.itinerary[dayIndex].activities.push(item);
-      } else {
-        state.itinerary[dayIndex].activities[actIndex] = item;
-      }
-      document.getElementById("modal-activity").classList.add("hidden");
-      renderDayTabs();
-      renderDayContent();
-      recalculateBudget();
-    });
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("Copied to Clipboard!", "Full plan ready to share on WhatsApp or Notes.", "success");
+  }).catch(() => {
+    showToast("Copy Note", "Please select and copy text manually.", "info");
+  });
+}
 
-    document.getElementById("btn-close-modal")?.addEventListener("click", () => {
-      document.getElementById("modal-activity").classList.add("hidden");
-    });
-    document.getElementById("btn-cancel-modal")?.addEventListener("click", () => {
-      document.getElementById("modal-activity").classList.add("hidden");
-    });
-    document.getElementById("btn-print-itinerary")?.addEventListener("click", () => window.print());
-    document.getElementById("btn-copy-itinerary")?.addEventListener("click", () => {
-      navigator.clipboard.writeText(JSON.stringify(state.itinerary, null, 2));
-      showToast("Copied!", "Plan copied to clipboard.", "success");
-    });
+function saveToLocalStorage() {
+  try {
+    localStorage.setItem("travelpilot_saved_trip", JSON.stringify(state));
+  } catch (e) {
+    // Handled
   }
+}
 
-  function showToast(title, message, type = "success") {
-    const container = document.getElementById("toast-container");
-    if (!container) return;
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<div><strong>${title}</strong><div style="font-size:0.78rem;">${message}</div></div>`;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }
-  </script>
+function showToast(title, message, type = "success") {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <span>${type === 'success' ? '✅' : 'ℹ️'}</span>
+    <div>
+      <div style="font-weight: 700;">${title}</div>
+      <div style="font-size: 0.78rem; opacity: 0.9;">${message}</div>
+    </div>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(10px)";
+    toast.style.transition = "all 0.25s ease";
+    setTimeout(() => toast.remove(), 250);
+  }, 3500);
+}
+
+</script>
 </body>
 </html>

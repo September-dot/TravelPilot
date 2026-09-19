@@ -1,6 +1,5 @@
 /**
- * TravelPilot - Interactive Trip Planner Engine
- * Client-side reactive state, live budget recalculation, drag-and-drop & in-memory editing.
+ * TravelPilot - Interactive Trip Planner Engine with Live Leaflet Map, Transit Booking & Dynamic Disruption Assistant
  */
 
 // =============================================================================
@@ -13,19 +12,28 @@ let state = {
   totalBudget: 18000,
   selectedInterests: ["culture", "food", "nature"],
   activeDayTab: 0, // 0 for Day 1, -1 for "All Days"
-  itinerary: [], // Array of days: [ { dayNum: 1, title: "...", activities: [...] }, ... ]
-  insights: []
+  activeViewMode: "itinerary", // "itinerary" | "map" | "transit"
+  itinerary: [],
+  originalItineraryBackup: null,
+  activeDisruption: null // "rain" | "delay" | "chill" | null
 };
 
+let mapInstance = null;
+let mapMarkersGroup = null;
+let mapPolylinesGroup = null;
+
+// Day Pin Palette
+const DAY_COLORS = ["#ea580c", "#4f46e5", "#059669", "#e11d48", "#d97706", "#7c3aed", "#0284c7"];
+
 // =============================================================================
-// 2. INITIALIZATION & SETUP
+// 2. INITIALIZATION & EVENT HANDLERS
 // =============================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   renderInterestChips();
   setupEventListeners();
 
-  // Check if there is saved state in localStorage
+  // Load from localStorage if present
   const saved = localStorage.getItem("travelpilot_saved_trip");
   if (saved) {
     try {
@@ -41,11 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Pre-generate default trip
   generateItinerary();
 });
 
-// Render the 7 interest category checkboxes
 function renderInterestChips() {
   const container = document.getElementById("interests-container");
   if (!container) return;
@@ -63,9 +69,7 @@ function renderInterestChips() {
 
     label.querySelector("input").addEventListener("change", (e) => {
       if (e.target.checked) {
-        if (!state.selectedInterests.includes(cat.id)) {
-          state.selectedInterests.push(cat.id);
-        }
+        if (!state.selectedInterests.includes(cat.id)) state.selectedInterests.push(cat.id);
         label.classList.add("selected");
       } else {
         state.selectedInterests = state.selectedInterests.filter(id => id !== cat.id);
@@ -86,7 +90,6 @@ function syncFormWithState() {
   if (daysSelect) daysSelect.value = String(state.daysCount);
   if (budgetInput) budgetInput.value = state.totalBudget;
 
-  // Sync checkboxes
   const chips = document.querySelectorAll(".interest-chip");
   chips.forEach(chip => {
     const input = chip.querySelector("input");
@@ -100,7 +103,7 @@ function syncFormWithState() {
 }
 
 // =============================================================================
-// 3. ITINERARY GENERATION ALGORITHM
+// 3. ITINERARY GENERATOR ALGORITHM
 // =============================================================================
 
 function generateItinerary() {
@@ -108,14 +111,12 @@ function generateItinerary() {
   const destInfo = DESTINATIONS_DATA[destKey] || DESTINATIONS_DATA.jaipur;
   const allPlaces = [...destInfo.places];
 
-  // Prioritize places matching user interests
   const scoredPlaces = allPlaces.map(p => {
     let score = 0;
     if (state.selectedInterests.includes(p.category)) score += 5;
     return { ...p, score };
   });
 
-  // Sort by score descending
   scoredPlaces.sort((a, b) => b.score - a.score);
 
   const numDays = state.daysCount;
@@ -123,10 +124,7 @@ function generateItinerary() {
   const usedPlaceIds = new Set();
 
   for (let d = 1; d <= numDays; d++) {
-    // Pick 2 to 3 places for this day
     const dayActivities = [];
-    
-    // Pick morning/afternoon/evening slots
     for (const place of scoredPlaces) {
       if (dayActivities.length >= 3) break;
       if (!usedPlaceIds.has(place.id)) {
@@ -135,7 +133,6 @@ function generateItinerary() {
       }
     }
 
-    // If we ran out of unique places, reuse or create a custom leisure slot
     if (dayActivities.length === 0) {
       dayActivities.push({
         id: `custom-chill-${d}`,
@@ -145,11 +142,11 @@ function generateItinerary() {
         cost: 400,
         duration: "2 hours",
         description: `Stroll through the local streets, visit nearby markets, and enjoy regional delicacies.`,
-        tip: "Ask your hotel host for their favorite hidden dining spot."
+        tip: "Ask your hotel host for their favorite hidden dining spot.",
+        coords: destInfo.centerCoords
       });
     }
 
-    // Day theme titles
     let dayTheme = `Day ${d}: Highlights of ${destInfo.name}`;
     if (d === 1) dayTheme = `Day 1: Iconic Landmarks & First Impressions`;
     else if (d === 2) dayTheme = `Day 2: Heritage, Culture & Local Flavors`;
@@ -166,7 +163,10 @@ function generateItinerary() {
   }
 
   state.itinerary = days;
+  state.originalItineraryBackup = JSON.parse(JSON.stringify(days));
   state.activeDayTab = 0;
+  state.activeDisruption = null;
+
   saveToLocalStorage();
   renderDashboard();
   showToast("Custom Itinerary Generated!", `Crafted a personalized ${numDays}-day plan for ${destInfo.name}.`, "success");
@@ -178,13 +178,10 @@ function generateItinerary() {
 
 function renderDashboard() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  document.getElementById("section-dashboard").style.display = "block";
 
-  // Show dashboard, scroll smoothly
-  const dashboardSec = document.getElementById("section-dashboard");
-  if (dashboardSec) dashboardSec.style.display = "block";
-
-  // Destination Banner
-  document.getElementById("dest-title").textContent = `${destInfo.name} — ${state.daysCount} Day Itinerary`;
+  // Banner Details
+  document.getElementById("dest-title").textContent = `${destInfo.name} — ${state.daysCount} Day Adaptive Itinerary`;
   document.getElementById("dest-tagline").textContent = destInfo.tagline;
   document.getElementById("dest-state-badge").textContent = destInfo.state;
   document.getElementById("dest-time-badge").textContent = `Best Time: ${destInfo.bestTime}`;
@@ -194,10 +191,43 @@ function renderDashboard() {
     highlightsContainer.innerHTML = destInfo.highlights.map(h => `<span class="meta-chip">✨ ${h}</span>`).join("");
   }
 
+  // Update Disruption Bar
+  updateDisruptionBarUI();
+
+  // Render Sub-Views
   renderDayTabs();
   renderDayContent();
   recalculateBudget();
   renderInsights();
+  renderTransitView();
+
+  // If map is currently active view, render map
+  if (state.activeViewMode === "map") {
+    setTimeout(initOrUpdateMap, 100);
+  }
+}
+
+// Switch between Itinerary, Map, and Transit Views
+function switchViewMode(mode) {
+  state.activeViewMode = mode;
+
+  const buttons = document.querySelectorAll(".view-mode-btn");
+  buttons.forEach(btn => {
+    if (btn.dataset.mode === mode) btn.classList.add("active");
+    else btn.classList.remove("active");
+  });
+
+  const secItinerary = document.getElementById("view-section-itinerary");
+  const secMap = document.getElementById("view-section-map");
+  const secTransit = document.getElementById("view-section-transit");
+
+  if (secItinerary) secItinerary.style.display = mode === "itinerary" ? "grid" : "none";
+  if (secMap) secMap.style.display = mode === "map" ? "flex" : "none";
+  if (secTransit) secTransit.style.display = mode === "transit" ? "flex" : "none";
+
+  if (mode === "map") {
+    setTimeout(initOrUpdateMap, 50);
+  }
 }
 
 // Render Day Tabs Navigation
@@ -206,7 +236,6 @@ function renderDayTabs() {
   if (!tabsContainer) return;
   tabsContainer.innerHTML = "";
 
-  // "All Days" Tab
   const allTab = document.createElement("button");
   allTab.className = `day-tab-btn ${state.activeDayTab === -1 ? 'active' : ''}`;
   allTab.innerHTML = `
@@ -218,10 +247,10 @@ function renderDayTabs() {
     state.activeDayTab = -1;
     renderDayTabs();
     renderDayContent();
+    if (state.activeViewMode === "map") initOrUpdateMap();
   });
   tabsContainer.appendChild(allTab);
 
-  // Individual Day Tabs
   state.itinerary.forEach((day, idx) => {
     const dayCost = day.activities.reduce((sum, act) => sum + (Number(act.cost) || 0), 0);
     const tabBtn = document.createElement("button");
@@ -236,12 +265,12 @@ function renderDayTabs() {
       state.activeDayTab = idx;
       renderDayTabs();
       renderDayContent();
+      if (state.activeViewMode === "map") initOrUpdateMap();
     });
 
     tabsContainer.appendChild(tabBtn);
   });
 
-  // "+ Add Day" button
   const addDayBtn = document.createElement("button");
   addDayBtn.className = "day-tab-btn";
   addDayBtn.style.borderStyle = "dashed";
@@ -260,7 +289,6 @@ function renderDayContent() {
   if (!container) return;
   container.innerHTML = "";
 
-  // Single Day View vs All Days View
   const daysToRender = state.activeDayTab === -1 
     ? state.itinerary 
     : [state.itinerary[state.activeDayTab]].filter(Boolean);
@@ -275,10 +303,8 @@ function renderDayContent() {
     const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
 
     const daySection = document.createElement("div");
-    daySection.className = "day-wrapper";
     daySection.style.marginBottom = "24px";
 
-    // Day Header
     const header = document.createElement("div");
     header.className = "day-header-card";
     header.innerHTML = `
@@ -297,19 +323,17 @@ function renderDayContent() {
     `;
     daySection.appendChild(header);
 
-    // Activities List
     const actList = document.createElement("div");
     actList.className = "activities-list";
     actList.style.marginTop = "12px";
 
     day.activities.forEach((act, actIndex) => {
       const actCard = document.createElement("div");
-      actCard.className = "activity-card";
+      actCard.className = `activity-card ${act.category === 'transit' ? 'is-transit' : ''}`;
       actCard.draggable = true;
       actCard.dataset.dayIndex = dayIndex;
       actCard.dataset.actIndex = actIndex;
 
-      // Category styling
       const catClass = `cat-${act.category || 'culture'}`;
       const catLabel = getCategoryLabel(act.category);
 
@@ -356,10 +380,8 @@ function renderDayContent() {
         </div>
       `;
 
-      // Drag & Drop Setup
       setupCardDragAndDrop(actCard, dayIndex, actIndex);
 
-      // Inline Cost Change Listener
       const costInput = actCard.querySelector(".cost-field");
       costInput.addEventListener("input", (e) => {
         const newCost = Number(e.target.value) || 0;
@@ -372,7 +394,6 @@ function renderDayContent() {
       actList.appendChild(actCard);
     });
 
-    // "+ Add Activity to Day" button
     const addBtn = document.createElement("button");
     addBtn.className = "add-activity-btn";
     addBtn.style.marginTop = "8px";
@@ -392,14 +413,12 @@ function updateDaySubtotalBadges() {
   const tabs = document.querySelectorAll(".day-tab-btn");
   state.itinerary.forEach((day, idx) => {
     const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
-    // update tab if it exists
     if (tabs[idx + 1]) {
       const costSpan = tabs[idx + 1].querySelector(".tab-day-cost");
       if (costSpan) costSpan.textContent = `₹${dayCost.toLocaleString('en-IN')}`;
     }
   });
 
-  // update all header badges on page
   const headerBadges = document.querySelectorAll(".day-subtotal-badge");
   headerBadges.forEach((badge, i) => {
     const targetDay = state.activeDayTab === -1 ? state.itinerary[i] : state.itinerary[state.activeDayTab];
@@ -411,7 +430,258 @@ function updateDaySubtotalBadges() {
 }
 
 // =============================================================================
-// 5. LIVE BUDGET TRACKER & RECALCULATION
+// 5. LIVE LEAFLET MAP VISUALIZER
+// =============================================================================
+
+function initOrUpdateMap() {
+  const mapContainer = document.getElementById("travel-map-container");
+  if (!mapContainer) return;
+
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const center = destInfo.centerCoords || [26.9124, 75.7873];
+
+  if (!mapInstance) {
+    mapInstance = L.map('travel-map-container', {
+      center: center,
+      zoom: 12,
+      scrollWheelZoom: false
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapInstance);
+
+    mapMarkersGroup = L.layerGroup().addTo(mapInstance);
+    mapPolylinesGroup = L.layerGroup().addTo(mapInstance);
+  } else {
+    mapInstance.setView(center, 12);
+    mapMarkersGroup.clearLayers();
+    mapPolylinesGroup.clearLayers();
+  }
+
+  // Determine which days to plot
+  const daysToPlot = state.activeDayTab === -1
+    ? state.itinerary
+    : [state.itinerary[state.activeDayTab]].filter(Boolean);
+
+  const allLatLngs = [];
+  const legendContainer = document.getElementById("map-legend-pills");
+  if (legendContainer) legendContainer.innerHTML = "";
+
+  daysToPlot.forEach((day, dayIdx) => {
+    const dayColor = DAY_COLORS[day.dayNum % DAY_COLORS.length] || "#ea580c";
+    const dayLatLngs = [];
+
+    // Add legend pill
+    if (legendContainer) {
+      const pill = document.createElement("span");
+      pill.className = "map-pill-item";
+      pill.style.background = `${dayColor}18`;
+      pill.style.color = dayColor;
+      pill.style.border = `1px solid ${dayColor}40`;
+      pill.innerHTML = `● Day ${day.dayNum}: ${day.activities.length} Stops`;
+      legendContainer.appendChild(pill);
+    }
+
+    day.activities.forEach((act, actIdx) => {
+      // Find coords or fallback
+      let coords = act.coords;
+      if (!coords) {
+        coords = [
+          center[0] + (Math.random() - 0.5) * 0.04,
+          center[1] + (Math.random() - 0.5) * 0.04
+        ];
+      }
+
+      dayLatLngs.push(coords);
+      allLatLngs.push(coords);
+
+      // Custom HTML pin
+      const icon = L.divIcon({
+        className: 'custom-pin-wrapper',
+        html: `<div class="custom-map-pin" style="background:${dayColor};">D${day.dayNum}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const popupHtml = `
+        <div style="min-width:180px;">
+          <div style="font-size:0.7rem; font-weight:700; color:${dayColor}; text-transform:uppercase;">Day ${day.dayNum} · Stop #${actIdx + 1}</div>
+          <div style="font-weight:700; font-size:0.95rem; margin-top:2px;">${act.name}</div>
+          <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">⏰ ${act.timeSlot} · ₹${act.cost}</div>
+          ${act.tip ? `<div style="font-size:0.72rem; color:#d97706; margin-top:4px;">💡 ${act.tip}</div>` : ''}
+          <div style="margin-top:8px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.name + ' ' + destInfo.name)}" target="_blank" style="color:#ea580c; font-weight:700; font-size:0.75rem; text-decoration:none;">Open in Google Maps &rarr;</a>
+          </div>
+        </div>
+      `;
+
+      const marker = L.marker(coords, { icon: icon }).bindPopup(popupHtml);
+      mapMarkersGroup.addLayer(marker);
+    });
+
+    // Draw route connecting lines for the day
+    if (dayLatLngs.length > 1) {
+      const polyline = L.polyline(dayLatLngs, {
+        color: dayColor,
+        weight: 3.5,
+        opacity: 0.75,
+        dashArray: '6, 8'
+      });
+      mapPolylinesGroup.addLayer(polyline);
+    }
+  });
+
+  // Fit bounds to markers
+  if (allLatLngs.length > 0) {
+    try {
+      const bounds = L.latLngBounds(allLatLngs);
+      mapInstance.fitBounds(bounds, { padding: [40, 40] });
+    } catch (e) {
+      // Handled
+    }
+  }
+
+  mapInstance.invalidateSize();
+}
+
+// =============================================================================
+// 6. DYNAMIC WEATHER & DELAY DISRUPTION ASSISTANT
+// =============================================================================
+
+function applyDisruptionScenario(type) {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const plans = destInfo.contingencyPlans;
+  if (!plans) return;
+
+  state.activeDisruption = type;
+
+  if (type === "rain" && plans.heavyRain) {
+    const rainReplacements = plans.heavyRain.replacements;
+    // Replace outdoor activities in Day 1 and Day 2 with indoor ones
+    if (state.itinerary[0] && rainReplacements.length > 0) {
+      state.itinerary[0].title = `Day 1: Rainy Day Indoor Palaces & Masterclasses`;
+      state.itinerary[0].activities = JSON.parse(JSON.stringify(rainReplacements));
+    }
+    showToast("Monsoon Reroute Applied 🌧️", "Swapped open hills/forts for royal indoor museums, havelis, and culinary masterclasses.", "success");
+  } else if (type === "delay" && plans.timeDelay) {
+    // Keep only essential 2 spots
+    state.itinerary.forEach(d => {
+      if (d.activities.length > 2) {
+        d.activities = d.activities.slice(0, 2);
+      }
+    });
+    showToast("Express Reroute Applied ⏱️", "Condensed stops to top 2 must-visit places to absorb 2+ hours of travel delay.", "info");
+  } else if (type === "chill" && plans.lowEnergy) {
+    const chillSpots = plans.lowEnergy.replacements;
+    if (state.itinerary[0] && chillSpots.length > 0) {
+      state.itinerary[0].activities.push(JSON.parse(JSON.stringify(chillSpots[0])));
+    }
+    showToast("Relaxation Mode Active 😴", "Added scenic lakeside high-tea and soothing Ayurvedic wellness spots.", "success");
+  } else if (type === "reset") {
+    if (state.originalItineraryBackup) {
+      state.itinerary = JSON.parse(JSON.stringify(state.originalItineraryBackup));
+      state.activeDisruption = null;
+      showToast("Route Reset", "Restored original customized itinerary.", "info");
+    }
+  }
+
+  saveToLocalStorage();
+  renderDashboard();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+}
+
+function updateDisruptionBarUI() {
+  const title = document.getElementById("disruption-title");
+  const desc = document.getElementById("disruption-desc");
+  const icon = document.getElementById("disruption-icon");
+
+  if (!title || !desc || !icon) return;
+
+  if (state.activeDisruption === "rain") {
+    icon.textContent = "🌧️";
+    title.textContent = "Active: Monsoon / Heavy Rain Reroute";
+    desc.textContent = "Outdoor viewpoints and hikes have been safely replaced with indoor heritage havelis & museums.";
+  } else if (state.activeDisruption === "delay") {
+    icon.textContent = "⏱️";
+    title.textContent = "Active: Traffic Delay Express Route";
+    desc.textContent = "Day schedule adjusted with time buffers to comfortably handle flight or highway delays.";
+  } else if (state.activeDisruption === "chill") {
+    icon.textContent = "🧘";
+    title.textContent = "Active: Relaxation & Wellness Mode";
+    desc.textContent = "Pace relaxed with calm cafes, tea lounges, and spa treatments.";
+  } else {
+    icon.textContent = "⚡";
+    title.textContent = "Dynamic Trip Disruption Assistant";
+    desc.textContent = "Something unexpected happened during your trip? Auto-adapt your route and budget in 1 click.";
+  }
+}
+
+// =============================================================================
+// 7. TRANSIT & CAB BOOKING HUB
+// =============================================================================
+
+function renderTransitView() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const transit = destInfo.transitInfo;
+  if (!transit) return;
+
+  const airportElem = document.getElementById("transit-airport-info");
+  const localList = document.getElementById("local-transport-options-list");
+  const avgBadge = document.getElementById("local-transit-avg-badge");
+
+  if (airportElem) {
+    airportElem.innerHTML = `
+      <strong>✈️ Airport:</strong> ${transit.airport}<br>
+      <strong>🚆 Railway:</strong> ${transit.railway}
+    `;
+  }
+
+  if (avgBadge) {
+    avgBadge.textContent = `Avg ₹${destInfo.avgDailyTransport}/day`;
+  }
+
+  if (localList) {
+    localList.innerHTML = transit.localTransport.map(lt => `
+      <div class="local-transit-item">
+        <div class="lt-left">
+          <span class="lt-name">${lt.type}</span>
+          <span class="lt-sub">${lt.bookingPartner} · ${lt.tip}</span>
+        </div>
+        <div class="lt-cost">₹${lt.avgCost}</div>
+      </div>
+    `).join("");
+  }
+}
+
+function addTransitActivity(name, cost, timeSlot = "Morning (08:30 AM)") {
+  const targetDay = state.itinerary[0];
+  if (!targetDay) return;
+
+  const transitItem = {
+    id: `transit-${Date.now()}`,
+    name: name,
+    timeSlot: timeSlot,
+    category: "transit",
+    cost: Number(cost) || 750,
+    duration: "1 hour",
+    description: "Dedicated pre-booked transit transfer with door-to-door cab pickup.",
+    tip: "Keep driver contact and OTP handy for quick boarding.",
+    coords: DESTINATIONS_DATA[state.destination]?.centerCoords
+  };
+
+  targetDay.activities.unshift(transitItem);
+  saveToLocalStorage();
+  renderDayTabs();
+  renderDayContent();
+  recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
+  showToast("Transit Added to Day 1!", `Added "${name}" (₹${cost}) to your itinerary and budget.`, "success");
+}
+
+// =============================================================================
+// 8. LIVE BUDGET TRACKER & RECALCULATION
 // =============================================================================
 
 function recalculateBudget() {
@@ -447,14 +717,11 @@ function recalculateBudget() {
   }
 
   if (remaining >= 0) {
-    // Within Budget
     if (statusBadge) {
       statusBadge.textContent = "✓ Within Budget";
       statusBadge.className = "budget-status-pill within";
     }
-    if (barFill) {
-      barFill.className = "budget-bar-fill within";
-    }
+    if (barFill) barFill.className = "budget-bar-fill within";
     if (spentPctText) spentPctText.textContent = `${spentPct}% allocated`;
     if (remainingText) remainingText.textContent = `₹${remaining.toLocaleString('en-IN')} remaining`;
     if (lblBalance) lblBalance.textContent = "Remaining Balance";
@@ -463,15 +730,12 @@ function recalculateBudget() {
       valBalance.className = "b-num-val green";
     }
   } else {
-    // Over Budget
     const overAmt = Math.abs(remaining);
     if (statusBadge) {
       statusBadge.textContent = `⚠️ Over Budget by ₹${overAmt.toLocaleString('en-IN')}`;
       statusBadge.className = "budget-status-pill over";
     }
-    if (barFill) {
-      barFill.className = "budget-bar-fill over";
-    }
+    if (barFill) barFill.className = "budget-bar-fill over";
     if (spentPctText) spentPctText.textContent = `${Math.round((totalCost / setBudget) * 100)}% allocated`;
     if (remainingText) remainingText.textContent = `₹${overAmt.toLocaleString('en-IN')} deficit`;
     if (lblBalance) lblBalance.textContent = "Over Budget By";
@@ -482,7 +746,6 @@ function recalculateBudget() {
   }
 }
 
-// Render Destination Insights
 function renderInsights() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const container = document.getElementById("destination-insights-list");
@@ -491,20 +754,19 @@ function renderInsights() {
   container.innerHTML = `
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <div><strong>Best Season:</strong> ${destInfo.bestTime} for pleasant outdoor weather.</div>
+      <div><strong>Best Season:</strong> ${destInfo.bestTime} for outdoor travel.</div>
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      <div><strong>Local Commute:</strong> Avg ₹${destInfo.avgDailyTransport}/day for Autos, Scooters & Cabs.</div>
+      <div><strong>Local Commute:</strong> Avg ₹${destInfo.avgDailyTransport}/day for Autos, Scooters & Taxis.</div>
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <div><strong>Safety & Smart Travel:</strong> Keep digital copies of ID and book top monuments online for fast entry.</div>
+      <div><strong>Dynamic Defense:</strong> Use the ⚡ Disruption Assistant if rain or traffic delays your day.</div>
     </div>
   `;
 }
 
-// Helper: category label format
 function getCategoryLabel(cat) {
   switch (cat) {
     case "culture": return "🏛️ Culture";
@@ -514,18 +776,18 @@ function getCategoryLabel(cat) {
     case "nightlife": return "🍸 Nightlife";
     case "wellness": return "🧘 Wellness";
     case "shopping": return "🛍️ Shopping";
+    case "transit": return "🚗 Transport";
     default: return "📍 Attraction";
   }
 }
 
 // =============================================================================
-// 6. ACTIVITY & DAY MANAGEMENT (EDIT, MOVE, DELETE, ADD)
+// 9. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
 // =============================================================================
 
 function moveActivity(dayIndex, actIndex, direction) {
   const activities = state.itinerary[dayIndex].activities;
   const targetIndex = actIndex + direction;
-
   if (targetIndex < 0 || targetIndex >= activities.length) return;
 
   const temp = activities[actIndex];
@@ -534,6 +796,7 @@ function moveActivity(dayIndex, actIndex, direction) {
 
   saveToLocalStorage();
   renderDayContent();
+  if (state.activeViewMode === "map") initOrUpdateMap();
   showToast("Reordered", `Moved activity ${direction < 0 ? 'up' : 'down'}.`, "info");
 }
 
@@ -544,6 +807,7 @@ function deleteActivity(dayIndex, actIndex) {
   renderDayTabs();
   renderDayContent();
   recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
   showToast("Activity Removed", `Deleted ${actName} from Day ${state.itinerary[dayIndex].dayNum}.`, "info");
 }
 
@@ -551,28 +815,25 @@ function addNewDay() {
   const newDayNum = state.itinerary.length + 1;
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   
-  // Pick unused places from destination dataset if available
-  const existingPlaceNames = new Set();
-  state.itinerary.forEach(d => d.activities.forEach(a => existingPlaceNames.add(a.name)));
-
-  const availablePlaces = destInfo.places.filter(p => !existingPlaceNames.has(p.name));
+  const existingNames = new Set();
+  state.itinerary.forEach(d => d.activities.forEach(a => existingNames.add(a.name)));
+  const available = destInfo.places.filter(p => !existingNames.has(p.name));
   const newActivities = [];
 
-  if (availablePlaces.length > 0) {
-    newActivities.push(JSON.parse(JSON.stringify(availablePlaces[0])));
-    if (availablePlaces.length > 1) {
-      newActivities.push(JSON.parse(JSON.stringify(availablePlaces[1])));
-    }
+  if (available.length > 0) {
+    newActivities.push(JSON.parse(JSON.stringify(available[0])));
+    if (available.length > 1) newActivities.push(JSON.parse(JSON.stringify(available[1])));
   } else {
     newActivities.push({
       id: `custom-chill-${newDayNum}`,
-      name: `Local Market & Sunset Stroll in ${destInfo.name}`,
+      name: `Local Market & Sunset Walk in ${destInfo.name}`,
       timeSlot: "Evening (05:00 PM)",
       category: "nature",
       cost: 200,
       duration: "2 hours",
       description: "Relax, explore regional handicraft stores, and try street food snacks.",
-      tip: "Great day for casual photography and buying souvenirs."
+      tip: "Great day for casual photography and buying souvenirs.",
+      coords: destInfo.centerCoords
     });
   }
 
@@ -588,6 +849,7 @@ function addNewDay() {
   renderDayTabs();
   renderDayContent();
   recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
   showToast(`Day ${newDayNum} Added!`, `Trip extended to ${state.daysCount} days.`, "success");
 }
 
@@ -597,7 +859,6 @@ function deleteDay(dayIndex) {
     return;
   }
   state.itinerary.splice(dayIndex, 1);
-  // Renumber remaining days
   state.itinerary.forEach((d, i) => {
     d.dayNum = i + 1;
     d.title = d.title.replace(/^Day \d+/, `Day ${i + 1}`);
@@ -610,11 +871,9 @@ function deleteDay(dayIndex) {
   renderDayTabs();
   renderDayContent();
   recalculateBudget();
+  if (state.activeViewMode === "map") initOrUpdateMap();
   showToast("Day Deleted", `Trip adjusted to ${state.daysCount} days.`, "info");
 }
-
-// Drag & Drop Setup
-let draggedCard = null;
 
 function setupCardDragAndDrop(card, dayIndex, actIndex) {
   card.addEventListener("dragstart", (e) => {
@@ -651,23 +910,22 @@ function setupCardDragAndDrop(card, dayIndex, actIndex) {
     renderDayContent();
     renderDayTabs();
     recalculateBudget();
-    showToast("Reordered via Drag & Drop", `Moved to new position.`, "info");
+    if (state.activeViewMode === "map") initOrUpdateMap();
+    showToast("Reordered via Drag & Drop", "Moved to new position.", "info");
   });
 }
 
 // =============================================================================
-// 7. MODAL EDIT & ADD ACTIVITY HANDLERS
+// 10. MODALS & EVENT LISTENERS
 // =============================================================================
 
 function openAddActivityModal(dayIndex) {
   const modal = document.getElementById("modal-activity");
   const title = document.getElementById("modal-activity-title");
-  const form = document.getElementById("form-activity-edit");
-
-  if (!modal || !form) return;
+  if (!modal) return;
 
   document.getElementById("modal-day-index").value = dayIndex;
-  document.getElementById("modal-act-index").value = "-1"; // -1 for new
+  document.getElementById("modal-act-index").value = "-1";
   title.textContent = `Add Place / Activity to Day ${state.itinerary[dayIndex].dayNum}`;
 
   document.getElementById("modal-act-name").value = "";
@@ -685,7 +943,6 @@ function openEditActivityModal(dayIndex, actIndex) {
   const modal = document.getElementById("modal-activity");
   const title = document.getElementById("modal-activity-title");
   const act = state.itinerary[dayIndex].activities[actIndex];
-
   if (!modal || !act) return;
 
   document.getElementById("modal-day-index").value = dayIndex;
@@ -704,38 +961,47 @@ function openEditActivityModal(dayIndex, actIndex) {
 }
 
 function closeActivityModal() {
-  const modal = document.getElementById("modal-activity");
-  if (modal) modal.classList.add("hidden");
+  document.getElementById("modal-activity")?.classList.add("hidden");
 }
 
-// =============================================================================
-// 8. EVENT LISTENERS & EXPORT TOOLS
-// =============================================================================
-
 function setupEventListeners() {
-  // Trip Setup Form Submit
-  const form = document.getElementById("trip-planner-form");
-  if (form) {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      state.destination = document.getElementById("select-destination").value;
-      state.daysCount = Number(document.getElementById("input-days").value) || 3;
-      state.totalBudget = Number(document.getElementById("input-budget").value) || 18000;
-      generateItinerary();
+  // Form Submit
+  document.getElementById("trip-planner-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    state.destination = document.getElementById("select-destination").value;
+    state.daysCount = Number(document.getElementById("input-days").value) || 3;
+    state.totalBudget = Number(document.getElementById("input-budget").value) || 18000;
+    generateItinerary();
+  });
+
+  // View Mode Switcher buttons
+  document.querySelectorAll(".view-mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode;
+      switchViewMode(mode);
     });
-  }
-
-  // Brand home click & New Trip button
-  document.getElementById("btn-brand-home")?.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  document.getElementById("btn-reset-form")?.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    document.getElementById("select-destination").focus();
+  // Disruption Scenario Buttons
+  document.getElementById("btn-scenario-rain")?.addEventListener("click", () => applyDisruptionScenario("rain"));
+  document.getElementById("btn-scenario-delay")?.addEventListener("click", () => applyDisruptionScenario("delay"));
+  document.getElementById("btn-scenario-chill")?.addEventListener("click", () => applyDisruptionScenario("chill"));
+  document.getElementById("btn-reset-reroute")?.addEventListener("click", () => applyDisruptionScenario("reset"));
+
+  // Quick Transit Add Buttons
+  document.getElementById("btn-add-airport-pickup")?.addEventListener("click", () => {
+    addTransitActivity("Airport to Hotel Private AC Cab Pickup", 750, "Morning (08:30 AM)");
   });
 
-  // Quick Sample Trip (Jaipur 3 Days)
+  document.getElementById("btn-add-station-transfer")?.addEventListener("click", () => {
+    addTransitActivity("Railway Station to Hotel Auto/Cab Transfer", 400, "Morning (09:00 AM)");
+  });
+
+  document.getElementById("btn-add-daily-cab")?.addEventListener("click", () => {
+    addTransitActivity("Full-Day Private Sightseeing AC Taxi (8 hrs)", 1800, "Morning (09:00 AM)");
+  });
+
+  // Quick Sample Trip
   document.getElementById("btn-sample-trip")?.addEventListener("click", () => {
     state.destination = "jaipur";
     state.daysCount = 3;
@@ -745,9 +1011,18 @@ function setupEventListeners() {
     generateItinerary();
   });
 
+  // Brand Home Reset
+  document.getElementById("btn-brand-home")?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  document.getElementById("btn-reset-form")?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("select-destination").focus();
+  });
+
   // Modal Submit
-  const modalForm = document.getElementById("form-activity-edit");
-  modalForm?.addEventListener("submit", (e) => {
+  document.getElementById("form-activity-edit")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const dayIndex = Number(document.getElementById("modal-day-index").value);
     const actIndex = Number(document.getElementById("modal-act-index").value);
@@ -760,15 +1035,16 @@ function setupEventListeners() {
       cost: Number(document.getElementById("modal-act-cost").value) || 0,
       duration: document.getElementById("modal-act-duration").value.trim(),
       description: document.getElementById("modal-act-desc").value.trim(),
-      tip: document.getElementById("modal-act-tip").value.trim()
+      tip: document.getElementById("modal-act-tip").value.trim(),
+      coords: actIndex === -1 
+        ? DESTINATIONS_DATA[state.destination]?.centerCoords 
+        : (state.itinerary[dayIndex].activities[actIndex].coords || DESTINATIONS_DATA[state.destination]?.centerCoords)
     };
 
     if (actIndex === -1) {
-      // Add new
       state.itinerary[dayIndex].activities.push(updatedActivity);
       showToast("Activity Added", `Added "${updatedActivity.name}" to Day ${state.itinerary[dayIndex].dayNum}.`, "success");
     } else {
-      // Edit existing
       state.itinerary[dayIndex].activities[actIndex] = updatedActivity;
       showToast("Activity Updated", `Updated details for "${updatedActivity.name}".`, "success");
     }
@@ -778,24 +1054,16 @@ function setupEventListeners() {
     renderDayTabs();
     renderDayContent();
     recalculateBudget();
+    if (state.activeViewMode === "map") initOrUpdateMap();
   });
 
-  // Close Modal Buttons
   document.getElementById("btn-close-modal")?.addEventListener("click", closeActivityModal);
   document.getElementById("btn-cancel-modal")?.addEventListener("click", closeActivityModal);
 
-  // Print / PDF Button
-  document.getElementById("btn-print-itinerary")?.addEventListener("click", () => {
-    window.print();
-  });
-
-  // Copy Plan Text to Clipboard
-  document.getElementById("btn-copy-itinerary")?.addEventListener("click", () => {
-    copyItineraryToClipboard();
-  });
+  document.getElementById("btn-print-itinerary")?.addEventListener("click", () => window.print());
+  document.getElementById("btn-copy-itinerary")?.addEventListener("click", copyItineraryToClipboard);
 }
 
-// Copy Plain-Text Itinerary for WhatsApp / Notes
 function copyItineraryToClipboard() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   let text = `✈️ TravelPilot Itinerary: ${destInfo.name}, India (${state.daysCount} Days)\n`;
@@ -818,22 +1086,20 @@ function copyItineraryToClipboard() {
   text += `Generated with TravelPilot India Trip Planner.\n`;
 
   navigator.clipboard.writeText(text).then(() => {
-    showToast("Copied to Clipboard!", "Full day-by-day plan ready to share on WhatsApp or Notes.", "success");
+    showToast("Copied to Clipboard!", "Full plan ready to share on WhatsApp or Notes.", "success");
   }).catch(() => {
-    showToast("Copy Note", "Please select and copy the text manually.", "info");
+    showToast("Copy Note", "Please select and copy text manually.", "info");
   });
 }
 
-// LocalStorage Persistence
 function saveToLocalStorage() {
   try {
     localStorage.setItem("travelpilot_saved_trip", JSON.stringify(state));
   } catch (e) {
-    // Graceful fallback
+    // Handled
   }
 }
 
-// Toast Feedback System
 function showToast(title, message, type = "success") {
   const container = document.getElementById("toast-container");
   if (!container) return;
