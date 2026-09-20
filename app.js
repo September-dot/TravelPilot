@@ -1652,7 +1652,12 @@ function switchViewMode(mode) {
   if (secTransit) secTransit.style.display = mode === "transit" ? "flex" : "none";
 
   if (mode === "map") {
-    setTimeout(initOrUpdateMap, 50);
+    setTimeout(() => {
+      initOrUpdateMap();
+      if (mapInstance && typeof mapInstance.invalidateSize === "function") {
+        mapInstance.invalidateSize();
+      }
+    }, 60);
   }
 }
 
@@ -1673,7 +1678,10 @@ function renderDayTabs() {
     state.activeDayTab = -1;
     renderDayTabs();
     renderDayContent();
-    if (state.activeViewMode === "map") initOrUpdateMap();
+    if (state.activeViewMode === "map") {
+      initOrUpdateMap();
+      if (mapInstance) mapInstance.invalidateSize();
+    }
   });
   tabsContainer.appendChild(allTab);
 
@@ -1692,7 +1700,10 @@ function renderDayTabs() {
       state.activeDayTab = idx;
       renderDayTabs();
       renderDayContent();
-      if (state.activeViewMode === "map") initOrUpdateMap();
+      if (state.activeViewMode === "map") {
+        initOrUpdateMap();
+        if (mapInstance) mapInstance.invalidateSize();
+      }
     });
 
     tabsContainer.appendChild(tabBtn);
@@ -1739,10 +1750,13 @@ function renderDayContent() {
           <span class="day-route-meta">🛣️ Daily Commute: ~${dayDist} km (approx. ${dayDriveMins} mins cab travel)</span>
         </div>
         <div class="day-card-actions">
-          <button class="btn-optimize-day" data-day-index="${actualDayIndex}" title="Auto-reorder stops geographically">
-            <span>⚡ Optimize Day ${day.dayNum}</span>
+          <button type="button" class="btn-view-map-day" data-day-index="${actualDayIndex}" title="Switch to interactive map for this day">
+            <span>📍 Map</span>
           </button>
-          <button class="btn-add-activity" data-day-index="${actualDayIndex}" title="Add new stop">
+          <button type="button" class="btn-optimize-day" data-day-index="${actualDayIndex}" title="Auto-reorder stops geographically">
+            <span>⚡ Optimize</span>
+          </button>
+          <button type="button" class="btn-add-activity" data-day-index="${actualDayIndex}" title="Add new stop">
             <span>+ Add Stop</span>
           </button>
         </div>
@@ -1751,6 +1765,12 @@ function renderDayContent() {
         <!-- Activities rendered dynamically -->
       </div>
     `;
+
+    dayCard.querySelector(".btn-view-map-day")?.addEventListener("click", () => {
+      state.activeDayTab = actualDayIndex;
+      renderDayTabs();
+      switchViewMode("map");
+    });
 
     const actsList = dayCard.querySelector(".activities-list");
 
@@ -2157,6 +2177,12 @@ function initOrUpdateMap() {
     } catch (e) {
       console.warn("Could not fit bounds:", e);
     }
+  }
+
+  if (mapInstance && typeof mapInstance.invalidateSize === "function") {
+    setTimeout(() => {
+      try { mapInstance.invalidateSize(); } catch (err) {}
+    }, 50);
   }
 }
 
