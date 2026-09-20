@@ -1,15 +1,15 @@
 /**
- * TravelPilot - Production Algorithmic Trip Planner & AI Route Optimizer for India
+ * TravelPilot - Algorithmic Trip Planner & AI Route Optimizer for India
  * 
- * Technical Highlights:
- *  - AI Co-Pilot: Bounded Autonomy LLM Intent API + Tokenized Rule-Based Fallback Engine (No substring bugs)
- *  - Hybrid TSP Optimizer: Exact Permutations (n <= 7) & Nearest-Neighbour + 2-Opt Local Search (n > 7) (Zero Freeze Risk)
- *  - Preview, Approve & Undo: Before/After Diff Modal, Dynamic Rationale from actual diffs, & Full Undo/Redo History Stack
- *  - Proactive Live Weather Trigger: Open-Meteo REST API forecast integration + Closed-Day opening hours validator
- *  - In-App Optimization & Impact Metrics Panel: Commute km saved, transit time shaved, budget efficiency, conflict diagnostics
- *  - Calendar & Sharing: .ics export for Google/Apple Calendar, Shareable URL state encoding (#trip=...)
- *  - Multi-Tier Budget Generator: Budget (< ₹2,500/day), Moderate, and Luxury (> ₹6,000/day) across 6 destinations
- *  - Secure HTML Entity Sanitization (XSS Defense)
+ * Technical Architecture:
+ *  - AI Co-Pilot: Bounded Autonomy Intent Parser (LLM + Clause-Scoped Negation Rule Fallback)
+ *  - Hybrid TSP Route Optimizer: Exact Permutations (n <= 7) & 2-Opt Local Search with Slot Penalties (n > 7)
+ *  - Preview, Approve & Undo: Before/After Diff Modal, Dynamic Rationale, and Full Undo/Redo History Stack
+ *  - Proactive Live Weather Forecast: Open-Meteo REST API date range queries (start_date/end_date)
+ *  - Pure Function Architecture: buildItinerary(params) for deterministic testing and budget regeneration
+ *  - Map Click Hotel Origin: Click anywhere on map to set custom hotel starting location
+ *  - RFC-5545 iCalendar Exporter: Properly escaped .ics generator with real scheduled slots
+ *  - Security: SessionStorage for API keys & HTML entity sanitization (XSS Defense)
  */
 
 // =============================================================================
@@ -64,6 +64,16 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+// RFC-5545 iCalendar text escaping
+function escapeIcsText(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\n/g, "\\n");
+}
+
 // Geodesic Distance via Haversine Formula (in Kilometers)
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return 0;
@@ -97,6 +107,29 @@ function calculatePathDistance(activities, defaultCenter) {
   return Number(total.toFixed(1));
 }
 
+// Slot Affinity Penalty Calculator
+function calculateSlotPenalty(activities) {
+  if (!activities || activities.length <= 1) return 0;
+  let penalty = 0;
+  const n = activities.length;
+  for (let i = 0; i < n; i++) {
+    const pref = activities[i].slotPreference || "any";
+    if (pref === "morning" && i >= n - 1) {
+      penalty += 6.0;
+    } else if ((pref === "evening" || pref === "night") && i === 0) {
+      penalty += 12.0;
+    } else if (pref === "night" && i < n - 1) {
+      penalty += 8.0;
+    }
+  }
+  return penalty;
+}
+
+// Total Route Cost (Distance + Slot Penalty)
+function calculateTotalRouteCost(activities, center) {
+  return calculatePathDistance(activities, center) + calculateSlotPenalty(activities);
+}
+
 // Generate all permutations of an array (used only when n <= 7)
 function getPermutations(arr) {
   if (arr.length <= 1) return [arr];
@@ -113,7 +146,6 @@ function getPermutations(arr) {
 }
 
 // Nearest-Neighbour Heuristic with 2-Opt Local Search for larger lists (n > 7)
-// Eliminates O(n!) permutation freeze risk (e.g. 10 stops = 3.6 million permutations)
 function nearestNeighborWithTwoOpt(activities, defaultCenter) {
   if (activities.length <= 2) return activities;
   const center = defaultCenter || [26.9124, 75.7873];
@@ -139,9 +171,9 @@ function nearestNeighborWithTwoOpt(activities, defaultCenter) {
     tour.push(unvisited.splice(nearestIdx, 1)[0]);
   }
   
-  // Step 2: Refine tour using 2-Opt Local Search
+  // Step 2: Refine tour using 2-Opt Local Search with Slot Penalties
   let bestRoute = tour;
-  let bestDist = calculatePathDistance(bestRoute, center);
+  let bestCost = calculateTotalRouteCost(bestRoute, center);
   let improved = true;
   let iterations = 0;
 
@@ -153,10 +185,10 @@ function nearestNeighborWithTwoOpt(activities, defaultCenter) {
         const newRoute = bestRoute.slice(0, i)
           .concat(bestRoute.slice(i, k + 1).reverse())
           .concat(bestRoute.slice(k + 1));
-        const newDist = calculatePathDistance(newRoute, center);
-        if (newDist < bestDist - 0.05) {
+        const newCost = calculateTotalRouteCost(newRoute, center);
+        if (newCost < bestCost - 0.05) {
           bestRoute = newRoute;
-          bestDist = newDist;
+          bestCost = newCost;
           improved = true;
           break;
         }
@@ -166,6 +198,25 @@ function nearestNeighborWithTwoOpt(activities, defaultCenter) {
   }
 
   return bestRoute;
+}
+
+// Generate time slot dynamically from stop index
+function getTimeSlotForIndex(idx, isDelayed = false) {
+  const standardSlots = [
+    "Morning (09:00 AM)",
+    "Morning (11:30 AM)",
+    "Afternoon (02:00 PM)",
+    "Evening (05:30 PM)",
+    "Night (08:00 PM)"
+  ];
+  const delayedSlots = [
+    "Morning (10:30 AM)",
+    "Afternoon (02:30 PM)",
+    "Evening (05:30 PM)",
+    "Night (08:00 PM)"
+  ];
+  const template = isDelayed ? delayedSlots : standardSlots;
+  return template[Math.min(idx, template.length - 1)];
 }
 
 // =============================================================================
@@ -256,19 +307,11 @@ function updateUndoRedoUI() {
 // 4. HYBRID TSP ROUTE OPTIMIZER (Exact <=7, Nearest-Neighbor+2-Opt >7)
 // =============================================================================
 
-function optimizeDayPath(activities, defaultCenter) {
+function optimizeDayPath(activities, defaultCenter, isDelayed = false) {
   if (!activities || activities.length <= 1) return activities;
 
   const center = state.hotelOrigin || defaultCenter || [26.9124, 75.7873];
   const n = activities.length;
-
-  const timeSlotTemplates = [
-    "Morning (09:00 AM)",
-    "Morning (11:30 AM)",
-    "Afternoon (02:00 PM)",
-    "Evening (05:30 PM)",
-    "Night (08:00 PM)"
-  ];
 
   let bestPermutation = activities;
 
@@ -279,36 +322,21 @@ function optimizeDayPath(activities, defaultCenter) {
 
     for (let p = 0; p < allPerms.length; p++) {
       const perm = allPerms[p];
-      const dist = calculatePathDistance(perm, center);
-
-      // Slot affinity constraints
-      let slotPenalty = 0;
-      for (let i = 0; i < perm.length; i++) {
-        const pref = perm[i].slotPreference || "any";
-        if (pref === "morning" && i >= n - 1) {
-          slotPenalty += 6.0;
-        } else if ((pref === "evening" || pref === "night") && i === 0) {
-          slotPenalty += 12.0;
-        } else if (pref === "night" && i < n - 1) {
-          slotPenalty += 8.0;
-        }
-      }
-
-      const totalCost = dist + slotPenalty;
+      const totalCost = calculateTotalRouteCost(perm, center);
       if (totalCost < minCost) {
         minCost = totalCost;
         bestPermutation = perm;
       }
     }
   } else {
-    // Fallback for n > 7: Nearest-Neighbor + 2-Opt Local Search (Guaranteed 0ms freeze)
+    // Fallback for n > 7: Nearest-Neighbor + 2-Opt Local Search with Slot Penalties
     bestPermutation = nearestNeighborWithTwoOpt(activities, center);
   }
 
   // Assign clean chronological time slots based on the optimized order
   const result = bestPermutation.map((act, idx) => {
     const updated = { ...act };
-    updated.timeSlot = timeSlotTemplates[Math.min(idx, timeSlotTemplates.length - 1)];
+    updated.timeSlot = getTimeSlotForIndex(idx, isDelayed);
     return updated;
   });
 
@@ -320,7 +348,6 @@ function autoRerouteItinerary(targetDayIndex = -1, promptForApproval = true) {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const center = state.hotelOrigin || destInfo.centerCoords || [26.9124, 75.7873];
   
-  // Clone draft
   const draftItinerary = JSON.parse(JSON.stringify(state.itinerary));
   const daysToOptimize = targetDayIndex === -1 
     ? draftItinerary 
@@ -339,7 +366,8 @@ function autoRerouteItinerary(targetDayIndex = -1, promptForApproval = true) {
       diffData,
       { itinerary: draftItinerary, totalBudget: state.totalBudget, activeDisruption: state.activeDisruption },
       dynamicRationale,
-      "TSP Route Geometry Optimization"
+      "TSP Route Geometry Optimization",
+      "Deterministic Algorithm"
     );
   } else {
     pushStateToUndoHistory("Route Geometry Optimization");
@@ -352,26 +380,20 @@ function autoRerouteItinerary(targetDayIndex = -1, promptForApproval = true) {
 }
 
 // =============================================================================
-// 5. BUDGET-AWARE GENERATION & CLOSED-DAYS AWARENESS
+// 5. PURE GENERATION FUNCTION & BUDGET-AWARE ENGINE
 // =============================================================================
 
-function generateItinerary(pushHistory = true) {
-  if (pushHistory && state.itinerary && state.itinerary.length > 0) {
-    pushStateToUndoHistory("Itinerary Generation");
-  }
+// Pure itinerary generation function for clean testing & deterministic re-generation
+function buildItinerary({ destination, daysCount, totalBudget, selectedInterests, hotelOrigin }) {
+  const destInfo = DESTINATIONS_DATA[destination] || DESTINATIONS_DATA.jaipur;
+  const allPlaces = [...(destInfo.places || [])];
+  const numDays = daysCount || 3;
+  const targetDailyBudget = (Number(totalBudget) || 18000) / numDays;
+  const startCoords = hotelOrigin || destInfo.centerCoords;
 
-  const destKey = state.destination;
-  const destInfo = DESTINATIONS_DATA[destKey] || DESTINATIONS_DATA.jaipur;
-  const allPlaces = [...destInfo.places];
-
-  const numDays = state.daysCount || 3;
-  const targetDailyBudget = (Number(state.totalBudget) || 18000) / numDays;
-
-  // Score places based on interest relevance and budget tier compatibility
   const scoredPlaces = allPlaces.map(p => {
     let score = 0;
-
-    if (state.selectedInterests.includes(p.category)) {
+    if (selectedInterests.includes(p.category)) {
       score += 6;
     }
 
@@ -438,7 +460,6 @@ function generateItinerary(pushHistory = true) {
     else if (d === 5) dayTheme = `Day 5: Artisan Bazaars & Wellness`;
     else if (d >= 6) dayTheme = `Day ${d}: Extended Discovery & Leisure`;
 
-    const startCoords = state.hotelOrigin || destInfo.centerCoords;
     const optimizedActs = optimizeDayPath(dayActivities, startCoords);
 
     days.push({
@@ -448,73 +469,94 @@ function generateItinerary(pushHistory = true) {
     });
   }
 
-  state.itinerary = days;
-  state.originalItineraryBackup = JSON.parse(JSON.stringify(days));
+  return { days, targetDailyBudget };
+}
+
+function generateItinerary(pushHistory = true) {
+  if (pushHistory && state.itinerary && state.itinerary.length > 0) {
+    pushStateToUndoHistory("Itinerary Generation");
+  }
+
+  const result = buildItinerary({
+    destination: state.destination,
+    daysCount: state.daysCount,
+    totalBudget: state.totalBudget,
+    selectedInterests: state.selectedInterests,
+    hotelOrigin: state.hotelOrigin
+  });
+
+  state.itinerary = result.days;
+  state.originalItineraryBackup = JSON.parse(JSON.stringify(result.days));
   state.activeDayTab = 0;
   state.activeDisruption = null;
 
   saveToLocalStorage();
   renderDashboard();
   checkLiveWeatherForecast();
-  showToast("Itinerary Generated! 🚀", `Crafted budget-optimized ${numDays}-day plan for ${destInfo.name}.`, "success");
+  showToast("Itinerary Generated! 🚀", `Crafted budget-optimized ${state.daysCount}-day plan for ${(DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur).name}.`, "success");
 }
 
 // =============================================================================
-// 6. AI CO-PILOT (BOUNDED LLM INTENT LAYER + TOKENIZED FALLBACK PARSER)
+// 6. AI CO-PILOT (CLAUSE-SCOPED NEGATION PARSER & LLM LAYER)
 // =============================================================================
 
-// Robust tokenized rule fallback with word boundaries and negation handling
+const NEGATION_REGEX = /\b(not|no|never|without|don'?t|isn'?t|aren'?t|nothing)\b/i;
+
+function hasIntentMatch(text, patternRegex) {
+  for (const m of text.matchAll(new RegExp(patternRegex.source, 'gi'))) {
+    const before = text.slice(0, m.index).split(/[.,;!?]|\bbut\b/).pop().split(/\s+/).slice(-4).join(' ');
+    if (!NEGATION_REGEX.test(before)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Scoped negation & context-aware rule fallback
 function parseIntentWithRuleFallback(promptText) {
   if (!promptText || !promptText.trim()) return null;
   const text = promptText.toLowerCase();
 
   const intents = [];
-  let confidence = 0.92;
+  let confidence = 0.94;
   const constraints = {};
 
-  // Check negations
-  const hasNotRain = /\b(not|no|don'?t)\b.*?\b(rain|raining|wet|indoor)\b/.test(text);
-  const hasNotDelay = /\b(not|no|without|zero)\b.*?\b(delay|delayed|late|rush)\b/.test(text);
-
   // Intent 1: Weather (Rain / Monsoon / Storm / Waterlog / Wet)
-  // Uses strict word boundaries so "train" or "drain" never triggers rain!
-  const isRain = !hasNotRain && (
-    /\b(rain|raining|rains|monsoon|storm|stormy|pouring|drenched|waterlog\w*|downpour|heavy shower|wet)\b/.test(text)
-  );
+  const isRain = hasIntentMatch(text, /\b(rain|raining|rains|monsoon|storm|stormy|pouring|drenched|waterlog\w*|downpour|heavy shower|wet)\b/);
   if (isRain) intents.push("weather_rain");
 
   // Intent 2: Delay / Traffic / Transit / Train Delay / Flight Delay
-  const isDelay = !hasNotDelay && (
-    /\b(delay|delayed|traffic|jam|stuck|late|flight delay|train delay|train|slow transit|shorten)\b/.test(text)
-  );
-  if (isDelay) intents.push("traffic_delay");
+  // "train" only counts as delay alongside late, delayed, cancelled, missed, slow, stuck
+  const isTrainDelay = hasIntentMatch(text, /\btrain\b/) && /\b(late|delay\w*|cancel\w*|miss\w*|slow|stuck|jam\w*)\b/i.test(text);
+  const isGeneralDelay = hasIntentMatch(text, /\b(delay|delayed|traffic|jam|stuck|late|flight delay|slow transit|cancelled|missed|shorten)\b/);
+  if (isTrainDelay || isGeneralDelay) intents.push("traffic_delay");
 
   // Intent 3: Fatigue / Wellness / Chill / Slow Pace
-  const isChill = /\b(tired|exhausted|exhaust|chill|relax|relaxing|spa|massage|rest|wellness|slow down|leisure|gentle)\b/.test(text);
+  const isChill = hasIntentMatch(text, /\b(tired|exhausted|exhaust|chill|relax|relaxing|spa|massage|rest|wellness|slow down|leisure|gentle)\b/);
   if (isChill) intents.push("fatigue_chill");
 
-  // Intent 4: Budget Low
-  const isTightBudget = /\b(tight budget|cheap|free|low budget|save money|street food|broke|economical|budget cut|cheaper)\b/.test(text);
+  // Intent 4: Budget Low ("too expensive", "cheap", "free sights", excluding "free time")
+  const hasFreeSights = hasIntentMatch(text, /\bfree\b/) && !/\bfree\s+(time|schedule|day|hours?)\b/i.test(text);
+  const isTightBudget = hasIntentMatch(text, /\b(tight budget|cheap|low budget|save money|street food|broke|economical|too expensive|over budget|budget cut|cheaper)\b/) || hasFreeSights;
   if (isTightBudget) {
     intents.push("budget_low");
     constraints.budgetScale = 0.6;
   }
 
-  // Intent 5: Luxury Upgrade
-  const isLuxury = /\b(luxury|royal|high tea|cruise|expensive|premium|splurge|5 star|five star|vip)\b/.test(text);
+  // Intent 5: Luxury Upgrade ("splurge", "luxury", "5 star", "high tea")
+  const isLuxury = hasIntentMatch(text, /\b(luxury|splurge|5 star|five star|vip|high tea|private cruise|fine dining|gourmet)\b/);
   if (isLuxury) {
     intents.push("budget_luxury");
     constraints.budgetScale = 1.5;
   }
 
   // Intent 6: Reset
-  const isReset = /\b(reset|original|start over|restart|undo all|baseline)\b/.test(text);
+  const isReset = hasIntentMatch(text, /\b(reset|start over|restart|undo all|baseline)\b/);
   if (isReset) intents.push("reset_plan");
 
-  // Default intent: route optimization if no disruption intent matched
   if (intents.length === 0) {
     intents.push("reroute_optimize");
-    confidence = 0.85;
+    confidence = 0.75;
   }
 
   let userSummary = "";
@@ -527,9 +569,9 @@ function parseIntentWithRuleFallback(promptText) {
   } else if (intents.includes("fatigue_chill")) {
     userSummary = "Detected fatigue. Proposing relaxed pacing with royal tea lounges and wellness stops.";
   } else if (intents.includes("budget_low")) {
-    userSummary = "Detected economical budget request. Proposing low-cost heritage stepwells, walking tours, and street dining.";
+    userSummary = "Detected economical budget request. Rebuilding plan with free heritage stepwells, walking tours, and street dining.";
   } else if (intents.includes("budget_luxury")) {
-    userSummary = "Detected luxury upgrade request. Proposing royal high tea, private boat cruises, and signature heritage dining.";
+    userSummary = "Detected luxury upgrade request. Rebuilding plan with royal high tea, private boat cruises, and signature heritage dining.";
   } else if (intents.includes("reset_plan")) {
     userSummary = "Detected request to restore baseline generated itinerary.";
   } else {
@@ -548,7 +590,9 @@ function parseIntentWithRuleFallback(promptText) {
 
 // Real LLM API caller with structured JSON output and bounded autonomy
 async function callLlmIntentApi(promptText) {
-  if (!state.llmConfig.apiKey || state.llmConfig.provider === "builtin_fallback") {
+  const sessionKey = sessionStorage.getItem("travelpilot_api_key") || state.llmConfig.apiKey;
+
+  if (!sessionKey || state.llmConfig.provider === "builtin_fallback") {
     return parseIntentWithRuleFallback(promptText);
   }
 
@@ -573,7 +617,7 @@ Do NOT include markdown backticks or explanations. Output pure JSON only.`;
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${state.llmConfig.apiKey}`
+        "Authorization": `Bearer ${sessionKey}`
       },
       body: JSON.stringify({
         model: state.llmConfig.model || "gpt-4o-mini",
@@ -591,7 +635,6 @@ Do NOT include markdown backticks or explanations. Output pure JSON only.`;
     const content = data.choices?.[0]?.message?.content;
     const parsed = JSON.parse(content);
 
-    // Validate enum guardrails
     const validIntents = ["weather_rain", "traffic_delay", "fatigue_chill", "budget_low", "budget_luxury", "reroute_optimize", "reset_plan"];
     const filteredIntents = (parsed.intents || []).filter(i => validIntents.includes(i));
 
@@ -629,7 +672,6 @@ async function parseAndExecuteAiPrompt(promptText) {
 
   if (!parsedPlan) return;
 
-  // Execute deterministic actions on a draft clone
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const startCoords = state.hotelOrigin || destInfo.centerCoords;
   let draftItinerary = JSON.parse(JSON.stringify(state.itinerary));
@@ -644,21 +686,46 @@ async function parseAndExecuteAiPrompt(promptText) {
       proposedDisruption = null;
     }
   } else {
-    // Rain handling
+    // Budget intents: rebuild plan deterministically
+    if (intents.includes("budget_low")) {
+      draftBudget = Math.max(6000, Math.round(state.totalBudget * 0.6));
+      const rebuilt = buildItinerary({
+        destination: state.destination,
+        daysCount: state.daysCount,
+        totalBudget: draftBudget,
+        selectedInterests: state.selectedInterests,
+        hotelOrigin: state.hotelOrigin
+      });
+      draftItinerary = rebuilt.days;
+    } else if (intents.includes("budget_luxury")) {
+      draftBudget = Math.max(30000, Math.round(state.totalBudget * 1.5));
+      const rebuilt = buildItinerary({
+        destination: state.destination,
+        daysCount: state.daysCount,
+        totalBudget: draftBudget,
+        selectedInterests: state.selectedInterests,
+        hotelOrigin: state.hotelOrigin
+      });
+      draftItinerary = rebuilt.days;
+    }
+
+    // Rain handling: exclude already-used IDs
     if (intents.includes("weather_rain")) {
       proposedDisruption = "rain";
       const plans = destInfo.contingencyPlans;
       if (plans && plans.heavyRain) {
+        const activeIds = new Set(draftItinerary.flatMap(d => d.activities.map(a => a.id)));
         const rainPool = [...plans.heavyRain.replacements];
         const indoorCore = (destInfo.places || []).filter(p => !p.weatherSensitive);
-        const combinedPool = [...rainPool, ...indoorCore];
+        const combinedPool = [...rainPool, ...indoorCore].filter(p => !activeIds.has(p.id));
         let poolIdx = 0;
 
         draftItinerary.forEach((day) => {
           let changed = false;
           day.activities = day.activities.map(act => {
             if (act.weatherSensitive && poolIdx < combinedPool.length) {
-              const rep = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
+              const rep = JSON.parse(JSON.stringify(combinedPool[poolIdx]));
+              activeIds.add(rep.id);
               poolIdx++;
               changed = true;
               return rep;
@@ -673,7 +740,7 @@ async function parseAndExecuteAiPrompt(promptText) {
       }
     }
 
-    // Delay handling
+    // Delay handling: apply morning buffer AFTER optimizeDayPath
     if (intents.includes("traffic_delay")) {
       proposedDisruption = proposedDisruption || "delay";
       const plans = destInfo.contingencyPlans;
@@ -684,27 +751,27 @@ async function parseAndExecuteAiPrompt(promptText) {
           const filtered = day.activities.filter(a => keepIds.has(a.id));
           day.activities = filtered.length >= 2 ? filtered.slice(0, 2) : day.activities.slice(0, 2);
         }
-        if (day.activities[0]) day.activities[0].timeSlot = "Morning (10:30 AM)";
-        if (day.activities[1]) day.activities[1].timeSlot = "Afternoon (03:30 PM)";
-        day.activities = optimizeDayPath(day.activities, startCoords);
+        day.activities = optimizeDayPath(day.activities, startCoords, true);
       });
     }
 
-    // Fatigue / Chill handling
+    // Fatigue / Chill handling: exclude already-used IDs
     if (intents.includes("fatigue_chill")) {
       proposedDisruption = proposedDisruption || "chill";
       const plans = destInfo.contingencyPlans;
       if (plans && plans.lowEnergy) {
+        const activeIds = new Set(draftItinerary.flatMap(d => d.activities.map(a => a.id)));
         const chillPool = [...plans.lowEnergy.replacements];
         const lowExertion = (destInfo.places || []).filter(p => p.exertionLevel === "low");
-        const combinedChill = [...chillPool, ...lowExertion];
+        const combinedChill = [...chillPool, ...lowExertion].filter(p => !activeIds.has(p.id));
         let poolIdx = 0;
 
         draftItinerary.forEach((day) => {
           let changed = false;
           day.activities = day.activities.map(act => {
             if (act.exertionLevel === "high" && poolIdx < combinedChill.length) {
-              const rep = JSON.parse(JSON.stringify(combinedChill[poolIdx % combinedChill.length]));
+              const rep = JSON.parse(JSON.stringify(combinedChill[poolIdx]));
+              activeIds.add(rep.id);
               poolIdx++;
               changed = true;
               return rep;
@@ -718,15 +785,8 @@ async function parseAndExecuteAiPrompt(promptText) {
       }
     }
 
-    // Budget adjustments
-    if (intents.includes("budget_low")) {
-      draftBudget = Math.max(6000, Math.round(state.totalBudget * 0.6));
-    } else if (intents.includes("budget_luxury")) {
-      draftBudget = Math.max(30000, Math.round(state.totalBudget * 1.5));
-    }
-
     // TSP re-sequence
-    if (intents.includes("reroute_optimize") || intents.length > 0) {
+    if (intents.includes("reroute_optimize") && !intents.includes("traffic_delay")) {
       draftItinerary.forEach((day) => {
         if (day.activities.length > 1) {
           day.activities = optimizeDayPath(day.activities, startCoords);
@@ -735,16 +795,18 @@ async function parseAndExecuteAiPrompt(promptText) {
     }
   }
 
-  // Compute precise diff
   const diffData = computeItineraryDiff(state.itinerary, draftItinerary, startCoords);
   const dynamicRationale = generateDynamicRationale(diffData, parsedPlan.userSummary);
 
-  // Open Preview Diff Modal for explicit user approval!
+  const interpreterLabel = parsedPlan.source === "llm_agent" ? "AI Model (LLM Layer)" : "Deterministic Rule Engine";
+
   showDiffPreviewModal(
     diffData,
     { itinerary: draftItinerary, totalBudget: draftBudget, activeDisruption: proposedDisruption },
     dynamicRationale,
-    `AI Intent Adaptation: ${intents.join(" + ")}`
+    `AI Intent Adaptation: ${intents.join(" + ")}`,
+    interpreterLabel,
+    parsedPlan.confidence
   );
 }
 
@@ -761,7 +823,6 @@ function computeItineraryDiff(currentItinerary, proposedItinerary, startCoords) 
   let afterConflicts = 0;
 
   const dayDiffs = [];
-
   const maxDays = Math.max(currentItinerary.length, proposedItinerary.length);
 
   for (let d = 0; d < maxDays; d++) {
@@ -788,7 +849,6 @@ function computeItineraryDiff(currentItinerary, proposedItinerary, startCoords) 
 
     const added = propDay.activities.filter(a => !curIds.includes(a.id));
     const removed = curDay.activities.filter(a => !propIds.includes(a.id));
-    const reordered = propDay.activities.filter(a => curIds.includes(a.id));
 
     dayDiffs.push({
       dayNum: d + 1,
@@ -829,7 +889,6 @@ function computeItineraryDiff(currentItinerary, proposedItinerary, startCoords) 
 
 function generateDynamicRationale(diff, baseSummary) {
   const parts = [];
-
   if (baseSummary) parts.push(baseSummary);
 
   if (diff.deltaKm < -0.3) {
@@ -856,7 +915,7 @@ function generateDynamicRationale(diff, baseSummary) {
 // 8. DIFF PREVIEW MODAL CONTROLLER
 // =============================================================================
 
-function showDiffPreviewModal(diffData, proposedState, dynamicRationale, actionTitle) {
+function showDiffPreviewModal(diffData, proposedState, dynamicRationale, actionTitle, interpreterLabel = "Deterministic Algorithm", confidence = 0.95) {
   state.activePendingDiff = { diffData, proposedState, actionTitle };
 
   const modal = document.getElementById("diff-preview-modal");
@@ -867,10 +926,21 @@ function showDiffPreviewModal(diffData, proposedState, dynamicRationale, actionT
 
   if (!modal) return;
 
-  if (modalTitle) modalTitle.textContent = `Review Adaptation: ${actionTitle}`;
-  if (rationaleEl) rationaleEl.textContent = dynamicRationale;
+  if (modalTitle) {
+    modalTitle.innerHTML = `
+      <span>${escapeHtml(actionTitle)}</span>
+      <span class="meta-chip" style="font-size:0.7rem; margin-left:8px;">Interpreted by: ${escapeHtml(interpreterLabel)}</span>
+    `;
+  }
 
-  // Render Stats Grid
+  if (rationaleEl) {
+    let extraClarification = "";
+    if (confidence < 0.8) {
+      extraClarification = `<br><span style="color:#d97706; font-size:0.8rem;">⚠️ Low confidence interpretation (${Math.round(confidence * 100)}%). Review before approving.</span>`;
+    }
+    rationaleEl.innerHTML = escapeHtml(dynamicRationale) + extraClarification;
+  }
+
   if (statsContainer) {
     statsContainer.innerHTML = `
       <div class="diff-stat-card ${diffData.deltaKm <= 0 ? 'positive' : 'negative'}">
@@ -896,7 +966,6 @@ function showDiffPreviewModal(diffData, proposedState, dynamicRationale, actionT
     `;
   }
 
-  // Render Day By Day Diff Cards
   if (daysContainer) {
     daysContainer.innerHTML = diffData.dayDiffs.map(day => `
       <div class="diff-day-box">
@@ -940,13 +1009,9 @@ function closeDiffPreviewModal() {
 
 function applyPendingDiff() {
   if (!state.activePendingDiff) return;
-
   const { proposedState, actionTitle } = state.activePendingDiff;
 
-  // Push previous state to undo stack
   pushStateToUndoHistory(actionTitle);
-
-  // Apply proposed state
   state.itinerary = JSON.parse(JSON.stringify(proposedState.itinerary));
   state.totalBudget = proposedState.totalBudget;
   state.activeDisruption = proposedState.activeDisruption;
@@ -959,18 +1024,23 @@ function applyPendingDiff() {
 }
 
 // =============================================================================
-// 9. PROACTIVE LIVE WEATHER FORECAST & CLOSED DAYS VALIDATOR
+// 9. PROACTIVE LIVE WEATHER FORECAST (START_DATE / END_DATE)
 // =============================================================================
 
 async function checkLiveWeatherForecast() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const coords = destInfo.centerCoords || [26.9124, 75.7873];
-
   const forecastBanner = document.getElementById("proactive-weather-banner");
   if (!forecastBanner) return;
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords[0]}&longitude=${coords[1]}&daily=precipitation_probability_max,precipitation_sum,temperature_2m_max,weathercode&timezone=auto`;
+    const start = new Date(state.startDate || Date.now());
+    const end = new Date(start);
+    end.setDate(end.getDate() + (state.daysCount - 1));
+    const startIso = start.toISOString().split('T')[0];
+    const endIso = end.toISOString().split('T')[0];
+
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords[0]}&longitude=${coords[1]}&daily=precipitation_probability_max,precipitation_sum,temperature_2m_max&start_date=${startIso}&end_date=${endIso}&timezone=auto`;
     const resp = await fetch(url);
     if (!resp.ok) return;
     const data = await resp.json();
@@ -979,8 +1049,6 @@ async function checkLiveWeatherForecast() {
     const daily = data.daily || {};
     const probs = daily.precipitation_probability_max || [];
     const sums = daily.precipitation_sum || [];
-    const temps = daily.temperature_2m_max || [];
-    const dates = daily.time || [];
 
     let rainRiskDay = null;
     let rainRiskProb = 0;
@@ -1017,12 +1085,12 @@ async function checkLiveWeatherForecast() {
       forecastBanner.style.display = "none";
     }
   } catch (err) {
-    console.warn("Open-Meteo forecast fetch error:", err);
+    console.warn("Open-Meteo forecast fetch notice:", err);
     if (forecastBanner) forecastBanner.style.display = "none";
   }
 }
 
-// Check closed days for attractions (e.g. museums closed on Mondays)
+// Check closed days for attractions based on real dates
 function getClosedDaysAdvisories() {
   const advisories = [];
   const start = new Date(state.startDate || Date.now());
@@ -1064,16 +1132,18 @@ function applyDisruptionScenario(type) {
   let proposedDisruption = type;
 
   if (type === "rain" && plans.heavyRain) {
+    const activeIds = new Set(draftItinerary.flatMap(d => d.activities.map(a => a.id)));
     const rainPool = [...plans.heavyRain.replacements];
     const indoorCorePlaces = allPlaces.filter(p => !p.weatherSensitive);
-    const combinedPool = [...rainPool, ...indoorCorePlaces];
+    const combinedPool = [...rainPool, ...indoorCorePlaces].filter(p => !activeIds.has(p.id));
     let poolIdx = 0;
 
     draftItinerary.forEach((day) => {
       let dayChanged = false;
       day.activities = day.activities.map(act => {
         if (act.weatherSensitive && poolIdx < combinedPool.length) {
-          const replacement = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
+          const replacement = JSON.parse(JSON.stringify(combinedPool[poolIdx]));
+          activeIds.add(replacement.id);
           poolIdx++;
           dayChanged = true;
           return replacement;
@@ -1092,21 +1162,21 @@ function applyDisruptionScenario(type) {
         const filtered = day.activities.filter(a => keepIds.has(a.id));
         day.activities = filtered.length >= 2 ? filtered.slice(0, 2) : day.activities.slice(0, 2);
       }
-      if (day.activities[0]) day.activities[0].timeSlot = "Morning (10:30 AM)";
-      if (day.activities[1]) day.activities[1].timeSlot = "Afternoon (03:30 PM)";
-      day.activities = optimizeDayPath(day.activities, startCoords);
+      day.activities = optimizeDayPath(day.activities, startCoords, true);
     });
   } else if (type === "chill" && plans.lowEnergy) {
+    const activeIds = new Set(draftItinerary.flatMap(d => d.activities.map(a => a.id)));
     const chillPool = [...plans.lowEnergy.replacements];
     const lowExertionCore = allPlaces.filter(p => p.exertionLevel === "low");
-    const combinedChillPool = [...chillPool, ...lowExertionCore];
+    const combinedChillPool = [...chillPool, ...lowExertionCore].filter(p => !activeIds.has(p.id));
     let poolIdx = 0;
 
     draftItinerary.forEach((day) => {
       let dayChanged = false;
       day.activities = day.activities.map(act => {
         if (act.exertionLevel === "high" && poolIdx < combinedChillPool.length) {
-          const replacement = JSON.parse(JSON.stringify(combinedChillPool[poolIdx % combinedChillPool.length]));
+          const replacement = JSON.parse(JSON.stringify(combinedChillPool[poolIdx]));
+          activeIds.add(replacement.id);
           poolIdx++;
           dayChanged = true;
           return replacement;
@@ -1141,7 +1211,8 @@ function applyDisruptionScenario(type) {
     diffData,
     { itinerary: draftItinerary, totalBudget: state.totalBudget, activeDisruption: proposedDisruption },
     dynamicRationale,
-    titles[type] || "Disruption Adaptation"
+    titles[type] || "Disruption Adaptation",
+    "Rule Engine Contingency"
   );
 }
 
@@ -1156,7 +1227,6 @@ function showImpactMetricsModal() {
 
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const startCoords = state.hotelOrigin || destInfo.centerCoords;
-  const health = analyzeItineraryHealth();
 
   let totalTripKm = 0;
   let totalTripCost = 0;
@@ -1199,7 +1269,7 @@ function showImpactMetricsModal() {
       <ul>
         <li><strong>Routing Solver:</strong> ${totalStops / state.daysCount <= 7 ? 'Exact Permutation Permuter (<1ms)' : 'Nearest-Neighbour + 2-Opt Local Search (0ms freeze)'}</li>
         <li><strong>Circadian Slot Affinity:</strong> Preserves morning forts vs. sunset viewpoints & night shows</li>
-        <li><strong>XSS Defense:</strong> Active HTML entity sanitizer on all user text & activity notes</li>
+        <li><strong>Origin:</strong> ${state.hotelOrigin ? `Custom Hotel [${state.hotelOrigin[0].toFixed(3)}, ${state.hotelOrigin[1].toFixed(3)}]` : 'City Center Baseline'}</li>
         <li><strong>Live Forecast Link:</strong> Connected to Open-Meteo REST API (${state.liveForecast ? 'Forecast Loaded' : 'Standing By'})</li>
       </ul>
     </div>
@@ -1235,12 +1305,17 @@ function exportTripToIcs() {
     const dateStr = dayDate.toISOString().split('T')[0].replace(/-/g, "");
 
     day.activities.forEach((act, aIdx) => {
-      const startHour = 9 + (aIdx * 3);
-      const startHourStr = String(startHour).padStart(2, "0");
-      const endHourStr = String(startHour + 2).padStart(2, "0");
+      // Parse slot hour
+      let startH = 9 + (aIdx * 3);
+      let startM = 0;
+      if (act.timeSlot && act.timeSlot.includes("10:30")) { startH = 10; startM = 30; }
+      else if (act.timeSlot && act.timeSlot.includes("11:30")) { startH = 11; startM = 30; }
+      else if (act.timeSlot && act.timeSlot.includes("02:00") || act.timeSlot.includes("02:30")) { startH = 14; startM = 30; }
+      else if (act.timeSlot && act.timeSlot.includes("05:30")) { startH = 17; startM = 30; }
+      else if (act.timeSlot && act.timeSlot.includes("08:00")) { startH = 20; startM = 0; }
 
-      const dtStart = `${dateStr}T${startHourStr}0000`;
-      const dtEnd = `${dateStr}T${endHourStr}0000`;
+      const dtStart = `${dateStr}T${String(startH).padStart(2, "0")}${String(startM).padStart(2, "0")}00`;
+      const dtEnd = `${dateStr}T${String(startH + 2).padStart(2, "0")}${String(startM).padStart(2, "0")}00`;
 
       icsContent.push(
         "BEGIN:VEVENT",
@@ -1248,9 +1323,9 @@ function exportTripToIcs() {
         `DTSTAMP:${dateStr}T000000Z`,
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
-        `SUMMARY:${escapeHtml(act.name)} (${destInfo.name})`,
-        `DESCRIPTION:${escapeHtml(act.description || '')} - Tip: ${escapeHtml(act.tip || '')} | Est Cost: INR ${act.cost}`,
-        `LOCATION:${escapeHtml(destInfo.name)}, India`,
+        `SUMMARY:${escapeIcsText(act.name)} (${escapeIcsText(destInfo.name)})`,
+        `DESCRIPTION:${escapeIcsText(act.description || '')} - Tip: ${escapeIcsText(act.tip || '')} | Est Cost: INR ${act.cost}`,
+        `LOCATION:${escapeIcsText(destInfo.name)}, India`,
         "STATUS:CONFIRMED",
         "END:VEVENT"
       );
@@ -1309,6 +1384,7 @@ function loadStateFromUrlHash() {
       state.originalItineraryBackup = JSON.parse(JSON.stringify(parsed.itin));
       syncFormWithState();
       renderDashboard();
+      checkLiveWeatherForecast();
       showToast("Shared Trip Loaded! ✈️", "Loaded custom trip from shared link.", "success");
       return true;
     }
@@ -1389,7 +1465,6 @@ function analyzeItineraryHealth() {
     }
   });
 
-  // Closed days advisories
   const closedAdvisories = getClosedDaysAdvisories();
   closedAdvisories.forEach(ca => {
     issues.push({
@@ -1483,7 +1558,7 @@ function updateDisruptionBarUI() {
   } else {
     icon.textContent = "⚡";
     title.textContent = "Trip Disruption Assistant";
-    desc.textContent = "Unexpected weather, flight delay, or fatigue? Adapt your route and budget in 1 click.";
+    desc.textContent = "Unexpected weather, flight delay, or fatigue? Adapt your route and budget with preview diffs.";
   }
 }
 
@@ -1701,13 +1776,10 @@ function renderDayContent() {
         showToast("Stop Removed", `Removed "${act.name}" from Day ${day.dayNum}.`, "info");
       });
 
-      // Drag and drop handlers
       setupDragDropHandlers(actEl, actualDayIndex, actIdx);
-
       actsList.appendChild(actEl);
     });
 
-    // Day action listeners
     dayCard.querySelector(".btn-optimize-day").addEventListener("click", () => {
       autoRerouteItinerary(actualDayIndex);
     });
@@ -1919,7 +1991,7 @@ function renderTransitView() {
 }
 
 // =============================================================================
-// 15. INTERACTIVE LEAFLET MAP VISUALIZER
+// 15. INTERACTIVE LEAFLET MAP & HOTEL ORIGIN SELECTION
 // =============================================================================
 
 function initOrUpdateMap() {
@@ -1937,6 +2009,21 @@ function initOrUpdateMap() {
 
     mapMarkersGroup = L.layerGroup().addTo(mapInstance);
     mapPolylinesGroup = L.layerGroup().addTo(mapInstance);
+
+    // Map click sets custom hotel origin
+    mapInstance.on("click", (e) => {
+      const lat = Number(e.latlng.lat.toFixed(4));
+      const lon = Number(e.latlng.lng.toFixed(4));
+      if (confirm(`Set this location [${lat}, ${lon}] as your Hotel / Start Origin?`)) {
+        pushStateToUndoHistory("Set Hotel Location");
+        state.hotelOrigin = [lat, lon];
+        state.hotelName = "Custom Hotel Location";
+        saveToLocalStorage();
+        autoRerouteItinerary(-1, false);
+        initOrUpdateMap();
+        showToast("Hotel Origin Set 🏨", `Routes will now calculate from [${lat}, ${lon}].`, "success");
+      }
+    });
   } else {
     mapInstance.setView(center, 12);
     mapMarkersGroup.clearLayers();
@@ -1945,16 +2032,16 @@ function initOrUpdateMap() {
 
   const allPoints = [];
 
-  // Hotel origin marker if selected
+  // Hotel origin marker
   if (state.hotelOrigin) {
     const hotelIcon = L.divIcon({
       className: "hotel-map-pin",
-      html: `<div style="background:#4f46e5; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; border:2px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.3);">🏨</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
+      html: `<div style="background:#4f46e5; color:#fff; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:16px; border:2px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.3);">🏨</div>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17]
     });
     const hMarker = L.marker(state.hotelOrigin, { icon: hotelIcon })
-      .bindPopup(`<strong>Hotel Starting Point</strong><br>${escapeHtml(state.hotelName || 'Your Accommodation')}`);
+      .bindPopup(`<strong>Hotel Starting Point</strong><br>${escapeHtml(state.hotelName || 'Your Accommodation')}<br><small>Click anywhere on map to change</small>`);
     mapMarkersGroup.addLayer(hMarker);
     allPoints.push(state.hotelOrigin);
   }
@@ -2126,7 +2213,8 @@ function showToast(title, message, type = "info") {
 
 function saveToLocalStorage() {
   try {
-    localStorage.setItem("travelpilot_saved_trip", JSON.stringify(state));
+    const toSave = { ...state, llmConfig: { ...state.llmConfig, apiKey: "" } }; // Never store API key in localStorage
+    localStorage.setItem("travelpilot_saved_trip", JSON.stringify(toSave));
   } catch (e) {
     console.warn("Could not save to localStorage:", e);
   }
@@ -2137,7 +2225,6 @@ function saveToLocalStorage() {
 // =============================================================================
 
 function setupEventListeners() {
-  // Form Submit
   const form = document.getElementById("trip-planner-form");
   if (form) {
     form.addEventListener("submit", (e) => {
@@ -2148,12 +2235,10 @@ function setupEventListeners() {
       state.startDate = document.getElementById("input-start-date")?.value || state.startDate;
 
       generateItinerary(true);
-
       document.getElementById("section-dashboard")?.scrollIntoView({ behavior: "smooth" });
     });
   }
 
-  // Quick Example Jaipur
   document.getElementById("btn-sample-trip")?.addEventListener("click", () => {
     state.destination = "jaipur";
     state.daysCount = 3;
@@ -2164,7 +2249,6 @@ function setupEventListeners() {
     document.getElementById("section-dashboard")?.scrollIntoView({ behavior: "smooth" });
   });
 
-  // Reset Form
   document.getElementById("btn-reset-form")?.addEventListener("click", () => {
     if (confirm("Start a new trip? This will reset the planner.")) {
       localStorage.removeItem("travelpilot_saved_trip");
@@ -2173,11 +2257,9 @@ function setupEventListeners() {
     }
   });
 
-  // Undo / Redo Header Buttons
   document.getElementById("btn-header-undo")?.addEventListener("click", performUndo);
   document.getElementById("btn-header-redo")?.addEventListener("click", performRedo);
 
-  // Global Keyboard Shortcuts (Cmd+Z / Ctrl+Z = Undo, Cmd+Shift+Z / Ctrl+Y = Redo)
   window.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
       if (e.shiftKey) {
@@ -2193,7 +2275,6 @@ function setupEventListeners() {
     }
   });
 
-  // AI Co-Pilot Form
   const copilotForm = document.getElementById("form-copilot");
   if (copilotForm) {
     copilotForm.addEventListener("submit", (e) => {
@@ -2205,7 +2286,6 @@ function setupEventListeners() {
     });
   }
 
-  // AI Co-Pilot Quick Chips
   document.querySelectorAll(".copilot-chip").forEach(chip => {
     chip.addEventListener("click", () => {
       const promptText = chip.dataset.prompt;
@@ -2215,35 +2295,29 @@ function setupEventListeners() {
     });
   });
 
-  // Auto-Reroute Buttons
   document.getElementById("btn-ai-auto-reroute")?.addEventListener("click", () => autoRerouteItinerary(-1));
   document.getElementById("btn-scenario-rain")?.addEventListener("click", () => applyDisruptionScenario("rain"));
   document.getElementById("btn-scenario-delay")?.addEventListener("click", () => applyDisruptionScenario("delay"));
   document.getElementById("btn-scenario-chill")?.addEventListener("click", () => applyDisruptionScenario("chill"));
   document.getElementById("btn-reset-reroute")?.addEventListener("click", () => applyDisruptionScenario("reset"));
 
-  // View Mode Tabs
   document.querySelectorAll(".view-mode-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       switchViewMode(btn.dataset.mode);
     });
   });
 
-  // Diff Modal Actions
   document.getElementById("btn-diff-approve")?.addEventListener("click", applyPendingDiff);
   document.getElementById("btn-diff-cancel")?.addEventListener("click", closeDiffPreviewModal);
   document.getElementById("btn-diff-close")?.addEventListener("click", closeDiffPreviewModal);
 
-  // Impact Metrics Modal Actions
   document.getElementById("btn-view-metrics")?.addEventListener("click", showImpactMetricsModal);
   document.getElementById("btn-metrics-close")?.addEventListener("click", closeImpactMetricsModal);
 
-  // AI Settings Modal Actions
   document.getElementById("btn-ai-settings")?.addEventListener("click", openAiSettingsModal);
   document.getElementById("btn-ai-settings-close")?.addEventListener("click", closeAiSettingsModal);
   document.getElementById("form-ai-settings")?.addEventListener("submit", saveAiSettings);
 
-  // Calendar & Share
   document.getElementById("btn-export-ics")?.addEventListener("click", exportTripToIcs);
   document.getElementById("btn-share-trip")?.addEventListener("click", generateShareableUrl);
   document.getElementById("btn-copy-itinerary")?.addEventListener("click", copyTextItinerary);
@@ -2260,7 +2334,7 @@ function openAiSettingsModal() {
   if (!modal) return;
 
   if (provider) provider.value = state.llmConfig.provider || "builtin_fallback";
-  if (key) key.value = state.llmConfig.apiKey || "";
+  if (key) key.value = sessionStorage.getItem("travelpilot_api_key") || "";
   if (model) model.value = state.llmConfig.model || "gpt-4o-mini";
   if (endpoint) endpoint.value = state.llmConfig.endpoint || "https://api.openai.com/v1/chat/completions";
 
@@ -2275,13 +2349,14 @@ function closeAiSettingsModal() {
 function saveAiSettings(e) {
   e.preventDefault();
   state.llmConfig.provider = document.getElementById("ai-provider-select").value;
-  state.llmConfig.apiKey = document.getElementById("ai-api-key").value.trim();
+  const keyVal = document.getElementById("ai-api-key").value.trim();
+  sessionStorage.setItem("travelpilot_api_key", keyVal);
+  state.llmConfig.apiKey = keyVal;
   state.llmConfig.model = document.getElementById("ai-model-name").value.trim();
   state.llmConfig.endpoint = document.getElementById("ai-endpoint-url").value.trim();
 
-  saveToLocalStorage();
   closeAiSettingsModal();
-  showToast("AI Settings Saved ⚙️", `Active provider: ${state.llmConfig.provider}`, "success");
+  showToast("AI Settings Saved ⚙️", `Active provider: ${state.llmConfig.provider} (Session API Key set)`, "success");
 }
 
 function copyTextItinerary() {
@@ -2353,15 +2428,24 @@ function syncFormWithState() {
   });
 }
 
+// Service Worker Registration for PWA Offline Support
+if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      console.log('ServiceWorker registered:', reg.scope);
+    }).catch(err => {
+      console.warn('ServiceWorker registration error:', err);
+    });
+  });
+}
+
 // Initial Boot
 document.addEventListener("DOMContentLoaded", () => {
   renderInterestChips();
   setupEventListeners();
 
-  // Load from URL Hash if shared
   if (loadStateFromUrlHash()) return;
 
-  // Load from localStorage if present
   const saved = localStorage.getItem("travelpilot_saved_trip");
   if (saved) {
     try {
@@ -2370,6 +2454,7 @@ document.addEventListener("DOMContentLoaded", () => {
         state = { ...state, ...parsed };
         syncFormWithState();
         renderDashboard();
+        checkLiveWeatherForecast();
         return;
       }
     } catch (e) {
