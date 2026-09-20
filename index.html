@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — Algorithmic Trip Planner & Route Optimizer for India</title>
-  <meta name="description" content="AI trip planner for India featuring natural language co-pilot rerouting, exact TSP route optimization, geodesic distance calculation, transit booking hubs, and multi-day contingency adaptation.">
+  <title>TravelPilot — Algorithmic Trip Planner & AI Route Optimizer for India</title>
+  <meta name="description" content="AI trip planner for India featuring natural language co-pilot rerouting, exact TSP route optimization, live Open-Meteo weather adaptation, geodesic distance calculation, transit booking hubs, and multi-day contingency adaptation.">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,8 +38,21 @@
       </button>
 
       <div class="header-actions">
+        <!-- Undo / Redo Controls -->
+        <div class="undo-redo-group">
+          <button class="btn btn-ghost btn-sm" id="btn-header-undo" title="Undo Last Change (Cmd+Z)" disabled style="opacity: 0.4;">
+            <span>↩️ Undo</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-header-redo" title="Redo (Cmd+Shift+Z)" disabled style="opacity: 0.4;">
+            <span>↪️ Redo</span>
+          </button>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" id="btn-ai-settings" title="Configure AI Provider / API Key">
+          <span>⚙️ AI Settings</span>
+        </button>
         <button class="btn btn-ghost btn-sm" id="btn-sample-trip">
-          <span>✨ Quick Example (Jaipur)</span>
+          <span>✨ Quick Example</span>
         </button>
         <button class="btn btn-secondary btn-sm" id="btn-reset-form">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -56,10 +69,10 @@
     <section class="hero-section" id="section-setup">
       <div class="hero-header">
         <div class="hero-pill">
-          <span>🇮🇳 Smart Adaptive AI Planning for India</span>
+          <span>🇮🇳 Bounded Autonomy AI Planning & Optimization</span>
         </div>
         <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Features budget-aware generation, Traveling Salesperson (TSP) route optimization, transit booking hubs, and an interactive natural-language AI Co-Pilot.</p>
+        <p class="hero-subtitle">Enter destination, start date, budget, and travel vibe. Features budget-aware generation, Hybrid TSP optimization, live Open-Meteo forecast alerts, and an interactive natural-language AI Co-Pilot with before/after diff approval.</p>
       </div>
 
       <div class="setup-card">
@@ -81,10 +94,19 @@
               </select>
             </div>
 
+            <!-- Start Date Input -->
+            <div class="form-group">
+              <label class="form-label" for="input-start-date">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Trip Start Date</span>
+              </label>
+              <input type="date" id="input-start-date" class="input-control" required>
+            </div>
+
             <!-- Duration Input -->
             <div class="form-group">
               <label class="form-label" for="input-days">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span>Trip Duration</span>
               </label>
               <select id="input-days" class="input-control" required>
@@ -103,7 +125,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 <span>Total Budget (₹ INR)</span>
               </label>
-              <input type="number" id="input-budget" class="input-control" placeholder="e.g. 20000" value="18000" min="2000" step="500" required>
+              <input type="number" id="input-budget" class="input-control" placeholder="e.g. 18000" value="18000" min="2000" step="500" required>
             </div>
           </div>
 
@@ -133,6 +155,11 @@
     <!-- STEP 2: GENERATED ITINERARY & ADAPTIVE DASHBOARD -->
     <section class="dashboard-section" id="section-dashboard" style="display: none;">
       
+      <!-- Proactive Weather Alert Banner (Auto-Triggered via Open-Meteo) -->
+      <div id="proactive-weather-banner" class="proactive-weather-banner" style="display: none;">
+        <!-- Dynamically rendered if rain forecasted -->
+      </div>
+
       <!-- Destination Top Banner -->
       <div class="destination-banner" id="dest-banner">
         <div>
@@ -148,13 +175,20 @@
         </div>
 
         <div class="dest-actions">
+          <button class="btn btn-secondary btn-sm" id="btn-view-metrics" title="View Commute & Optimization Metrics">
+            <span>📊 Impact Metrics</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-ics" title="Export to Google / Apple Calendar">
+            <span>📅 Export .ICS</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-share-trip" title="Copy Shareable Trip URL">
+            <span>🔗 Share Link</span>
+          </button>
           <button class="btn btn-secondary btn-sm" id="btn-copy-itinerary" title="Copy Text Itinerary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            <span>Copy Plan</span>
+            <span>📋 Copy Plan</span>
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-print-itinerary" title="Print or Save as PDF">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            <span>Print / PDF</span>
+            <span>🖨️ Print / PDF</span>
           </button>
         </div>
       </div>
@@ -163,16 +197,16 @@
       <div class="ai-copilot-card" id="ai-copilot-card">
         <div class="ai-copilot-header">
           <div class="ai-copilot-title">
-            <span>🧠 AI Co-Pilot Intent & Disruption Assistant</span>
+            <span>🧠 AI Co-Pilot: Bounded Autonomy Intent Layer</span>
           </div>
-          <span class="meta-chip" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">Natural Language Adaptation</span>
+          <span class="meta-chip" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">Intent $\rightarrow$ Deterministic Executor</span>
         </div>
         <p style="font-size: 0.82rem; color: #581c87; margin-bottom: 12px;">
-          Type any live scenario in plain English. The AI parses your intent, explains its reasoning, and safely executes route and budget adaptations.
+          Type any live scenario in plain English (e.g. <em>"my train is delayed by 2 hours"</em>, <em>"pouring rain and exhausted"</em>). The AI maps your intent into bounded actions and presents a before/after diff for your review.
         </p>
 
         <form id="form-copilot" class="ai-copilot-input-row">
-          <input type="text" id="input-copilot-prompt" class="ai-copilot-input" placeholder="e.g. It's pouring rain and we are exhausted from travel..." autocomplete="off">
+          <input type="text" id="input-copilot-prompt" class="ai-copilot-input" placeholder="e.g. It's pouring rain and my train is delayed..." autocomplete="off">
           <button type="submit" class="btn-copilot-submit" id="btn-copilot-submit">
             <span>⚡ Run AI Adaptation</span>
           </button>
@@ -181,19 +215,10 @@
         <div class="copilot-prompts-row">
           <span class="copilot-prompts-lbl">Quick Scenarios:</span>
           <button type="button" class="copilot-chip" data-prompt="It is pouring rain outside, please move us to indoor covered spots">🌧️ "Pouring rain, need indoor spots"</button>
-          <button type="button" class="copilot-chip" data-prompt="Flight is delayed by 3 hours, shorten the day to top highlights">⏱️ "Flight delayed 3 hrs"</button>
+          <button type="button" class="copilot-chip" data-prompt="My train is delayed by 2 hours, shorten the day to top highlights">🚆 "Train delayed 2 hrs"</button>
           <button type="button" class="copilot-chip" data-prompt="Exhausted from travel, switch to chill wellness and high-tea mode">😴 "Tired, chill wellness mode"</button>
           <button type="button" class="copilot-chip" data-prompt="We are on a tight budget, switch to free sights and street food">💰 "Tight budget, free sights"</button>
-          <button type="button" class="copilot-chip" data-prompt="Maximize thrilling adventure sports and active sights">⚡ "Maximize adventure"</button>
-        </div>
-
-        <!-- Dynamic AI Reasoning Output Box -->
-        <div class="ai-reasoning-box" id="ai-reasoning-container" style="display: none;">
-          <div class="ai-reasoning-icon">💡</div>
-          <div class="ai-reasoning-body">
-            <h5 id="ai-reasoning-title">AI Decision Rationale</h5>
-            <p id="ai-reasoning-text">Analyzing user intent...</p>
-          </div>
+          <button type="button" class="copilot-chip" data-prompt="Splurge on luxury royal high tea and exclusive boat tours">👑 "Luxury upgrade"</button>
         </div>
       </div>
 
@@ -238,7 +263,7 @@
           <div class="disruption-icon-wrap" id="disruption-icon">⚡</div>
           <div class="disruption-text">
             <h4 id="disruption-title">Trip Disruption Assistant</h4>
-            <p id="disruption-desc">Unexpected weather, flight delay, or fatigue? Adapt your route and budget in 1 click.</p>
+            <p id="disruption-desc">Unexpected weather, flight delay, or fatigue? Adapt your route and budget with preview diffs.</p>
           </div>
         </div>
         <div class="disruption-actions">
@@ -300,41 +325,23 @@
               </div>
             </div>
 
-            <!-- Core Financial Figures Grid -->
-            <div class="budget-numbers-grid">
-              <div class="budget-num-item">
-                <span class="b-num-lbl">Set Budget</span>
-                <span class="b-num-val" id="val-set-budget">₹18,000</span>
-              </div>
-              <div class="budget-num-item">
-                <span class="b-num-lbl">Estimated Cost</span>
-                <span class="b-num-val" id="val-total-cost">₹11,800</span>
-              </div>
-              <div class="budget-num-item">
-                <span class="b-num-lbl">Daily Average</span>
-                <span class="b-num-val" id="val-daily-avg">₹3,933 / day</span>
-              </div>
-              <div class="budget-num-item">
-                <span class="b-num-lbl" id="lbl-balance-status">Remaining</span>
-                <span class="b-num-val green" id="val-balance">₹6,200</span>
-              </div>
+            <!-- Insights / Quick Stats -->
+            <div class="budget-insights" id="budget-insights-list">
+              <!-- Populated dynamically -->
             </div>
-
-            <p style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
-              💡 <em>Tip: Edit any activity's cost in the cards on the left to see this budget update live.</em>
-            </p>
           </div>
 
-          <!-- Destination Insights Card -->
-          <div class="insights-card">
-            <h4 class="insights-title">
-              <span>✈️ TravelPilot Insider Tips</span>
+          <!-- Local Tips & Cultural Guidelines -->
+          <div class="tips-card">
+            <h4 class="tips-title">
+              <span>💡 Essential Travel Protocol</span>
             </h4>
-            <div class="insights-list" id="destination-insights-list">
-              <!-- Dynamic insights -->
-            </div>
+            <ul class="tips-list">
+              <li><strong>Peak Monuments:</strong> Visit popular forts before 10:30 AM to avoid heat & tourist crowds.</li>
+              <li><strong>Dress Codes:</strong> Temples and sacred ghats require modest dress (shoulders & knees covered).</li>
+              <li><strong>Offline Map:</strong> Bookmark your daily stops for offline connectivity in hilly regions.</li>
+            </ul>
           </div>
-
         </div>
 
       </div>
@@ -343,108 +350,21 @@
       <!-- VIEW 2: INTERACTIVE ROUTE MAP                                 -->
       <!-- ============================================================= -->
       <div class="map-view-section" id="view-section-map" style="display: none;">
-        <div class="map-card-wrapper">
-          <div class="map-header-row">
-            <div>
-              <h3 class="map-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-                <span>Interactive Route Map & Distance Markers</span>
-              </h3>
-              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
-                Shows all places marked with names, day indicators, connecting polylines, and live transit distance badges.
-              </p>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-secondary btn-sm" id="btn-map-fit-bounds">
-                <span>🎯 Recenter Map</span>
-              </button>
-              <button class="btn btn-primary btn-sm" id="btn-map-optimize">
-                <span>⚡ Optimize Route</span>
-              </button>
-            </div>
-          </div>
-          
-          <div id="travel-map-container" class="map-canvas"></div>
-
-          <div class="map-legend-pills" id="map-legend-pills">
-            <!-- Populated with color badges for Day 1, Day 2, Day 3... -->
+        <div class="map-header">
+          <div>
+            <h3>📍 Route Geometry & Geographic Sequence</h3>
+            <p>Pins indicate sequential order (D1-1, D1-2...). Lines indicate direct paths optimized to eliminate transit delays.</p>
           </div>
         </div>
+        <div id="leaflet-map" class="leaflet-map-canvas"></div>
       </div>
 
       <!-- ============================================================= -->
-      <!-- VIEW 3: TRANSIT & CAB BOOKING HUB                             -->
+      <!-- VIEW 3: TRANSIT & BOOKING HUB                                 -->
       <!-- ============================================================= -->
       <div class="transit-view-section" id="view-section-transit" style="display: none;">
-        <div class="transit-grid">
-          
-          <!-- Intercity Travel Booking (Flights, Trains, Buses) -->
-          <div class="transit-card">
-            <div>
-              <div class="transit-card-header">
-                <h3 class="transit-card-title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/></svg>
-                  <span>Intercity Travel & Flight Booking</span>
-                </h3>
-                <span class="meta-chip">Direct Booking Links</span>
-              </div>
-
-              <p style="font-size: 0.82rem; color: var(--text-secondary);" id="transit-airport-info">
-                Nearest Airport: Loading airport details...
-              </p>
-
-              <div class="transit-links-row">
-                <a href="https://www.makemytrip.com/flights/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>✈️ MakeMyTrip Flights</span>
-                </a>
-                <a href="https://www.irctc.co.in/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>🚆 IRCTC Trains</span>
-                </a>
-                <a href="https://www.redbus.in/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>🚌 RedBus AC Buses</span>
-                </a>
-                <a href="https://www.uber.com/in/en/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>🚗 Uber Outstation</span>
-                </a>
-              </div>
-            </div>
-
-            <div style="margin-top: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
-              <h5 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Add Airport/Station Cab Transfer to Itinerary:</h5>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="btn btn-secondary btn-sm" id="btn-add-airport-pickup">
-                  <span>+ Airport Pickup Cab (₹750)</span>
-                </button>
-                <button class="btn btn-secondary btn-sm" id="btn-add-station-transfer">
-                  <span>+ Station Cab (₹400)</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Local Cab, Auto & Scooter Rentals -->
-          <div class="transit-card">
-            <div>
-              <div class="transit-card-header">
-                <h3 class="transit-card-title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--emerald);"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                  <span>Local Cabs, Autos & Rental Scooters</span>
-                </h3>
-                <span class="meta-chip" id="local-transit-avg-badge">Avg ₹600/day</span>
-              </div>
-
-              <div class="local-transport-list" id="local-transport-options-list">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-
-            <div style="margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
-              <button class="btn btn-primary btn-sm full-width" id="btn-add-daily-cab">
-                <span>+ Add Full-Day Private Tour Cab to Day 1 (₹1,800)</span>
-              </button>
-            </div>
-          </div>
-
+        <div id="transit-content-area">
+          <!-- Populated dynamically -->
         </div>
       </div>
 
@@ -452,73 +372,125 @@
 
   </main>
 
-  <!-- MODAL: ADD / EDIT PLACE OR ACTIVITY -->
-  <div class="modal-backdrop hidden" id="modal-activity">
-    <div class="modal-card">
+  <!-- ================================================================= -->
+  <!-- MODAL: BEFORE / AFTER DIFF PREVIEW & APPROVAL                     -->
+  <!-- ================================================================= -->
+  <div id="diff-preview-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box diff-modal-box">
       <div class="modal-header">
-        <h3 class="modal-title" id="modal-activity-title">Add Activity to Day</h3>
-        <button class="btn-icon-sm" id="btn-close-modal">✕</button>
+        <div>
+          <h3 id="diff-modal-title">Review Proposed Adaptation</h3>
+          <p class="modal-subtitle">Evaluate the algorithmic impact before applying changes to your live plan.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-diff-close">✕</button>
       </div>
-      <form id="form-activity-edit">
-        <input type="hidden" id="modal-day-index" value="0">
-        <input type="hidden" id="modal-act-index" value="-1">
 
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="modal-act-name">Place / Activity Name</label>
-            <input type="text" id="modal-act-name" class="input-control" placeholder="e.g. Nahargarh Fort Sunset" required>
-          </div>
+      <div class="diff-rationale-box">
+        <span class="diff-rationale-icon">💡</span>
+        <div>
+          <strong>AI Adaptation Rationale:</strong>
+          <p id="diff-modal-rationale">Analyzing proposed changes...</p>
+        </div>
+      </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div class="form-group">
-              <label class="form-label" for="modal-act-time">Time Slot</label>
-              <input type="text" id="modal-act-time" class="input-control" placeholder="e.g. Evening (05:30 PM)" value="Morning (10:00 AM)" required>
-            </div>
+      <!-- Metric Deltas -->
+      <div class="diff-stats-grid" id="diff-stats-container">
+        <!-- Rendered dynamically -->
+      </div>
 
-            <div class="form-group">
-              <label class="form-label" for="modal-act-category">Category</label>
-              <select id="modal-act-category" class="input-control">
-                <option value="culture">🏛️ Culture & Heritage</option>
-                <option value="nature">🌿 Nature & Scenic</option>
-                <option value="adventure">⚡ Adventure & Thrills</option>
-                <option value="food">🍛 Food & Dining</option>
-                <option value="nightlife">🍸 Nightlife & Cafes</option>
-                <option value="wellness">🧘 Wellness & Yoga</option>
-                <option value="shopping">🛍️ Shopping & Bazaars</option>
-                <option value="transit">🚗 Transport & Cab</option>
-              </select>
-            </div>
-          </div>
+      <!-- Day-by-Day Before vs After List -->
+      <div class="diff-days-scroll" id="diff-days-container">
+        <!-- Rendered dynamically -->
+      </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div class="form-group">
-              <label class="form-label" for="modal-act-cost">Estimated Cost (₹ INR)</label>
-              <input type="number" id="modal-act-cost" class="input-control" placeholder="0" min="0" step="50" value="200" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="modal-act-duration">Duration</label>
-              <input type="text" id="modal-act-duration" class="input-control" placeholder="e.g. 2 hours" value="2 hours">
-            </div>
-          </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btn-diff-cancel">Cancel & Keep Current Plan</button>
+        <button class="btn btn-primary" id="btn-diff-approve">
+          <span>✅ Approve & Apply Adaptation</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
-          <div class="form-group">
-            <label class="form-label" for="modal-act-desc">Description (Optional)</label>
-            <textarea id="modal-act-desc" class="input-control" style="height: 68px; padding: 10px 14px; resize: none;" placeholder="Brief details on what to see or do..."></textarea>
-          </div>
+  <!-- ================================================================= -->
+  <!-- MODAL: IN-APP IMPACT & OPTIMIZATION METRICS                       -->
+  <!-- ================================================================= -->
+  <div id="impact-metrics-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>📊 Trip Optimization & Impact Panel</h3>
+          <p class="modal-subtitle">Mathematical benchmarks, transit distance metrics, and constraint checks.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-metrics-close">✕</button>
+      </div>
 
-          <div class="form-group">
-            <label class="form-label" for="modal-act-tip">Insider Tip (Optional)</label>
-            <input type="text" id="modal-act-tip" class="input-control" placeholder="e.g. Book online to skip long queues">
-          </div>
+      <div id="impact-metrics-content" class="modal-body">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: AI SETTINGS & LLM CONFIGURATION                            -->
+  <!-- ================================================================= -->
+  <div id="ai-settings-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>⚙️ AI Co-Pilot Configuration</h3>
+          <p class="modal-subtitle">Connect a live LLM endpoint or use the built-in deterministic intent engine.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-ai-settings-close">✕</button>
+      </div>
+
+      <form id="form-ai-settings" class="modal-body">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-provider-select">AI Provider</label>
+          <select id="ai-provider-select" class="input-control">
+            <option value="builtin_fallback">Built-in Tokenized Engine (Zero API Key Needed)</option>
+            <option value="openai">OpenAI (GPT-4o-mini / GPT-4o)</option>
+            <option value="groq">Groq (Llama-3-70b-versatile)</option>
+            <option value="openrouter">OpenRouter / Any Compatible API</option>
+            <option value="custom">Custom Proxy / Cloudflare Worker Endpoint</option>
+          </select>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" id="btn-cancel-modal">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="btn-save-modal">Save Activity</button>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-api-key">API Key</label>
+          <input type="password" id="ai-api-key" class="input-control" placeholder="sk-... (saved securely in browser localStorage only)">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-model-name">Model Name</label>
+          <input type="text" id="ai-model-name" class="input-control" value="gpt-4o-mini" placeholder="e.g. gpt-4o-mini, llama-3.1-70b">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-endpoint-url">API Endpoint</label>
+          <input type="url" id="ai-endpoint-url" class="input-control" value="https://api.openai.com/v1/chat/completions">
+        </div>
+
+        <div class="modal-footer" style="padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+          <button type="submit" class="btn btn-primary full-width">Save AI Configuration</button>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <p><strong>TravelPilot 🇮🇳</strong> — Production AI Trip Planner & Route Optimizer for India.</p>
+        <p class="footer-sub">Bounded Autonomy AI Layer + Hybrid TSP Geometric Optimizer. Licensed under MIT.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/September-dot/TravelPilot" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a>
+        <a href="https://github.com/September-dot/TravelPilot/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- Scripts -->
   <script src="data.js"></script>

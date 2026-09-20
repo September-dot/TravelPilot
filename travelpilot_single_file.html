@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — Algorithmic Trip Planner & Route Optimizer for India</title>
-  <meta name="description" content="AI trip planner for India featuring natural language co-pilot rerouting, exact TSP route optimization, geodesic distance calculation, transit booking hubs, and multi-day contingency adaptation.">
+  <title>TravelPilot — Algorithmic Trip Planner & AI Route Optimizer for India</title>
+  <meta name="description" content="AI trip planner for India featuring natural language co-pilot rerouting, exact TSP route optimization, live Open-Meteo weather adaptation, geodesic distance calculation, transit booking hubs, and multi-day contingency adaptation.">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1662,6 +1662,340 @@ body {
 .toast.success { background: #065f46; color: #ecfdf5; }
 .toast.info { background: #1c1917; color: #ffffff; }
 
+/* Modals & Overlays */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-box {
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal);
+  width: 620px;
+  max-width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border-subtle);
+}
+
+.diff-modal-box {
+  width: 780px;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+}
+
+.modal-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+}
+
+/* Diff Preview Styling */
+.diff-rationale-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fdf4ff;
+  border: 1px solid #f0abfc;
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin: 16px 24px 8px;
+  font-size: 0.88rem;
+  color: #701a75;
+}
+
+.diff-rationale-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.diff-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 8px 24px;
+}
+
+.diff-stat-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.diff-stat-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.diff-stat-val {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.diff-stat-sub {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.diff-stat-card.positive .diff-stat-val {
+  color: var(--emerald);
+}
+
+.diff-stat-card.negative .diff-stat-val {
+  color: var(--rose);
+}
+
+.diff-days-scroll {
+  padding: 8px 24px 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 42vh;
+}
+
+.diff-day-box {
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+}
+
+.diff-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+}
+
+.diff-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.diff-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diff-col-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.diff-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.diff-item-time {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.diff-item.removed {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+
+.diff-item.added {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.diff-badge-new {
+  font-size: 0.65rem;
+  background: #059669;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+/* Proactive Live Weather Banner */
+.proactive-weather-banner {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 16px 22px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.25);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.weather-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.weather-alert-icon {
+  font-size: 1.8rem;
+  background: rgba(255, 255, 255, 0.2);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.weather-alert-left strong {
+  font-size: 1rem;
+  display: block;
+}
+
+.weather-alert-left p {
+  font-size: 0.84rem;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+/* Metrics Modal */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.metric-box {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-val {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.metric-lbl {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.metric-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.metrics-detail-card {
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.metrics-detail-card h4 {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.metrics-detail-card ul {
+  padding-left: 20px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.undo-redo-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleUp { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -1677,6 +2011,10 @@ body {
   .destination-banner { flex-direction: column; align-items: flex-start; gap: 16px; }
   .hero-title { font-size: 2rem; }
   .map-canvas { height: 380px; }
+  .diff-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .diff-comparison-grid { grid-template-columns: 1fr; }
+  .proactive-weather-banner { flex-direction: column; align-items: flex-start; }
+  .metrics-grid { grid-template-columns: 1fr; }
 }
 
 </style>
@@ -1702,8 +2040,21 @@ body {
       </button>
 
       <div class="header-actions">
+        <!-- Undo / Redo Controls -->
+        <div class="undo-redo-group">
+          <button class="btn btn-ghost btn-sm" id="btn-header-undo" title="Undo Last Change (Cmd+Z)" disabled style="opacity: 0.4;">
+            <span>↩️ Undo</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-header-redo" title="Redo (Cmd+Shift+Z)" disabled style="opacity: 0.4;">
+            <span>↪️ Redo</span>
+          </button>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" id="btn-ai-settings" title="Configure AI Provider / API Key">
+          <span>⚙️ AI Settings</span>
+        </button>
         <button class="btn btn-ghost btn-sm" id="btn-sample-trip">
-          <span>✨ Quick Example (Jaipur)</span>
+          <span>✨ Quick Example</span>
         </button>
         <button class="btn btn-secondary btn-sm" id="btn-reset-form">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -1720,10 +2071,10 @@ body {
     <section class="hero-section" id="section-setup">
       <div class="hero-header">
         <div class="hero-pill">
-          <span>🇮🇳 Smart Adaptive AI Planning for India</span>
+          <span>🇮🇳 Bounded Autonomy AI Planning & Optimization</span>
         </div>
         <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Features budget-aware generation, Traveling Salesperson (TSP) route optimization, transit booking hubs, and an interactive natural-language AI Co-Pilot.</p>
+        <p class="hero-subtitle">Enter destination, start date, budget, and travel vibe. Features budget-aware generation, Hybrid TSP optimization, live Open-Meteo forecast alerts, and an interactive natural-language AI Co-Pilot with before/after diff approval.</p>
       </div>
 
       <div class="setup-card">
@@ -1745,10 +2096,19 @@ body {
               </select>
             </div>
 
+            <!-- Start Date Input -->
+            <div class="form-group">
+              <label class="form-label" for="input-start-date">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Trip Start Date</span>
+              </label>
+              <input type="date" id="input-start-date" class="input-control" required>
+            </div>
+
             <!-- Duration Input -->
             <div class="form-group">
               <label class="form-label" for="input-days">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span>Trip Duration</span>
               </label>
               <select id="input-days" class="input-control" required>
@@ -1767,7 +2127,7 @@ body {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 <span>Total Budget (₹ INR)</span>
               </label>
-              <input type="number" id="input-budget" class="input-control" placeholder="e.g. 20000" value="18000" min="2000" step="500" required>
+              <input type="number" id="input-budget" class="input-control" placeholder="e.g. 18000" value="18000" min="2000" step="500" required>
             </div>
           </div>
 
@@ -1797,6 +2157,11 @@ body {
     <!-- STEP 2: GENERATED ITINERARY & ADAPTIVE DASHBOARD -->
     <section class="dashboard-section" id="section-dashboard" style="display: none;">
       
+      <!-- Proactive Weather Alert Banner (Auto-Triggered via Open-Meteo) -->
+      <div id="proactive-weather-banner" class="proactive-weather-banner" style="display: none;">
+        <!-- Dynamically rendered if rain forecasted -->
+      </div>
+
       <!-- Destination Top Banner -->
       <div class="destination-banner" id="dest-banner">
         <div>
@@ -1812,13 +2177,20 @@ body {
         </div>
 
         <div class="dest-actions">
+          <button class="btn btn-secondary btn-sm" id="btn-view-metrics" title="View Commute & Optimization Metrics">
+            <span>📊 Impact Metrics</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-ics" title="Export to Google / Apple Calendar">
+            <span>📅 Export .ICS</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-share-trip" title="Copy Shareable Trip URL">
+            <span>🔗 Share Link</span>
+          </button>
           <button class="btn btn-secondary btn-sm" id="btn-copy-itinerary" title="Copy Text Itinerary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            <span>Copy Plan</span>
+            <span>📋 Copy Plan</span>
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-print-itinerary" title="Print or Save as PDF">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            <span>Print / PDF</span>
+            <span>🖨️ Print / PDF</span>
           </button>
         </div>
       </div>
@@ -1827,16 +2199,16 @@ body {
       <div class="ai-copilot-card" id="ai-copilot-card">
         <div class="ai-copilot-header">
           <div class="ai-copilot-title">
-            <span>🧠 AI Co-Pilot Intent & Disruption Assistant</span>
+            <span>🧠 AI Co-Pilot: Bounded Autonomy Intent Layer</span>
           </div>
-          <span class="meta-chip" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">Natural Language Adaptation</span>
+          <span class="meta-chip" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">Intent $\rightarrow$ Deterministic Executor</span>
         </div>
         <p style="font-size: 0.82rem; color: #581c87; margin-bottom: 12px;">
-          Type any live scenario in plain English. The AI parses your intent, explains its reasoning, and safely executes route and budget adaptations.
+          Type any live scenario in plain English (e.g. <em>"my train is delayed by 2 hours"</em>, <em>"pouring rain and exhausted"</em>). The AI maps your intent into bounded actions and presents a before/after diff for your review.
         </p>
 
         <form id="form-copilot" class="ai-copilot-input-row">
-          <input type="text" id="input-copilot-prompt" class="ai-copilot-input" placeholder="e.g. It's pouring rain and we are exhausted from travel..." autocomplete="off">
+          <input type="text" id="input-copilot-prompt" class="ai-copilot-input" placeholder="e.g. It's pouring rain and my train is delayed..." autocomplete="off">
           <button type="submit" class="btn-copilot-submit" id="btn-copilot-submit">
             <span>⚡ Run AI Adaptation</span>
           </button>
@@ -1845,19 +2217,10 @@ body {
         <div class="copilot-prompts-row">
           <span class="copilot-prompts-lbl">Quick Scenarios:</span>
           <button type="button" class="copilot-chip" data-prompt="It is pouring rain outside, please move us to indoor covered spots">🌧️ "Pouring rain, need indoor spots"</button>
-          <button type="button" class="copilot-chip" data-prompt="Flight is delayed by 3 hours, shorten the day to top highlights">⏱️ "Flight delayed 3 hrs"</button>
+          <button type="button" class="copilot-chip" data-prompt="My train is delayed by 2 hours, shorten the day to top highlights">🚆 "Train delayed 2 hrs"</button>
           <button type="button" class="copilot-chip" data-prompt="Exhausted from travel, switch to chill wellness and high-tea mode">😴 "Tired, chill wellness mode"</button>
           <button type="button" class="copilot-chip" data-prompt="We are on a tight budget, switch to free sights and street food">💰 "Tight budget, free sights"</button>
-          <button type="button" class="copilot-chip" data-prompt="Maximize thrilling adventure sports and active sights">⚡ "Maximize adventure"</button>
-        </div>
-
-        <!-- Dynamic AI Reasoning Output Box -->
-        <div class="ai-reasoning-box" id="ai-reasoning-container" style="display: none;">
-          <div class="ai-reasoning-icon">💡</div>
-          <div class="ai-reasoning-body">
-            <h5 id="ai-reasoning-title">AI Decision Rationale</h5>
-            <p id="ai-reasoning-text">Analyzing user intent...</p>
-          </div>
+          <button type="button" class="copilot-chip" data-prompt="Splurge on luxury royal high tea and exclusive boat tours">👑 "Luxury upgrade"</button>
         </div>
       </div>
 
@@ -1902,7 +2265,7 @@ body {
           <div class="disruption-icon-wrap" id="disruption-icon">⚡</div>
           <div class="disruption-text">
             <h4 id="disruption-title">Trip Disruption Assistant</h4>
-            <p id="disruption-desc">Unexpected weather, flight delay, or fatigue? Adapt your route and budget in 1 click.</p>
+            <p id="disruption-desc">Unexpected weather, flight delay, or fatigue? Adapt your route and budget with preview diffs.</p>
           </div>
         </div>
         <div class="disruption-actions">
@@ -1964,41 +2327,23 @@ body {
               </div>
             </div>
 
-            <!-- Core Financial Figures Grid -->
-            <div class="budget-numbers-grid">
-              <div class="budget-num-item">
-                <span class="b-num-lbl">Set Budget</span>
-                <span class="b-num-val" id="val-set-budget">₹18,000</span>
-              </div>
-              <div class="budget-num-item">
-                <span class="b-num-lbl">Estimated Cost</span>
-                <span class="b-num-val" id="val-total-cost">₹11,800</span>
-              </div>
-              <div class="budget-num-item">
-                <span class="b-num-lbl">Daily Average</span>
-                <span class="b-num-val" id="val-daily-avg">₹3,933 / day</span>
-              </div>
-              <div class="budget-num-item">
-                <span class="b-num-lbl" id="lbl-balance-status">Remaining</span>
-                <span class="b-num-val green" id="val-balance">₹6,200</span>
-              </div>
+            <!-- Insights / Quick Stats -->
+            <div class="budget-insights" id="budget-insights-list">
+              <!-- Populated dynamically -->
             </div>
-
-            <p style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
-              💡 <em>Tip: Edit any activity's cost in the cards on the left to see this budget update live.</em>
-            </p>
           </div>
 
-          <!-- Destination Insights Card -->
-          <div class="insights-card">
-            <h4 class="insights-title">
-              <span>✈️ TravelPilot Insider Tips</span>
+          <!-- Local Tips & Cultural Guidelines -->
+          <div class="tips-card">
+            <h4 class="tips-title">
+              <span>💡 Essential Travel Protocol</span>
             </h4>
-            <div class="insights-list" id="destination-insights-list">
-              <!-- Dynamic insights -->
-            </div>
+            <ul class="tips-list">
+              <li><strong>Peak Monuments:</strong> Visit popular forts before 10:30 AM to avoid heat & tourist crowds.</li>
+              <li><strong>Dress Codes:</strong> Temples and sacred ghats require modest dress (shoulders & knees covered).</li>
+              <li><strong>Offline Map:</strong> Bookmark your daily stops for offline connectivity in hilly regions.</li>
+            </ul>
           </div>
-
         </div>
 
       </div>
@@ -2007,108 +2352,21 @@ body {
       <!-- VIEW 2: INTERACTIVE ROUTE MAP                                 -->
       <!-- ============================================================= -->
       <div class="map-view-section" id="view-section-map" style="display: none;">
-        <div class="map-card-wrapper">
-          <div class="map-header-row">
-            <div>
-              <h3 class="map-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-                <span>Interactive Route Map & Distance Markers</span>
-              </h3>
-              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
-                Shows all places marked with names, day indicators, connecting polylines, and live transit distance badges.
-              </p>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-secondary btn-sm" id="btn-map-fit-bounds">
-                <span>🎯 Recenter Map</span>
-              </button>
-              <button class="btn btn-primary btn-sm" id="btn-map-optimize">
-                <span>⚡ Optimize Route</span>
-              </button>
-            </div>
-          </div>
-          
-          <div id="travel-map-container" class="map-canvas"></div>
-
-          <div class="map-legend-pills" id="map-legend-pills">
-            <!-- Populated with color badges for Day 1, Day 2, Day 3... -->
+        <div class="map-header">
+          <div>
+            <h3>📍 Route Geometry & Geographic Sequence</h3>
+            <p>Pins indicate sequential order (D1-1, D1-2...). Lines indicate direct paths optimized to eliminate transit delays.</p>
           </div>
         </div>
+        <div id="leaflet-map" class="leaflet-map-canvas"></div>
       </div>
 
       <!-- ============================================================= -->
-      <!-- VIEW 3: TRANSIT & CAB BOOKING HUB                             -->
+      <!-- VIEW 3: TRANSIT & BOOKING HUB                                 -->
       <!-- ============================================================= -->
       <div class="transit-view-section" id="view-section-transit" style="display: none;">
-        <div class="transit-grid">
-          
-          <!-- Intercity Travel Booking (Flights, Trains, Buses) -->
-          <div class="transit-card">
-            <div>
-              <div class="transit-card-header">
-                <h3 class="transit-card-title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--primary);"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/></svg>
-                  <span>Intercity Travel & Flight Booking</span>
-                </h3>
-                <span class="meta-chip">Direct Booking Links</span>
-              </div>
-
-              <p style="font-size: 0.82rem; color: var(--text-secondary);" id="transit-airport-info">
-                Nearest Airport: Loading airport details...
-              </p>
-
-              <div class="transit-links-row">
-                <a href="https://www.makemytrip.com/flights/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>✈️ MakeMyTrip Flights</span>
-                </a>
-                <a href="https://www.irctc.co.in/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>🚆 IRCTC Trains</span>
-                </a>
-                <a href="https://www.redbus.in/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>🚌 RedBus AC Buses</span>
-                </a>
-                <a href="https://www.uber.com/in/en/" target="_blank" rel="noopener" class="transit-partner-btn">
-                  <span>🚗 Uber Outstation</span>
-                </a>
-              </div>
-            </div>
-
-            <div style="margin-top: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
-              <h5 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Add Airport/Station Cab Transfer to Itinerary:</h5>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="btn btn-secondary btn-sm" id="btn-add-airport-pickup">
-                  <span>+ Airport Pickup Cab (₹750)</span>
-                </button>
-                <button class="btn btn-secondary btn-sm" id="btn-add-station-transfer">
-                  <span>+ Station Cab (₹400)</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Local Cab, Auto & Scooter Rentals -->
-          <div class="transit-card">
-            <div>
-              <div class="transit-card-header">
-                <h3 class="transit-card-title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--emerald);"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                  <span>Local Cabs, Autos & Rental Scooters</span>
-                </h3>
-                <span class="meta-chip" id="local-transit-avg-badge">Avg ₹600/day</span>
-              </div>
-
-              <div class="local-transport-list" id="local-transport-options-list">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-
-            <div style="margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
-              <button class="btn btn-primary btn-sm full-width" id="btn-add-daily-cab">
-                <span>+ Add Full-Day Private Tour Cab to Day 1 (₹1,800)</span>
-              </button>
-            </div>
-          </div>
-
+        <div id="transit-content-area">
+          <!-- Populated dynamically -->
         </div>
       </div>
 
@@ -2116,73 +2374,125 @@ body {
 
   </main>
 
-  <!-- MODAL: ADD / EDIT PLACE OR ACTIVITY -->
-  <div class="modal-backdrop hidden" id="modal-activity">
-    <div class="modal-card">
+  <!-- ================================================================= -->
+  <!-- MODAL: BEFORE / AFTER DIFF PREVIEW & APPROVAL                     -->
+  <!-- ================================================================= -->
+  <div id="diff-preview-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box diff-modal-box">
       <div class="modal-header">
-        <h3 class="modal-title" id="modal-activity-title">Add Activity to Day</h3>
-        <button class="btn-icon-sm" id="btn-close-modal">✕</button>
+        <div>
+          <h3 id="diff-modal-title">Review Proposed Adaptation</h3>
+          <p class="modal-subtitle">Evaluate the algorithmic impact before applying changes to your live plan.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-diff-close">✕</button>
       </div>
-      <form id="form-activity-edit">
-        <input type="hidden" id="modal-day-index" value="0">
-        <input type="hidden" id="modal-act-index" value="-1">
 
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="modal-act-name">Place / Activity Name</label>
-            <input type="text" id="modal-act-name" class="input-control" placeholder="e.g. Nahargarh Fort Sunset" required>
-          </div>
+      <div class="diff-rationale-box">
+        <span class="diff-rationale-icon">💡</span>
+        <div>
+          <strong>AI Adaptation Rationale:</strong>
+          <p id="diff-modal-rationale">Analyzing proposed changes...</p>
+        </div>
+      </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div class="form-group">
-              <label class="form-label" for="modal-act-time">Time Slot</label>
-              <input type="text" id="modal-act-time" class="input-control" placeholder="e.g. Evening (05:30 PM)" value="Morning (10:00 AM)" required>
-            </div>
+      <!-- Metric Deltas -->
+      <div class="diff-stats-grid" id="diff-stats-container">
+        <!-- Rendered dynamically -->
+      </div>
 
-            <div class="form-group">
-              <label class="form-label" for="modal-act-category">Category</label>
-              <select id="modal-act-category" class="input-control">
-                <option value="culture">🏛️ Culture & Heritage</option>
-                <option value="nature">🌿 Nature & Scenic</option>
-                <option value="adventure">⚡ Adventure & Thrills</option>
-                <option value="food">🍛 Food & Dining</option>
-                <option value="nightlife">🍸 Nightlife & Cafes</option>
-                <option value="wellness">🧘 Wellness & Yoga</option>
-                <option value="shopping">🛍️ Shopping & Bazaars</option>
-                <option value="transit">🚗 Transport & Cab</option>
-              </select>
-            </div>
-          </div>
+      <!-- Day-by-Day Before vs After List -->
+      <div class="diff-days-scroll" id="diff-days-container">
+        <!-- Rendered dynamically -->
+      </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div class="form-group">
-              <label class="form-label" for="modal-act-cost">Estimated Cost (₹ INR)</label>
-              <input type="number" id="modal-act-cost" class="input-control" placeholder="0" min="0" step="50" value="200" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="modal-act-duration">Duration</label>
-              <input type="text" id="modal-act-duration" class="input-control" placeholder="e.g. 2 hours" value="2 hours">
-            </div>
-          </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btn-diff-cancel">Cancel & Keep Current Plan</button>
+        <button class="btn btn-primary" id="btn-diff-approve">
+          <span>✅ Approve & Apply Adaptation</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
-          <div class="form-group">
-            <label class="form-label" for="modal-act-desc">Description (Optional)</label>
-            <textarea id="modal-act-desc" class="input-control" style="height: 68px; padding: 10px 14px; resize: none;" placeholder="Brief details on what to see or do..."></textarea>
-          </div>
+  <!-- ================================================================= -->
+  <!-- MODAL: IN-APP IMPACT & OPTIMIZATION METRICS                       -->
+  <!-- ================================================================= -->
+  <div id="impact-metrics-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>📊 Trip Optimization & Impact Panel</h3>
+          <p class="modal-subtitle">Mathematical benchmarks, transit distance metrics, and constraint checks.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-metrics-close">✕</button>
+      </div>
 
-          <div class="form-group">
-            <label class="form-label" for="modal-act-tip">Insider Tip (Optional)</label>
-            <input type="text" id="modal-act-tip" class="input-control" placeholder="e.g. Book online to skip long queues">
-          </div>
+      <div id="impact-metrics-content" class="modal-body">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: AI SETTINGS & LLM CONFIGURATION                            -->
+  <!-- ================================================================= -->
+  <div id="ai-settings-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>⚙️ AI Co-Pilot Configuration</h3>
+          <p class="modal-subtitle">Connect a live LLM endpoint or use the built-in deterministic intent engine.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-ai-settings-close">✕</button>
+      </div>
+
+      <form id="form-ai-settings" class="modal-body">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-provider-select">AI Provider</label>
+          <select id="ai-provider-select" class="input-control">
+            <option value="builtin_fallback">Built-in Tokenized Engine (Zero API Key Needed)</option>
+            <option value="openai">OpenAI (GPT-4o-mini / GPT-4o)</option>
+            <option value="groq">Groq (Llama-3-70b-versatile)</option>
+            <option value="openrouter">OpenRouter / Any Compatible API</option>
+            <option value="custom">Custom Proxy / Cloudflare Worker Endpoint</option>
+          </select>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" id="btn-cancel-modal">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="btn-save-modal">Save Activity</button>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-api-key">API Key</label>
+          <input type="password" id="ai-api-key" class="input-control" placeholder="sk-... (saved securely in browser localStorage only)">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-model-name">Model Name</label>
+          <input type="text" id="ai-model-name" class="input-control" value="gpt-4o-mini" placeholder="e.g. gpt-4o-mini, llama-3.1-70b">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ai-endpoint-url">API Endpoint</label>
+          <input type="url" id="ai-endpoint-url" class="input-control" value="https://api.openai.com/v1/chat/completions">
+        </div>
+
+        <div class="modal-footer" style="padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+          <button type="submit" class="btn btn-primary full-width">Save AI Configuration</button>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <p><strong>TravelPilot 🇮🇳</strong> — Production AI Trip Planner & Route Optimizer for India.</p>
+        <p class="footer-sub">Bounded Autonomy AI Layer + Hybrid TSP Geometric Optimizer. Licensed under MIT.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/September-dot/TravelPilot" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a>
+        <a href="https://github.com/September-dot/TravelPilot/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- Scripts -->
   <script>
@@ -4039,16 +4349,16 @@ const INTEREST_CATEGORIES = [
 
 
 /**
- * TravelPilot - Algorithmic Trip Planner & AI Route Optimizer for India
- *
+ * TravelPilot - Production Algorithmic Trip Planner & AI Route Optimizer for India
+ * 
  * Technical Highlights:
- *  - Hybrid TSP Optimizer: Exact Permutations for n <= 7, 2-Opt Local Search for n > 7 (Zero freeze risk)
- *  - AI Co-Pilot: Natural Language Intent Parser with Transparent Decision Reasoning
- *  - Geodesic Distance (Haversine km) & Real-World Transit Estimates
- *  - Proactive Rule-Based Delay, Timing & Weather Risk Analyzer
- *  - Multi-Day Disruption Contingency Engine (Monsoon, Traffic Delay, Low-Energy)
- *  - Multi-Tier Budget-Constrained Itinerary Generator (Budget, Moderate, Luxury)
- *  - Interactive Leaflet.js Route Map with Visible Place Labels & Distance Badges
+ *  - AI Co-Pilot: Bounded Autonomy LLM Intent API + Tokenized Rule-Based Fallback Engine (No substring bugs)
+ *  - Hybrid TSP Optimizer: Exact Permutations (n <= 7) & Nearest-Neighbour + 2-Opt Local Search (n > 7) (Zero Freeze Risk)
+ *  - Preview, Approve & Undo: Before/After Diff Modal, Dynamic Rationale from actual diffs, & Full Undo/Redo History Stack
+ *  - Proactive Live Weather Trigger: Open-Meteo REST API forecast integration + Closed-Day opening hours validator
+ *  - In-App Optimization & Impact Metrics Panel: Commute km saved, transit time shaved, budget efficiency, conflict diagnostics
+ *  - Calendar & Sharing: .ics export for Google/Apple Calendar, Shareable URL state encoding (#trip=...)
+ *  - Multi-Tier Budget Generator: Budget (< ₹2,500/day), Moderate, and Luxury (> ₹6,000/day) across 6 destinations
  *  - Secure HTML Entity Sanitization (XSS Defense)
  */
 
@@ -4060,12 +4370,25 @@ let state = {
   destination: "jaipur",
   daysCount: 3,
   totalBudget: 18000,
+  startDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow's date
   selectedInterests: ["culture", "food", "nature"],
+  hotelOrigin: null, // Custom starting coordinates [lat, lon] or null for city center
+  hotelName: null,
   activeDayTab: 0, // 0 for Day 1, -1 for "All Days"
   activeViewMode: "itinerary", // "itinerary" | "map" | "transit"
   itinerary: [],
   originalItineraryBackup: null,
-  activeDisruption: null // "rain" | "delay" | "chill" | null
+  activeDisruption: null, // "rain" | "delay" | "chill" | null
+  undoStack: [],
+  redoStack: [],
+  llmConfig: {
+    provider: "builtin_fallback", // "builtin_fallback" | "openai" | "groq" | "openrouter" | "custom"
+    apiKey: "",
+    endpoint: "https://api.openai.com/v1/chat/completions",
+    model: "gpt-4o-mini"
+  },
+  liveForecast: null,
+  activePendingDiff: null // Holds proposed changes awaiting user approval in diff modal
 };
 
 let mapInstance = null;
@@ -4077,7 +4400,7 @@ let draggedCard = null;
 const DAY_COLORS = ["#ea580c", "#4f46e5", "#059669", "#e11d48", "#d97706", "#7c3aed", "#0284c7"];
 
 // =============================================================================
-// 2. SECURITY & UTILITY HELPERS
+// 2. SECURITY, FORMATTING & CALENDAR UTILITIES
 // =============================================================================
 
 // Safe HTML escaping for all user-provided / editable text
@@ -4094,7 +4417,7 @@ function escapeHtml(str) {
 // Geodesic Distance via Haversine Formula (in Kilometers)
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return 0;
-  const R = 6371; // Earth radius in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = 
@@ -4196,199 +4519,97 @@ function nearestNeighborWithTwoOpt(activities, defaultCenter) {
 }
 
 // =============================================================================
-// 3. INITIALIZATION & SETUP
+// 3. UNDO & REDO HISTORY STACK ENGINE
 // =============================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-  renderInterestChips();
-  setupEventListeners();
-
-  // Load from localStorage if present
-  const saved = localStorage.getItem("travelpilot_saved_trip");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.itinerary && parsed.itinerary.length > 0) {
-        state = parsed;
-        syncFormWithState();
-        renderDashboard();
-        return;
-      }
-    } catch (e) {
-      console.warn("Could not load saved trip:", e);
-    }
-  }
-
-  generateItinerary();
-});
-
-function renderInterestChips() {
-  const container = document.getElementById("interests-container");
-  if (!container) return;
-  container.innerHTML = "";
-
-  INTEREST_CATEGORIES.forEach(cat => {
-    const isChecked = state.selectedInterests.includes(cat.id);
-    const label = document.createElement("label");
-    label.className = `interest-chip ${isChecked ? 'selected' : ''}`;
-    label.innerHTML = `
-      <input type="checkbox" name="interest" value="${escapeHtml(cat.id)}" ${isChecked ? 'checked' : ''}>
-      <span>${escapeHtml(cat.icon)}</span>
-      <span>${escapeHtml(cat.label)}</span>
-    `;
-
-    label.querySelector("input").addEventListener("change", (e) => {
-      if (e.target.checked) {
-        if (!state.selectedInterests.includes(cat.id)) state.selectedInterests.push(cat.id);
-        label.classList.add("selected");
-      } else {
-        state.selectedInterests = state.selectedInterests.filter(id => id !== cat.id);
-        label.classList.remove("selected");
-      }
-    });
-
-    container.appendChild(label);
-  });
+function pushStateToUndoHistory(actionName = "Itinerary Modification") {
+  const snapshot = {
+    actionName,
+    itinerary: JSON.parse(JSON.stringify(state.itinerary)),
+    totalBudget: state.totalBudget,
+    activeDisruption: state.activeDisruption,
+    timestamp: Date.now()
+  };
+  state.undoStack.push(snapshot);
+  if (state.undoStack.length > 20) state.undoStack.shift();
+  state.redoStack = []; // Clear redo stack on fresh action
+  updateUndoRedoUI();
+  saveToLocalStorage();
 }
 
-function syncFormWithState() {
-  const destSelect = document.getElementById("select-destination");
-  const daysSelect = document.getElementById("input-days");
-  const budgetInput = document.getElementById("input-budget");
-
-  if (destSelect) destSelect.value = state.destination;
-  if (daysSelect) daysSelect.value = String(state.daysCount);
-  if (budgetInput) budgetInput.value = state.totalBudget;
-
-  const chips = document.querySelectorAll(".interest-chip");
-  chips.forEach(chip => {
-    const input = chip.querySelector("input");
-    if (input) {
-      const isChecked = state.selectedInterests.includes(input.value);
-      input.checked = isChecked;
-      if (isChecked) chip.classList.add("selected");
-      else chip.classList.remove("selected");
-    }
-  });
-}
-
-// =============================================================================
-// 4. BUDGET-AWARE ITINERARY GENERATION ENGINE
-// =============================================================================
-
-function generateItinerary() {
-  const destKey = state.destination;
-  const destInfo = DESTINATIONS_DATA[destKey] || DESTINATIONS_DATA.jaipur;
-  const allPlaces = [...destInfo.places];
-
-  const numDays = state.daysCount || 3;
-  const targetDailyBudget = (Number(state.totalBudget) || 18000) / numDays;
-
-  // Score places based on interest relevance and budget tier compatibility
-  const scoredPlaces = allPlaces.map(p => {
-    let score = 0;
-
-    // Interest category match (+6)
-    if (state.selectedInterests.includes(p.category)) {
-      score += 6;
-    }
-
-    // Budget shaping: favor activities matching user's financial tier
-    const cost = Number(p.cost) || 0;
-    if (targetDailyBudget < 2500) {
-      // Budget tier (< ₹2,500/day): boost free & inexpensive sights, heavily penalize expensive ones
-      if (cost <= 250 || p.costTier === "budget") score += 5;
-      else if (cost > 1000 || p.costTier === "premium") score -= 8;
-    } else if (targetDailyBudget > 6000) {
-      // Luxury tier (> ₹6,000/day): boost signature and premium experiences
-      if (cost >= 800 || p.costTier === "premium") score += 6;
-      else if (cost === 0 && p.category !== "nature") score -= 2;
-    } else {
-      // Moderate tier (₹2,500 - ₹6,000/day): balanced distribution
-      if (cost <= 750) score += 3;
-    }
-
-    return { ...p, score };
-  });
-
-  scoredPlaces.sort((a, b) => b.score - a.score);
-
-  const days = [];
-  const usedPlaceIds = new Set();
-
-  for (let d = 1; d <= numDays; d++) {
-    const dayActivities = [];
-    let dayCost = 0;
-
-    for (const place of scoredPlaces) {
-      if (dayActivities.length >= 3) break;
-      if (!usedPlaceIds.has(place.id)) {
-        // Budget guard: prevent single day from wildly overshooting budget
-        const placeCost = Number(place.cost) || 0;
-        if (dayActivities.length >= 2 && (dayCost + placeCost) > (targetDailyBudget * 1.6) && targetDailyBudget < 3000) {
-          continue; // Look for a more economical stop for the last slot
-        }
-
-        dayActivities.push(JSON.parse(JSON.stringify(place)));
-        usedPlaceIds.add(place.id);
-        dayCost += placeCost;
-      }
-    }
-
-    if (dayActivities.length === 0) {
-      dayActivities.push({
-        id: `custom-chill-${d}`,
-        name: `Leisure & Local Market Walk in ${destInfo.name}`,
-        timeSlot: "Afternoon (02:00 PM)",
-        category: "food",
-        cost: 300,
-        duration: "2 hours",
-        description: `Stroll through the local streets, visit regional artisan stalls, and enjoy fresh delicacies.`,
-        tip: "Ask your hotel host for their favorite hidden dining spot.",
-        coords: destInfo.centerCoords,
-        slotPreference: "afternoon",
-        weatherSensitive: false,
-        exertionLevel: "low",
-        costTier: "budget"
-      });
-    }
-
-    let dayTheme = `Day ${d}: Highlights of ${destInfo.name}`;
-    if (d === 1) dayTheme = `Day 1: Iconic Landmarks & First Impressions`;
-    else if (d === 2) dayTheme = `Day 2: Heritage, Culture & Local Flavors`;
-    else if (d === 3) dayTheme = `Day 3: Scenic Vistas & Sunset Magic`;
-    else if (d === 4) dayTheme = `Day 4: Adventure & Offbeat Trails`;
-    else if (d === 5) dayTheme = `Day 5: Artisan Bazaars & Wellness`;
-    else if (d >= 6) dayTheme = `Day ${d}: Extended Discovery & Leisure`;
-
-    // Apply TSP ordering directly on newly generated day
-    const optimizedActs = optimizeDayPath(dayActivities, destInfo.centerCoords);
-
-    days.push({
-      dayNum: d,
-      title: dayTheme,
-      activities: optimizedActs
-    });
+function performUndo() {
+  if (state.undoStack.length === 0) {
+    showToast("Nothing to Undo", "You are at the earliest recorded state.", "info");
+    return;
   }
+  const currentSnapshot = {
+    actionName: "Current State",
+    itinerary: JSON.parse(JSON.stringify(state.itinerary)),
+    totalBudget: state.totalBudget,
+    activeDisruption: state.activeDisruption,
+    timestamp: Date.now()
+  };
+  state.redoStack.push(currentSnapshot);
 
-  state.itinerary = days;
-  state.originalItineraryBackup = JSON.parse(JSON.stringify(days));
-  state.activeDayTab = 0;
-  state.activeDisruption = null;
+  const prev = state.undoStack.pop();
+  state.itinerary = JSON.parse(JSON.stringify(prev.itinerary));
+  state.totalBudget = prev.totalBudget;
+  state.activeDisruption = prev.activeDisruption;
 
+  updateUndoRedoUI();
   saveToLocalStorage();
   renderDashboard();
-  showToast("Custom Itinerary Generated!", `Crafted an optimized ${numDays}-day plan for ${destInfo.name}.`, "success");
+  showToast("Action Undone ↩️", `Reverted: ${prev.actionName}`, "info");
+}
+
+function performRedo() {
+  if (state.redoStack.length === 0) {
+    showToast("Nothing to Redo", "You are at the most recent state.", "info");
+    return;
+  }
+  const currentSnapshot = {
+    actionName: "Before Redo",
+    itinerary: JSON.parse(JSON.stringify(state.itinerary)),
+    totalBudget: state.totalBudget,
+    activeDisruption: state.activeDisruption,
+    timestamp: Date.now()
+  };
+  state.undoStack.push(currentSnapshot);
+
+  const next = state.redoStack.pop();
+  state.itinerary = JSON.parse(JSON.stringify(next.itinerary));
+  state.totalBudget = next.totalBudget;
+  state.activeDisruption = next.activeDisruption;
+
+  updateUndoRedoUI();
+  saveToLocalStorage();
+  renderDashboard();
+  showToast("Action Redone ↪️", `Re-applied: ${next.actionName}`, "info");
+}
+
+function updateUndoRedoUI() {
+  const btnUndo = document.getElementById("btn-header-undo");
+  const btnRedo = document.getElementById("btn-header-redo");
+  if (btnUndo) {
+    btnUndo.disabled = state.undoStack.length === 0;
+    btnUndo.style.opacity = state.undoStack.length === 0 ? "0.4" : "1";
+    btnUndo.title = state.undoStack.length > 0 ? `Undo ${state.undoStack[state.undoStack.length - 1].actionName} (Cmd+Z)` : "Nothing to undo";
+  }
+  if (btnRedo) {
+    btnRedo.disabled = state.redoStack.length === 0;
+    btnRedo.style.opacity = state.redoStack.length === 0 ? "0.4" : "1";
+    btnRedo.title = state.redoStack.length > 0 ? `Redo (Cmd+Shift+Z)` : "Nothing to redo";
+  }
 }
 
 // =============================================================================
-// 5. HYBRID TSP ROUTE OPTIMIZER (Exact Permutations <=7, 2-Opt >7)
+// 4. HYBRID TSP ROUTE OPTIMIZER (Exact <=7, Nearest-Neighbor+2-Opt >7)
 // =============================================================================
 
 function optimizeDayPath(activities, defaultCenter) {
   if (!activities || activities.length <= 1) return activities;
 
-  const center = defaultCenter || [26.9124, 75.7873];
+  const center = state.hotelOrigin || defaultCenter || [26.9124, 75.7873];
   const n = activities.length;
 
   const timeSlotTemplates = [
@@ -4430,7 +4651,7 @@ function optimizeDayPath(activities, defaultCenter) {
       }
     }
   } else {
-    // Fallback: Nearest-Neighbor + 2-Opt Local Search for n > 7 (Guaranteed zero UI freeze)
+    // Fallback for n > 7: Nearest-Neighbor + 2-Opt Local Search (Guaranteed 0ms freeze)
     bestPermutation = nearestNeighborWithTwoOpt(activities, center);
   }
 
@@ -4445,132 +4666,1015 @@ function optimizeDayPath(activities, defaultCenter) {
 }
 
 // Auto-reroute all days or target day using TSP optimizer
-function autoRerouteItinerary(targetDayIndex = -1) {
+function autoRerouteItinerary(targetDayIndex = -1, promptForApproval = true) {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const center = destInfo.centerCoords || [26.9124, 75.7873];
-  let totalKmSaved = 0;
-
+  const center = state.hotelOrigin || destInfo.centerCoords || [26.9124, 75.7873];
+  
+  // Clone draft
+  const draftItinerary = JSON.parse(JSON.stringify(state.itinerary));
   const daysToOptimize = targetDayIndex === -1 
-    ? state.itinerary 
-    : [state.itinerary[targetDayIndex]].filter(Boolean);
+    ? draftItinerary 
+    : [draftItinerary[targetDayIndex]].filter(Boolean);
 
   daysToOptimize.forEach((day) => {
     if (day.activities.length <= 1) return;
-
-    const initialKm = calculatePathDistance(day.activities, center);
-    const optimized = optimizeDayPath(day.activities, center);
-    const optimizedKm = calculatePathDistance(optimized, center);
-
-    const saved = Math.max(0, initialKm - optimizedKm);
-    totalKmSaved += saved;
-
-    day.activities = optimized;
+    day.activities = optimizeDayPath(day.activities, center);
   });
+
+  if (promptForApproval) {
+    const diffData = computeItineraryDiff(state.itinerary, draftItinerary, center);
+    const dynamicRationale = generateDynamicRationale(diffData, "Traveling Salesperson (TSP) Geometric Optimization");
+    
+    showDiffPreviewModal(
+      diffData,
+      { itinerary: draftItinerary, totalBudget: state.totalBudget, activeDisruption: state.activeDisruption },
+      dynamicRationale,
+      "TSP Route Geometry Optimization"
+    );
+  } else {
+    pushStateToUndoHistory("Route Geometry Optimization");
+    state.itinerary = draftItinerary;
+    saveToLocalStorage();
+    renderDashboard();
+    if (state.activeViewMode === "map") initOrUpdateMap();
+    showToast("Route Optimized! ⚡", "Reordered stops to minimize commute distance.", "success");
+  }
+}
+
+// =============================================================================
+// 5. BUDGET-AWARE GENERATION & CLOSED-DAYS AWARENESS
+// =============================================================================
+
+function generateItinerary(pushHistory = true) {
+  if (pushHistory && state.itinerary && state.itinerary.length > 0) {
+    pushStateToUndoHistory("Itinerary Generation");
+  }
+
+  const destKey = state.destination;
+  const destInfo = DESTINATIONS_DATA[destKey] || DESTINATIONS_DATA.jaipur;
+  const allPlaces = [...destInfo.places];
+
+  const numDays = state.daysCount || 3;
+  const targetDailyBudget = (Number(state.totalBudget) || 18000) / numDays;
+
+  // Score places based on interest relevance and budget tier compatibility
+  const scoredPlaces = allPlaces.map(p => {
+    let score = 0;
+
+    if (state.selectedInterests.includes(p.category)) {
+      score += 6;
+    }
+
+    const cost = Number(p.cost) || 0;
+    if (targetDailyBudget < 2500) {
+      if (cost <= 250 || p.costTier === "budget") score += 5;
+      else if (cost > 1000 || p.costTier === "premium") score -= 8;
+    } else if (targetDailyBudget > 6000) {
+      if (cost >= 800 || p.costTier === "premium") score += 6;
+      else if (cost === 0 && p.category !== "nature") score -= 2;
+    } else {
+      if (cost <= 750) score += 3;
+    }
+
+    return { ...p, score };
+  });
+
+  scoredPlaces.sort((a, b) => b.score - a.score);
+
+  const days = [];
+  const usedPlaceIds = new Set();
+
+  for (let d = 1; d <= numDays; d++) {
+    const dayActivities = [];
+    let dayCost = 0;
+
+    for (const place of scoredPlaces) {
+      if (dayActivities.length >= 3) break;
+      if (!usedPlaceIds.has(place.id)) {
+        const placeCost = Number(place.cost) || 0;
+        if (dayActivities.length >= 2 && (dayCost + placeCost) > (targetDailyBudget * 1.6) && targetDailyBudget < 3000) {
+          continue;
+        }
+
+        dayActivities.push(JSON.parse(JSON.stringify(place)));
+        usedPlaceIds.add(place.id);
+        dayCost += placeCost;
+      }
+    }
+
+    if (dayActivities.length === 0) {
+      dayActivities.push({
+        id: `custom-chill-${d}`,
+        name: `Leisure & Local Market Walk in ${destInfo.name}`,
+        timeSlot: "Afternoon (02:00 PM)",
+        category: "food",
+        cost: 300,
+        duration: "2 hours",
+        description: `Stroll through the local streets, visit regional artisan stalls, and enjoy fresh delicacies.`,
+        tip: "Ask your hotel host for their favorite hidden dining spot.",
+        coords: destInfo.centerCoords,
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      });
+    }
+
+    let dayTheme = `Day ${d}: Highlights of ${destInfo.name}`;
+    if (d === 1) dayTheme = `Day 1: Iconic Landmarks & First Impressions`;
+    else if (d === 2) dayTheme = `Day 2: Heritage, Culture & Local Flavors`;
+    else if (d === 3) dayTheme = `Day 3: Scenic Vistas & Sunset Magic`;
+    else if (d === 4) dayTheme = `Day 4: Adventure & Offbeat Trails`;
+    else if (d === 5) dayTheme = `Day 5: Artisan Bazaars & Wellness`;
+    else if (d >= 6) dayTheme = `Day ${d}: Extended Discovery & Leisure`;
+
+    const startCoords = state.hotelOrigin || destInfo.centerCoords;
+    const optimizedActs = optimizeDayPath(dayActivities, startCoords);
+
+    days.push({
+      dayNum: d,
+      title: dayTheme,
+      activities: optimizedActs
+    });
+  }
+
+  state.itinerary = days;
+  state.originalItineraryBackup = JSON.parse(JSON.stringify(days));
+  state.activeDayTab = 0;
+  state.activeDisruption = null;
 
   saveToLocalStorage();
   renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
+  checkLiveWeatherForecast();
+  showToast("Itinerary Generated! 🚀", `Crafted budget-optimized ${numDays}-day plan for ${destInfo.name}.`, "success");
+}
 
-  const savedMins = Math.round((totalKmSaved / 25) * 60);
-  showToast(
-    "Route Optimized! ⚡",
-    totalKmSaved > 0.3 
-      ? `Reordered stops geographically! Saved ~${totalKmSaved.toFixed(1)} km & ~${savedMins} mins of transit delay.`
-      : `Stops sequenced in optimal geographic order with harmonized time slots.`,
-    "success"
+// =============================================================================
+// 6. AI CO-PILOT (BOUNDED LLM INTENT LAYER + TOKENIZED FALLBACK PARSER)
+// =============================================================================
+
+// Robust tokenized rule fallback with word boundaries and negation handling
+function parseIntentWithRuleFallback(promptText) {
+  if (!promptText || !promptText.trim()) return null;
+  const text = promptText.toLowerCase();
+
+  const intents = [];
+  let confidence = 0.92;
+  const constraints = {};
+
+  // Check negations
+  const hasNotRain = /\b(not|no|don'?t)\b.*?\b(rain|raining|wet|indoor)\b/.test(text);
+  const hasNotDelay = /\b(not|no|without|zero)\b.*?\b(delay|delayed|late|rush)\b/.test(text);
+
+  // Intent 1: Weather (Rain / Monsoon / Storm / Waterlog / Wet)
+  // Uses strict word boundaries so "train" or "drain" never triggers rain!
+  const isRain = !hasNotRain && (
+    /\b(rain|raining|rains|monsoon|storm|stormy|pouring|drenched|waterlog\w*|downpour|heavy shower|wet)\b/.test(text)
+  );
+  if (isRain) intents.push("weather_rain");
+
+  // Intent 2: Delay / Traffic / Transit / Train Delay / Flight Delay
+  const isDelay = !hasNotDelay && (
+    /\b(delay|delayed|traffic|jam|stuck|late|flight delay|train delay|train|slow transit|shorten)\b/.test(text)
+  );
+  if (isDelay) intents.push("traffic_delay");
+
+  // Intent 3: Fatigue / Wellness / Chill / Slow Pace
+  const isChill = /\b(tired|exhausted|exhaust|chill|relax|relaxing|spa|massage|rest|wellness|slow down|leisure|gentle)\b/.test(text);
+  if (isChill) intents.push("fatigue_chill");
+
+  // Intent 4: Budget Low
+  const isTightBudget = /\b(tight budget|cheap|free|low budget|save money|street food|broke|economical|budget cut|cheaper)\b/.test(text);
+  if (isTightBudget) {
+    intents.push("budget_low");
+    constraints.budgetScale = 0.6;
+  }
+
+  // Intent 5: Luxury Upgrade
+  const isLuxury = /\b(luxury|royal|high tea|cruise|expensive|premium|splurge|5 star|five star|vip)\b/.test(text);
+  if (isLuxury) {
+    intents.push("budget_luxury");
+    constraints.budgetScale = 1.5;
+  }
+
+  // Intent 6: Reset
+  const isReset = /\b(reset|original|start over|restart|undo all|baseline)\b/.test(text);
+  if (isReset) intents.push("reset_plan");
+
+  // Default intent: route optimization if no disruption intent matched
+  if (intents.length === 0) {
+    intents.push("reroute_optimize");
+    confidence = 0.85;
+  }
+
+  let userSummary = "";
+  if (intents.includes("weather_rain") && intents.includes("fatigue_chill")) {
+    userSummary = "Detected adverse monsoon rain and high physical fatigue. Proposing indoor sheltered havelis and wellness relaxation lounges.";
+  } else if (intents.includes("weather_rain")) {
+    userSummary = "Detected rain advisory. Proposing sheltered indoor museums and havelis across all days.";
+  } else if (intents.includes("traffic_delay")) {
+    userSummary = "Detected travel/traffic delay. Proposing condensed priority highlights with morning time buffers.";
+  } else if (intents.includes("fatigue_chill")) {
+    userSummary = "Detected fatigue. Proposing relaxed pacing with royal tea lounges and wellness stops.";
+  } else if (intents.includes("budget_low")) {
+    userSummary = "Detected economical budget request. Proposing low-cost heritage stepwells, walking tours, and street dining.";
+  } else if (intents.includes("budget_luxury")) {
+    userSummary = "Detected luxury upgrade request. Proposing royal high tea, private boat cruises, and signature heritage dining.";
+  } else if (intents.includes("reset_plan")) {
+    userSummary = "Detected request to restore baseline generated itinerary.";
+  } else {
+    userSummary = "Evaluating route geometry to minimize travel commute distance.";
+  }
+
+  return {
+    intents,
+    confidence,
+    targetDays: [1, 2, 3],
+    constraints,
+    userSummary,
+    source: "tokenized_rule_fallback"
+  };
+}
+
+// Real LLM API caller with structured JSON output and bounded autonomy
+async function callLlmIntentApi(promptText) {
+  if (!state.llmConfig.apiKey || state.llmConfig.provider === "builtin_fallback") {
+    return parseIntentWithRuleFallback(promptText);
+  }
+
+  const systemPrompt = `You are the AI Co-Pilot intent parser for TravelPilot (India trip planner).
+Convert the user's plain-English prompt into structured JSON ONLY.
+Output JSON schema:
+{
+  "intents": ["weather_rain" | "traffic_delay" | "fatigue_chill" | "budget_low" | "budget_luxury" | "reroute_optimize" | "reset_plan"],
+  "confidence": number (0.0 to 1.0),
+  "targetDays": number[],
+  "constraints": {
+    "delayHours"?: number,
+    "budgetScale"?: number,
+    "excludeOutdoor"?: boolean
+  },
+  "userSummary": string
+}
+Do NOT include markdown backticks or explanations. Output pure JSON only.`;
+
+  try {
+    const response = await fetch(state.llmConfig.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${state.llmConfig.apiKey}`
+      },
+      body: JSON.stringify({
+        model: state.llmConfig.model || "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: promptText }
+        ],
+        temperature: 0.1,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    const parsed = JSON.parse(content);
+
+    // Validate enum guardrails
+    const validIntents = ["weather_rain", "traffic_delay", "fatigue_chill", "budget_low", "budget_luxury", "reroute_optimize", "reset_plan"];
+    const filteredIntents = (parsed.intents || []).filter(i => validIntents.includes(i));
+
+    return {
+      intents: filteredIntents.length > 0 ? filteredIntents : ["reroute_optimize"],
+      confidence: parsed.confidence || 0.95,
+      targetDays: parsed.targetDays || [1, 2, 3],
+      constraints: parsed.constraints || {},
+      userSummary: parsed.userSummary || "Parsed user intent via LLM.",
+      source: "llm_agent"
+    };
+  } catch (err) {
+    console.warn("LLM API call failed, falling back to rule engine:", err);
+    showToast("AI Fallback Active", "Used built-in intent engine (API unreachable).", "info");
+    return parseIntentWithRuleFallback(promptText);
+  }
+}
+
+// Execute AI Co-Pilot Adaptation (Bounded Autonomy with Preview Diff)
+async function parseAndExecuteAiPrompt(promptText) {
+  if (!promptText || !promptText.trim()) return;
+
+  const btnSubmit = document.getElementById("btn-copilot-submit");
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<span>⏳ Analyzing Intent...</span>`;
+  }
+
+  const parsedPlan = await callLlmIntentApi(promptText);
+
+  if (btnSubmit) {
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = `<span>⚡ Run AI Adaptation</span>`;
+  }
+
+  if (!parsedPlan) return;
+
+  // Execute deterministic actions on a draft clone
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const startCoords = state.hotelOrigin || destInfo.centerCoords;
+  let draftItinerary = JSON.parse(JSON.stringify(state.itinerary));
+  let draftBudget = state.totalBudget;
+  let proposedDisruption = state.activeDisruption;
+
+  const intents = parsedPlan.intents;
+
+  if (intents.includes("reset_plan")) {
+    if (state.originalItineraryBackup) {
+      draftItinerary = JSON.parse(JSON.stringify(state.originalItineraryBackup));
+      proposedDisruption = null;
+    }
+  } else {
+    // Rain handling
+    if (intents.includes("weather_rain")) {
+      proposedDisruption = "rain";
+      const plans = destInfo.contingencyPlans;
+      if (plans && plans.heavyRain) {
+        const rainPool = [...plans.heavyRain.replacements];
+        const indoorCore = (destInfo.places || []).filter(p => !p.weatherSensitive);
+        const combinedPool = [...rainPool, ...indoorCore];
+        let poolIdx = 0;
+
+        draftItinerary.forEach((day) => {
+          let changed = false;
+          day.activities = day.activities.map(act => {
+            if (act.weatherSensitive && poolIdx < combinedPool.length) {
+              const rep = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
+              poolIdx++;
+              changed = true;
+              return rep;
+            }
+            return act;
+          });
+          if (changed) {
+            day.title = `Day ${day.dayNum}: Sheltered Indoor Highlights of ${destInfo.name}`;
+            day.activities = optimizeDayPath(day.activities, startCoords);
+          }
+        });
+      }
+    }
+
+    // Delay handling
+    if (intents.includes("traffic_delay")) {
+      proposedDisruption = proposedDisruption || "delay";
+      const plans = destInfo.contingencyPlans;
+      const keepIds = new Set(plans?.timeDelay?.keepIds || []);
+
+      draftItinerary.forEach((day) => {
+        if (day.activities.length > 2) {
+          const filtered = day.activities.filter(a => keepIds.has(a.id));
+          day.activities = filtered.length >= 2 ? filtered.slice(0, 2) : day.activities.slice(0, 2);
+        }
+        if (day.activities[0]) day.activities[0].timeSlot = "Morning (10:30 AM)";
+        if (day.activities[1]) day.activities[1].timeSlot = "Afternoon (03:30 PM)";
+        day.activities = optimizeDayPath(day.activities, startCoords);
+      });
+    }
+
+    // Fatigue / Chill handling
+    if (intents.includes("fatigue_chill")) {
+      proposedDisruption = proposedDisruption || "chill";
+      const plans = destInfo.contingencyPlans;
+      if (plans && plans.lowEnergy) {
+        const chillPool = [...plans.lowEnergy.replacements];
+        const lowExertion = (destInfo.places || []).filter(p => p.exertionLevel === "low");
+        const combinedChill = [...chillPool, ...lowExertion];
+        let poolIdx = 0;
+
+        draftItinerary.forEach((day) => {
+          let changed = false;
+          day.activities = day.activities.map(act => {
+            if (act.exertionLevel === "high" && poolIdx < combinedChill.length) {
+              const rep = JSON.parse(JSON.stringify(combinedChill[poolIdx % combinedChill.length]));
+              poolIdx++;
+              changed = true;
+              return rep;
+            }
+            return act;
+          });
+          if (changed) {
+            day.activities = optimizeDayPath(day.activities, startCoords);
+          }
+        });
+      }
+    }
+
+    // Budget adjustments
+    if (intents.includes("budget_low")) {
+      draftBudget = Math.max(6000, Math.round(state.totalBudget * 0.6));
+    } else if (intents.includes("budget_luxury")) {
+      draftBudget = Math.max(30000, Math.round(state.totalBudget * 1.5));
+    }
+
+    // TSP re-sequence
+    if (intents.includes("reroute_optimize") || intents.length > 0) {
+      draftItinerary.forEach((day) => {
+        if (day.activities.length > 1) {
+          day.activities = optimizeDayPath(day.activities, startCoords);
+        }
+      });
+    }
+  }
+
+  // Compute precise diff
+  const diffData = computeItineraryDiff(state.itinerary, draftItinerary, startCoords);
+  const dynamicRationale = generateDynamicRationale(diffData, parsedPlan.userSummary);
+
+  // Open Preview Diff Modal for explicit user approval!
+  showDiffPreviewModal(
+    diffData,
+    { itinerary: draftItinerary, totalBudget: draftBudget, activeDisruption: proposedDisruption },
+    dynamicRationale,
+    `AI Intent Adaptation: ${intents.join(" + ")}`
   );
 }
 
 // =============================================================================
-// 6. AI CO-PILOT: NATURAL LANGUAGE INTENT PARSER & ADAPTATION ENGINE
+// 7. DIFF CALCULATION & DYNAMIC RATIONALE GENERATOR
 // =============================================================================
 
-function parseAndExecuteAiPrompt(promptText) {
-  if (!promptText || !promptText.trim()) return;
+function computeItineraryDiff(currentItinerary, proposedItinerary, startCoords) {
+  let beforeKm = 0;
+  let afterKm = 0;
+  let beforeCost = 0;
+  let afterCost = 0;
+  let beforeConflicts = 0;
+  let afterConflicts = 0;
 
-  const text = promptText.toLowerCase();
-  const reasoningContainer = document.getElementById("ai-reasoning-container");
-  const reasoningTitle = document.getElementById("ai-reasoning-title");
-  const reasoningBody = document.getElementById("ai-reasoning-text");
+  const dayDiffs = [];
 
-  let detectedScenarios = [];
-  let rationale = "";
+  const maxDays = Math.max(currentItinerary.length, proposedItinerary.length);
 
-  // Intent 1: Weather (Rain / Monsoon / Storm)
-  const isRain = text.includes("rain") || text.includes("pouring") || text.includes("monsoon") || text.includes("storm") || text.includes("waterlog") || text.includes("wet");
-  
-  // Intent 2: Delay / Traffic / Late
-  const isDelay = text.includes("delay") || text.includes("late") || text.includes("traffic") || text.includes("jam") || text.includes("flight delay") || text.includes("shorten");
+  for (let d = 0; d < maxDays; d++) {
+    const curDay = currentItinerary[d] || { dayNum: d + 1, activities: [] };
+    const propDay = proposedItinerary[d] || { dayNum: d + 1, activities: [] };
 
-  // Intent 3: Fatigue / Wellness / Chill
-  const isChill = text.includes("tired") || text.includes("exhaust") || text.includes("chill") || text.includes("relax") || text.includes("spa") || text.includes("massage") || text.includes("rest") || text.includes("wellness");
+    const curDist = calculatePathDistance(curDay.activities, startCoords);
+    const propDist = calculatePathDistance(propDay.activities, startCoords);
+    beforeKm += curDist;
+    afterKm += propDist;
 
-  // Intent 4: Budget adjustment
-  const isTightBudget = text.includes("tight budget") || text.includes("cheap") || text.includes("free") || text.includes("low budget") || text.includes("street food") || text.includes("money") || text.includes("economical");
-  const isLuxury = text.includes("luxury") || text.includes("royal") || text.includes("high tea") || text.includes("cruise") || text.includes("expensive") || text.includes("premium");
+    const curDayCost = curDay.activities.reduce((s, a) => s + (Number(a.cost) || 0), 0);
+    const propDayCost = propDay.activities.reduce((s, a) => s + (Number(a.cost) || 0), 0);
+    beforeCost += curDayCost;
+    afterCost += propDayCost;
 
-  // Intent 5: Reset
-  const isReset = text.includes("reset") || text.includes("original") || text.includes("start over") || text.includes("undo");
+    const curWeatherRisks = curDay.activities.filter(a => a.weatherSensitive).length;
+    const propWeatherRisks = propDay.activities.filter(a => a.weatherSensitive).length;
+    beforeConflicts += curWeatherRisks;
+    afterConflicts += propWeatherRisks;
 
-  if (isReset) {
-    applyDisruptionScenario("reset");
-    rationale = "Parsed request to restore baseline trip. Reverted all custom disruption overrides to your original generated plan.";
-    if (reasoningTitle) reasoningTitle.textContent = "AI Action: Baseline Plan Restored";
-    if (reasoningBody) reasoningBody.textContent = rationale;
-    if (reasoningContainer) reasoningContainer.style.display = "flex";
-    return;
+    const curIds = curDay.activities.map(a => a.id);
+    const propIds = propDay.activities.map(a => a.id);
+
+    const added = propDay.activities.filter(a => !curIds.includes(a.id));
+    const removed = curDay.activities.filter(a => !propIds.includes(a.id));
+    const reordered = propDay.activities.filter(a => curIds.includes(a.id));
+
+    dayDiffs.push({
+      dayNum: d + 1,
+      beforeActivities: curDay.activities,
+      afterActivities: propDay.activities,
+      curDist,
+      propDist,
+      deltaKm: Number((propDist - curDist).toFixed(1)),
+      added,
+      removed,
+      hasChanges: added.length > 0 || removed.length > 0 || JSON.stringify(curIds) !== JSON.stringify(propIds)
+    });
   }
 
-  // Execute Intent Combinations
-  if (isRain && isChill) {
-    applyDisruptionScenario("rain");
-    applyDisruptionScenario("chill");
-    rationale = "Detected rain conditions ('pouring/wet') and physical fatigue ('tired/exhausted'). Automatically converted outdoor viewpoints to sheltered indoor palaces & museums, while pacing the schedule with restorative wellness lounges across all days.";
-    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Combined Monsoon + Wellness Reroute";
-  } else if (isRain) {
-    applyDisruptionScenario("rain");
-    rationale = "Detected adverse weather advisory. Safely replaced all weather-sensitive forts, treks, and open-air activities with curated indoor royal museums and covered havelis across all days.";
-    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Monsoon & Rain Shelter Mode";
-  } else if (isDelay) {
-    applyDisruptionScenario("delay");
-    rationale = "Detected travel delay. Condensed daily stops to priority crown-jewel sights and injected time buffers (starting at 10:30 AM) to comfortably absorb flight/traffic delays.";
-    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Express Delay Buffer Route";
-  } else if (isChill) {
-    applyDisruptionScenario("chill");
-    rationale = "Detected need for relaxed pacing. Substituted high-exertion treks and uphill hikes with serene lakeside cafes, royal high-tea lounges, and Ayurvedic spa sessions.";
-    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Relaxation & Wellness Pacing";
-  } else if (isTightBudget) {
-    state.totalBudget = Math.max(6000, Math.round(state.totalBudget * 0.6));
-    syncFormWithState();
-    generateItinerary();
-    rationale = `Adapted plan for economical travel. Prioritized free public monuments, stepwells, ghat walks, and authentic street dining while filtering premium commercial tours.`;
-    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Budget-Optimized Regeneration";
-  } else if (isLuxury) {
-    state.totalBudget = Math.max(30000, Math.round(state.totalBudget * 1.5));
-    syncFormWithState();
-    generateItinerary();
-    rationale = "Upgraded itinerary with premium signature experiences including royal high-tea, private boat cruises, and luxury heritage dining.";
-    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Luxury Tier Regeneration";
-  } else {
-    // General auto-reroute optimization
-    autoRerouteItinerary(-1);
-    rationale = "Evaluated current stop coordinates and time slot affinities. Reordered itinerary using TSP geometric optimization to minimize travel distance and transit delays.";
-    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Route Geometry Optimized";
+  const deltaKm = Number((afterKm - beforeKm).toFixed(1));
+  const beforeMins = Math.round((beforeKm / 25) * 60);
+  const afterMins = Math.round((afterKm / 25) * 60);
+  const deltaMins = afterMins - beforeMins;
+  const deltaCost = afterCost - beforeCost;
+  const resolvedConflicts = Math.max(0, beforeConflicts - afterConflicts);
+
+  return {
+    beforeKm: Number(beforeKm.toFixed(1)),
+    afterKm: Number(afterKm.toFixed(1)),
+    deltaKm,
+    beforeMins,
+    afterMins,
+    deltaMins,
+    beforeCost,
+    afterCost,
+    deltaCost,
+    beforeConflicts,
+    afterConflicts,
+    resolvedConflicts,
+    dayDiffs
+  };
+}
+
+function generateDynamicRationale(diff, baseSummary) {
+  const parts = [];
+
+  if (baseSummary) parts.push(baseSummary);
+
+  if (diff.deltaKm < -0.3) {
+    parts.push(`Reduced total commute by ${Math.abs(diff.deltaKm)} km (~${Math.abs(diff.deltaMins)} mins cab transit).`);
   }
 
-  if (reasoningBody) reasoningBody.textContent = rationale;
-  if (reasoningContainer) reasoningContainer.style.display = "flex";
+  if (diff.resolvedConflicts > 0) {
+    parts.push(`Safely resolved ${diff.resolvedConflicts} weather/timing conflict(s).`);
+  }
 
-  showToast("AI Co-Pilot Executed", "Applied scenario adaptations to your itinerary.", "success");
+  if (diff.deltaCost !== 0) {
+    parts.push(`Budget variance: ${diff.deltaCost > 0 ? '+' : ''}₹${diff.deltaCost.toLocaleString('en-IN')}.`);
+  }
+
+  const totalSwaps = diff.dayDiffs.reduce((s, d) => s + d.added.length, 0);
+  if (totalSwaps > 0) {
+    parts.push(`Updated ${totalSwaps} activity stop(s) with harmonized schedules across the trip.`);
+  }
+
+  return parts.join(" ");
 }
 
 // =============================================================================
-// 7. PROACTIVE DELAY, TIMING & WEATHER RISK ANALYZER
+// 8. DIFF PREVIEW MODAL CONTROLLER
+// =============================================================================
+
+function showDiffPreviewModal(diffData, proposedState, dynamicRationale, actionTitle) {
+  state.activePendingDiff = { diffData, proposedState, actionTitle };
+
+  const modal = document.getElementById("diff-preview-modal");
+  const modalTitle = document.getElementById("diff-modal-title");
+  const rationaleEl = document.getElementById("diff-modal-rationale");
+  const statsContainer = document.getElementById("diff-stats-container");
+  const daysContainer = document.getElementById("diff-days-container");
+
+  if (!modal) return;
+
+  if (modalTitle) modalTitle.textContent = `Review Adaptation: ${actionTitle}`;
+  if (rationaleEl) rationaleEl.textContent = dynamicRationale;
+
+  // Render Stats Grid
+  if (statsContainer) {
+    statsContainer.innerHTML = `
+      <div class="diff-stat-card ${diffData.deltaKm <= 0 ? 'positive' : 'negative'}">
+        <span class="diff-stat-lbl">Commute Distance</span>
+        <span class="diff-stat-val">${diffData.deltaKm <= 0 ? '−' : '+'}${Math.abs(diffData.deltaKm)} km</span>
+        <span class="diff-stat-sub">${diffData.beforeKm} km → ${diffData.afterKm} km</span>
+      </div>
+      <div class="diff-stat-card ${diffData.deltaMins <= 0 ? 'positive' : 'negative'}">
+        <span class="diff-stat-lbl">Transit Time</span>
+        <span class="diff-stat-val">${diffData.deltaMins <= 0 ? '−' : '+'}${Math.abs(diffData.deltaMins)} mins</span>
+        <span class="diff-stat-sub">Drive & cab duration</span>
+      </div>
+      <div class="diff-stat-card ${diffData.resolvedConflicts > 0 ? 'positive' : ''}">
+        <span class="diff-stat-lbl">Risks Resolved</span>
+        <span class="diff-stat-val">${diffData.resolvedConflicts}</span>
+        <span class="diff-stat-sub">Weather & congestion</span>
+      </div>
+      <div class="diff-stat-card">
+        <span class="diff-stat-lbl">Estimated Cost</span>
+        <span class="diff-stat-val">${diffData.deltaCost >= 0 ? '+' : '−'}₹${Math.abs(diffData.deltaCost).toLocaleString('en-IN')}</span>
+        <span class="diff-stat-sub">₹${diffData.beforeCost.toLocaleString('en-IN')} → ₹${diffData.afterCost.toLocaleString('en-IN')}</span>
+      </div>
+    `;
+  }
+
+  // Render Day By Day Diff Cards
+  if (daysContainer) {
+    daysContainer.innerHTML = diffData.dayDiffs.map(day => `
+      <div class="diff-day-box">
+        <div class="diff-day-header">
+          <strong>Day ${day.dayNum}</strong>
+          <span class="meta-chip">${day.deltaKm <= 0 ? '−' : '+'}${Math.abs(day.deltaKm)} km commute</span>
+        </div>
+        <div class="diff-comparison-grid">
+          <div class="diff-col before">
+            <span class="diff-col-lbl">Current Plan</span>
+            ${day.beforeActivities.map(a => `
+              <div class="diff-item ${day.removed.some(r => r.id === a.id) ? 'removed' : ''}">
+                <span class="diff-item-time">${escapeHtml(a.timeSlot)}</span>
+                <span class="diff-item-name">${escapeHtml(a.name)}</span>
+              </div>
+            `).join("")}
+          </div>
+          <div class="diff-col after">
+            <span class="diff-col-lbl">Proposed Plan</span>
+            ${day.afterActivities.map(a => `
+              <div class="diff-item ${day.added.some(ad => ad.id === a.id) ? 'added' : ''}">
+                <span class="diff-item-time">${escapeHtml(a.timeSlot)}</span>
+                <span class="diff-item-name">${escapeHtml(a.name)}</span>
+                ${day.added.some(ad => ad.id === a.id) ? '<span class="diff-badge-new">+ New</span>' : ''}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeDiffPreviewModal() {
+  const modal = document.getElementById("diff-preview-modal");
+  if (modal) modal.style.display = "none";
+  state.activePendingDiff = null;
+}
+
+function applyPendingDiff() {
+  if (!state.activePendingDiff) return;
+
+  const { proposedState, actionTitle } = state.activePendingDiff;
+
+  // Push previous state to undo stack
+  pushStateToUndoHistory(actionTitle);
+
+  // Apply proposed state
+  state.itinerary = JSON.parse(JSON.stringify(proposedState.itinerary));
+  state.totalBudget = proposedState.totalBudget;
+  state.activeDisruption = proposedState.activeDisruption;
+
+  closeDiffPreviewModal();
+  saveToLocalStorage();
+  renderDashboard();
+
+  showToast("Plan Updated! ✅", `${actionTitle} applied. Press Cmd+Z to undo anytime.`, "success");
+}
+
+// =============================================================================
+// 9. PROACTIVE LIVE WEATHER FORECAST & CLOSED DAYS VALIDATOR
+// =============================================================================
+
+async function checkLiveWeatherForecast() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const coords = destInfo.centerCoords || [26.9124, 75.7873];
+
+  const forecastBanner = document.getElementById("proactive-weather-banner");
+  if (!forecastBanner) return;
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords[0]}&longitude=${coords[1]}&daily=precipitation_probability_max,precipitation_sum,temperature_2m_max,weathercode&timezone=auto`;
+    const resp = await fetch(url);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    state.liveForecast = data;
+
+    const daily = data.daily || {};
+    const probs = daily.precipitation_probability_max || [];
+    const sums = daily.precipitation_sum || [];
+    const temps = daily.temperature_2m_max || [];
+    const dates = daily.time || [];
+
+    let rainRiskDay = null;
+    let rainRiskProb = 0;
+
+    for (let i = 0; i < Math.min(state.daysCount, probs.length); i++) {
+      if (probs[i] >= 45 || sums[i] >= 2.0) {
+        rainRiskDay = i + 1;
+        rainRiskProb = probs[i];
+        break;
+      }
+    }
+
+    if (rainRiskDay) {
+      forecastBanner.style.display = "flex";
+      forecastBanner.innerHTML = `
+        <div class="weather-alert-left">
+          <span class="weather-alert-icon">🌦️</span>
+          <div>
+            <strong>Live Open-Meteo Forecast Alert: ${rainRiskProb}% Rain on Day ${rainRiskDay}</strong>
+            <p>Precipitation forecasted in ${destInfo.name} on Day ${rainRiskDay}. Our proactive agent has pre-computed an indoor sheltered plan.</p>
+          </div>
+        </div>
+        <div class="weather-alert-right">
+          <button class="btn btn-primary btn-sm" id="btn-apply-weather-proactive">
+            <span>Review & Apply Indoor Plan</span>
+          </button>
+        </div>
+      `;
+
+      document.getElementById("btn-apply-weather-proactive")?.addEventListener("click", () => {
+        applyDisruptionScenario("rain");
+      });
+    } else {
+      forecastBanner.style.display = "none";
+    }
+  } catch (err) {
+    console.warn("Open-Meteo forecast fetch error:", err);
+    if (forecastBanner) forecastBanner.style.display = "none";
+  }
+}
+
+// Check closed days for attractions (e.g. museums closed on Mondays)
+function getClosedDaysAdvisories() {
+  const advisories = [];
+  const start = new Date(state.startDate || Date.now());
+
+  state.itinerary.forEach((day, dIdx) => {
+    const dayDate = new Date(start);
+    dayDate.setDate(dayDate.getDate() + dIdx);
+    const dayOfWeek = dayDate.getDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    day.activities.forEach(act => {
+      if (act.closedDays && Array.isArray(act.closedDays) && act.closedDays.includes(dayOfWeek)) {
+        advisories.push({
+          dayNum: day.dayNum,
+          actName: act.name,
+          closedDayName: dayNames[dayOfWeek],
+          tag: `⚠️ Closed on ${dayNames[dayOfWeek]}s: "${act.name}"`
+        });
+      }
+    });
+  });
+
+  return advisories;
+}
+
+// =============================================================================
+// 10. DISRUPTION SCENARIO HANDLERS (WITH DIFF PREVIEW)
+// =============================================================================
+
+function applyDisruptionScenario(type) {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const plans = destInfo.contingencyPlans;
+  const allPlaces = destInfo.places || [];
+  const startCoords = state.hotelOrigin || destInfo.centerCoords;
+
+  if (!plans) return;
+
+  const draftItinerary = JSON.parse(JSON.stringify(state.itinerary));
+  let proposedDisruption = type;
+
+  if (type === "rain" && plans.heavyRain) {
+    const rainPool = [...plans.heavyRain.replacements];
+    const indoorCorePlaces = allPlaces.filter(p => !p.weatherSensitive);
+    const combinedPool = [...rainPool, ...indoorCorePlaces];
+    let poolIdx = 0;
+
+    draftItinerary.forEach((day) => {
+      let dayChanged = false;
+      day.activities = day.activities.map(act => {
+        if (act.weatherSensitive && poolIdx < combinedPool.length) {
+          const replacement = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
+          poolIdx++;
+          dayChanged = true;
+          return replacement;
+        }
+        return act;
+      });
+      if (dayChanged) {
+        day.title = `Day ${day.dayNum}: Sheltered Indoor Highlights of ${destInfo.name}`;
+        day.activities = optimizeDayPath(day.activities, startCoords);
+      }
+    });
+  } else if (type === "delay" && plans.timeDelay) {
+    const keepIds = new Set(plans.timeDelay.keepIds || []);
+    draftItinerary.forEach((day) => {
+      if (day.activities.length > 2) {
+        const filtered = day.activities.filter(a => keepIds.has(a.id));
+        day.activities = filtered.length >= 2 ? filtered.slice(0, 2) : day.activities.slice(0, 2);
+      }
+      if (day.activities[0]) day.activities[0].timeSlot = "Morning (10:30 AM)";
+      if (day.activities[1]) day.activities[1].timeSlot = "Afternoon (03:30 PM)";
+      day.activities = optimizeDayPath(day.activities, startCoords);
+    });
+  } else if (type === "chill" && plans.lowEnergy) {
+    const chillPool = [...plans.lowEnergy.replacements];
+    const lowExertionCore = allPlaces.filter(p => p.exertionLevel === "low");
+    const combinedChillPool = [...chillPool, ...lowExertionCore];
+    let poolIdx = 0;
+
+    draftItinerary.forEach((day) => {
+      let dayChanged = false;
+      day.activities = day.activities.map(act => {
+        if (act.exertionLevel === "high" && poolIdx < combinedChillPool.length) {
+          const replacement = JSON.parse(JSON.stringify(combinedChillPool[poolIdx % combinedChillPool.length]));
+          poolIdx++;
+          dayChanged = true;
+          return replacement;
+        }
+        return act;
+      });
+      if (dayChanged) {
+        day.activities = optimizeDayPath(day.activities, startCoords);
+      }
+    });
+  } else if (type === "reset") {
+    if (state.originalItineraryBackup) {
+      pushStateToUndoHistory("Reset to Baseline Plan");
+      state.itinerary = JSON.parse(JSON.stringify(state.originalItineraryBackup));
+      state.activeDisruption = null;
+      saveToLocalStorage();
+      renderDashboard();
+      showToast("Plan Restored 🔄", "Reverted to original generated itinerary.", "info");
+      return;
+    }
+  }
+
+  const diffData = computeItineraryDiff(state.itinerary, draftItinerary, startCoords);
+  const titles = {
+    rain: "Monsoon & Rain Shelter Contingency",
+    delay: "Express Delay Route & Morning Buffer",
+    chill: "Relaxation & Wellness Pacing"
+  };
+  const dynamicRationale = generateDynamicRationale(diffData, titles[type] || "Disruption Adaptation");
+
+  showDiffPreviewModal(
+    diffData,
+    { itinerary: draftItinerary, totalBudget: state.totalBudget, activeDisruption: proposedDisruption },
+    dynamicRationale,
+    titles[type] || "Disruption Adaptation"
+  );
+}
+
+// =============================================================================
+// 11. IN-APP OPTIMIZATION & IMPACT METRICS PANEL
+// =============================================================================
+
+function showImpactMetricsModal() {
+  const modal = document.getElementById("impact-metrics-modal");
+  const content = document.getElementById("impact-metrics-content");
+  if (!modal || !content) return;
+
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const startCoords = state.hotelOrigin || destInfo.centerCoords;
+  const health = analyzeItineraryHealth();
+
+  let totalTripKm = 0;
+  let totalTripCost = 0;
+  let totalStops = 0;
+
+  state.itinerary.forEach(day => {
+    totalTripKm += calculatePathDistance(day.activities, startCoords);
+    totalTripCost += day.activities.reduce((s, a) => s + (Number(a.cost) || 0), 0);
+    totalStops += day.activities.length;
+  });
+
+  const totalCabMins = Math.round((totalTripKm / 25) * 60);
+
+  content.innerHTML = `
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <span class="metric-val">${totalTripKm.toFixed(1)} km</span>
+        <span class="metric-lbl">Total Commute Distance</span>
+        <span class="metric-sub">Optimized via Haversine TSP</span>
+      </div>
+      <div class="metric-box">
+        <span class="metric-val">~${totalCabMins} mins</span>
+        <span class="metric-lbl">Estimated Transit Cab Time</span>
+        <span class="metric-sub">Urban traffic pacing @ 25 km/h</span>
+      </div>
+      <div class="metric-box">
+        <span class="metric-val">₹${totalTripCost.toLocaleString('en-IN')}</span>
+        <span class="metric-lbl">Total Activity Spend</span>
+        <span class="metric-sub">₹${state.totalBudget.toLocaleString('en-IN')} budget allocation</span>
+      </div>
+      <div class="metric-box">
+        <span class="metric-val">${totalStops}</span>
+        <span class="metric-lbl">Curated Stops</span>
+        <span class="metric-sub">Across ${state.daysCount} days</span>
+      </div>
+    </div>
+
+    <div class="metrics-detail-card">
+      <h4>⚡ Algorithm Performance & Constraints</h4>
+      <ul>
+        <li><strong>Routing Solver:</strong> ${totalStops / state.daysCount <= 7 ? 'Exact Permutation Permuter (<1ms)' : 'Nearest-Neighbour + 2-Opt Local Search (0ms freeze)'}</li>
+        <li><strong>Circadian Slot Affinity:</strong> Preserves morning forts vs. sunset viewpoints & night shows</li>
+        <li><strong>XSS Defense:</strong> Active HTML entity sanitizer on all user text & activity notes</li>
+        <li><strong>Live Forecast Link:</strong> Connected to Open-Meteo REST API (${state.liveForecast ? 'Forecast Loaded' : 'Standing By'})</li>
+      </ul>
+    </div>
+  `;
+
+  modal.style.display = "flex";
+}
+
+function closeImpactMetricsModal() {
+  const modal = document.getElementById("impact-metrics-modal");
+  if (modal) modal.style.display = "none";
+}
+
+// =============================================================================
+// 12. CALENDAR (.ICS) EXPORT & SHAREABLE URL HASH
+// =============================================================================
+
+function exportTripToIcs() {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const start = new Date(state.startDate || Date.now());
+
+  let icsContent = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//TravelPilot//India Trip Planner//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH"
+  ];
+
+  state.itinerary.forEach((day, dIdx) => {
+    const dayDate = new Date(start);
+    dayDate.setDate(dayDate.getDate() + dIdx);
+    const dateStr = dayDate.toISOString().split('T')[0].replace(/-/g, "");
+
+    day.activities.forEach((act, aIdx) => {
+      const startHour = 9 + (aIdx * 3);
+      const startHourStr = String(startHour).padStart(2, "0");
+      const endHourStr = String(startHour + 2).padStart(2, "0");
+
+      const dtStart = `${dateStr}T${startHourStr}0000`;
+      const dtEnd = `${dateStr}T${endHourStr}0000`;
+
+      icsContent.push(
+        "BEGIN:VEVENT",
+        `UID:travelpilot-${day.dayNum}-${aIdx}-${Date.now()}@travelpilot.in`,
+        `DTSTAMP:${dateStr}T000000Z`,
+        `DTSTART:${dtStart}`,
+        `DTEND:${dtEnd}`,
+        `SUMMARY:${escapeHtml(act.name)} (${destInfo.name})`,
+        `DESCRIPTION:${escapeHtml(act.description || '')} - Tip: ${escapeHtml(act.tip || '')} | Est Cost: INR ${act.cost}`,
+        `LOCATION:${escapeHtml(destInfo.name)}, India`,
+        "STATUS:CONFIRMED",
+        "END:VEVENT"
+      );
+    });
+  });
+
+  icsContent.push("END:VCALENDAR");
+
+  const blob = new Blob([icsContent.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `TravelPilot_${destInfo.name}_${state.daysCount}Days.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  showToast("Calendar Exported! 📅", `Saved ${destInfo.name} itinerary as .ics for Google/Apple Calendar.`, "success");
+}
+
+function generateShareableUrl() {
+  const compactState = {
+    d: state.destination,
+    n: state.daysCount,
+    b: state.totalBudget,
+    i: state.selectedInterests,
+    s: state.startDate,
+    itin: state.itinerary
+  };
+  const jsonStr = JSON.stringify(compactState);
+  const encoded = btoa(encodeURIComponent(jsonStr));
+  const shareUrl = `${window.location.origin}${window.location.pathname}#trip=${encoded}`;
+
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    showToast("Share Link Copied! 🔗", "Trip URL copied to clipboard. Anyone can open this exact plan.", "success");
+  }).catch(() => {
+    prompt("Copy this shareable trip URL:", shareUrl);
+  });
+}
+
+function loadStateFromUrlHash() {
+  if (!window.location.hash || !window.location.hash.includes("#trip=")) return false;
+  try {
+    const encoded = window.location.hash.split("#trip=")[1];
+    const jsonStr = decodeURIComponent(atob(encoded));
+    const parsed = JSON.parse(jsonStr);
+
+    if (parsed && parsed.itin) {
+      state.destination = parsed.d || "jaipur";
+      state.daysCount = parsed.n || 3;
+      state.totalBudget = parsed.b || 18000;
+      state.selectedInterests = parsed.i || ["culture", "food"];
+      state.startDate = parsed.s || state.startDate;
+      state.itinerary = parsed.itin;
+      state.originalItineraryBackup = JSON.parse(JSON.stringify(parsed.itin));
+      syncFormWithState();
+      renderDashboard();
+      showToast("Shared Trip Loaded! ✈️", "Loaded custom trip from shared link.", "success");
+      return true;
+    }
+  } catch (err) {
+    console.warn("Could not parse trip from URL hash:", err);
+  }
+  return false;
+}
+
+// =============================================================================
+// 13. PROACTIVE ROUTE HEALTH & DELAY DIAGNOSTICS
 // =============================================================================
 
 function analyzeItineraryHealth() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const center = destInfo.centerCoords || [26.9124, 75.7873];
+  const startCoords = state.hotelOrigin || destInfo.centerCoords || [26.9124, 75.7873];
   const issues = [];
   let totalTripKm = 0;
   let totalTripDriveMins = 0;
@@ -4580,12 +5684,11 @@ function analyzeItineraryHealth() {
 
     for (let i = 0; i < acts.length; i++) {
       const cur = acts[i];
-      const curCoords = cur.coords || center;
+      const curCoords = cur.coords || startCoords;
 
-      // Check distance & delay to next stop
       if (i < acts.length - 1) {
         const next = acts[i + 1];
-        const nextCoords = next.coords || center;
+        const nextCoords = next.coords || startCoords;
         const dist = calculateDistanceKm(curCoords[0], curCoords[1], nextCoords[0], nextCoords[1]);
         const driveM = estimateDriveTimeMin(dist);
         totalTripKm += dist;
@@ -4597,12 +5700,11 @@ function analyzeItineraryHealth() {
             type: "distance_delay",
             severity: "high",
             tag: `⚠️ Day ${day.dayNum}: ${dist} km commute`,
-            message: `Long distance (${dist} km · ~${driveM}m cab) between "${cur.name}" and "${next.name}" — risk of transit delay.`
+            message: `Long commute (${dist} km · ~${driveM}m cab) between "${cur.name}" and "${next.name}" — risk of transit delay.`
           });
         }
       }
 
-      // Check slot affinity mismatch
       const pref = cur.slotPreference || "any";
       const timeLower = (cur.timeSlot || "").toLowerCase();
       if ((pref === "evening" || pref === "night") && timeLower.includes("morning")) {
@@ -4615,7 +5717,6 @@ function analyzeItineraryHealth() {
         });
       }
 
-      // Proactive Weather Advisory: flag outdoor activities that are rain-vulnerable
       if (cur.weatherSensitive) {
         issues.push({
           dayNum: day.dayNum,
@@ -4638,7 +5739,18 @@ function analyzeItineraryHealth() {
     }
   });
 
-  // Filter out duplicate tag labels
+  // Closed days advisories
+  const closedAdvisories = getClosedDaysAdvisories();
+  closedAdvisories.forEach(ca => {
+    issues.push({
+      dayNum: ca.dayNum,
+      type: "closed_day",
+      severity: "high",
+      tag: ca.tag,
+      message: `${ca.actName} is typically closed on ${ca.closedDayName}s.`
+    });
+  });
+
   const uniqueIssues = [];
   const seenTags = new Set();
   issues.forEach(iss => {
@@ -4648,14 +5760,14 @@ function analyzeItineraryHealth() {
     }
   });
 
-  const highSeverityIssues = uniqueIssues.filter(i => i.severity !== "low");
+  const highSeverity = uniqueIssues.filter(i => i.severity !== "low");
 
   return {
     issues: uniqueIssues,
-    hasSevereIssues: highSeverityIssues.length > 0,
+    hasSevereIssues: highSeverity.length > 0,
     totalTripKm: Number(totalTripKm.toFixed(1)),
     totalTripDriveMins,
-    isOptimal: highSeverityIssues.length === 0
+    isOptimal: highSeverity.length === 0
   };
 }
 
@@ -4670,23 +5782,20 @@ function updateAiDiagnosticsUI() {
   if (!card || !tagContainer) return;
 
   const health = analyzeItineraryHealth();
-
   tagContainer.innerHTML = "";
 
   if (health.isOptimal) {
     card.className = "ai-diagnosis-card optimal";
     if (icon) icon.textContent = "✅";
-    if (title) title.innerHTML = `<span>Route Optimization: Optimal Geometry</span>`;
-    if (desc) desc.textContent = `All stops are sequenced for minimal travel distance (Total commute: ${health.totalTripKm} km · ~${health.totalTripDriveMins} mins cab across all days).`;
-    if (btnReroute) {
-      btnReroute.style.display = "none";
-    }
+    if (title) title.innerHTML = `<span>Route Geometry: Optimal Flow</span>`;
+    if (desc) desc.textContent = `All stops are sequenced for minimal travel distance (${health.totalTripKm} km commute across all days).`;
+    if (btnReroute) btnReroute.style.display = "none";
   } else {
     card.className = "ai-diagnosis-card";
     if (icon) icon.textContent = "🧭";
-    if (title) title.innerHTML = `<span>Route Diagnostics: ${health.issues.length} Travel Advisory Item${health.issues.length > 1 ? 's' : ''}</span>`;
-    if (desc) desc.textContent = `Potential transit bottlenecks, geographic zigzags, or outdoor weather vulnerabilities detected. Click below to automatically reorder stops and eliminate delays.`;
-    
+    if (title) title.innerHTML = `<span>Route Diagnostics: ${health.issues.length} Advisory Item${health.issues.length > 1 ? 's' : ''}</span>`;
+    if (desc) desc.textContent = `Potential transit bottlenecks or outdoor weather vulnerabilities detected. Click below to optimize.`;
+
     health.issues.slice(0, 3).forEach(iss => {
       const tag = document.createElement("span");
       tag.className = "ai-risk-tag";
@@ -4702,138 +5811,6 @@ function updateAiDiagnosticsUI() {
   }
 }
 
-// =============================================================================
-// 8. MULTI-DAY DISRUPTION CONTINGENCY ENGINE
-// =============================================================================
-
-function applyDisruptionScenario(type) {
-  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const plans = destInfo.contingencyPlans;
-  const allPlaces = destInfo.places || [];
-  if (!plans) return;
-
-  state.activeDisruption = type;
-
-  if (type === "rain" && plans.heavyRain) {
-    // Comprehensive Monsoon Reroute: swap weather-sensitive places across ALL days
-    const rainPool = [...plans.heavyRain.replacements];
-    // Also include non-weather-sensitive core places as extended pool
-    const indoorCorePlaces = allPlaces.filter(p => !p.weatherSensitive);
-    const combinedPool = [...rainPool, ...indoorCorePlaces];
-    let poolIdx = 0;
-    let totalSwapped = 0;
-    let unreplacedOutdoor = 0;
-
-    state.itinerary.forEach((day, dIdx) => {
-      let dayChanged = false;
-
-      day.activities = day.activities.map(act => {
-        if (act.weatherSensitive) {
-          if (poolIdx < combinedPool.length) {
-            const replacement = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
-            poolIdx++;
-            totalSwapped++;
-            dayChanged = true;
-            return replacement;
-          } else {
-            unreplacedOutdoor++;
-          }
-        }
-        return act;
-      });
-
-      if (dayChanged) {
-        day.title = `Day ${day.dayNum}: Sheltered Indoor Highlights of ${destInfo.name}`;
-        // Re-optimize and re-time the day after swapping
-        day.activities = optimizeDayPath(day.activities, destInfo.centerCoords);
-      }
-    });
-
-    if (unreplacedOutdoor > 0) {
-      showToast(
-        "Monsoon Contingency Applied (Partial) ⚠️", 
-        `Swapped ${totalSwapped} outdoor stops with indoor alternatives. Note: ${unreplacedOutdoor} outdoor stop(s) remained due to limited indoor venues in this destination.`, 
-        "warning"
-      );
-    } else {
-      showToast(
-        "Monsoon Contingency Applied 🌧️", 
-        `Swapped ${totalSwapped} outdoor venues across all days with indoor heritage museums, covered havelis, and culinary workshops. All days re-timed!`, 
-        "success"
-      );
-    }
-  } else if (type === "delay" && plans.timeDelay) {
-    // Traffic Delay / Highway Jam: keep prioritized core stops and adjust start time buffers
-    const keepIds = new Set(plans.timeDelay.keepIds || []);
-
-    state.itinerary.forEach((day) => {
-      if (day.activities.length > 2) {
-        const filtered = day.activities.filter(a => keepIds.has(a.id));
-        if (filtered.length >= 2) {
-          day.activities = filtered.slice(0, 2);
-        } else {
-          day.activities = day.activities.slice(0, 2);
-        }
-      }
-
-      // Add time buffer: start later in the morning
-      if (day.activities[0]) {
-        day.activities[0].timeSlot = "Morning (10:30 AM)";
-      }
-      if (day.activities[1]) {
-        day.activities[1].timeSlot = "Afternoon (03:30 PM)";
-      }
-
-      day.activities = optimizeDayPath(day.activities, destInfo.centerCoords);
-    });
-
-    showToast(
-      "Express Delay Route Applied ⏱️", 
-      "Condensed itinerary to essential crown-jewel stops with generous travel buffers to absorb flight/highway delays.", 
-      "info"
-    );
-  } else if (type === "chill" && plans.lowEnergy) {
-    // Relaxation / Wellness Mode: swap high-exertion activities across all days
-    const chillPool = [...plans.lowEnergy.replacements];
-    const lowExertionCore = allPlaces.filter(p => p.exertionLevel === "low");
-    const combinedChillPool = [...chillPool, ...lowExertionCore];
-    let poolIdx = 0;
-
-    state.itinerary.forEach((day) => {
-      let dayChanged = false;
-      day.activities = day.activities.map(act => {
-        if (act.exertionLevel === "high" && poolIdx < combinedChillPool.length) {
-          const replacement = JSON.parse(JSON.stringify(combinedChillPool[poolIdx % combinedChillPool.length]));
-          poolIdx++;
-          dayChanged = true;
-          return replacement;
-        }
-        return act;
-      });
-
-      if (dayChanged) {
-        day.activities = optimizeDayPath(day.activities, destInfo.centerCoords);
-      }
-    });
-
-    showToast(
-      "Relaxation Mode Active 😴", 
-      "Replaced uphill treks and high-exertion stops with relaxing high-tea lounges and Ayurvedic wellness spots.", 
-      "success"
-    );
-  } else if (type === "reset") {
-    if (state.originalItineraryBackup) {
-      state.itinerary = JSON.parse(JSON.stringify(state.originalItineraryBackup));
-      state.activeDisruption = null;
-      showToast("Route Reset", "Restored original customized itinerary.", "info");
-    }
-  }
-
-  saveToLocalStorage();
-  renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
-}
-
 function updateDisruptionBarUI() {
   const title = document.getElementById("disruption-title");
   const desc = document.getElementById("disruption-desc");
@@ -4844,11 +5821,11 @@ function updateDisruptionBarUI() {
   if (state.activeDisruption === "rain") {
     icon.textContent = "🌧️";
     title.textContent = "Active: Monsoon / Rain Contingency";
-    desc.textContent = "Outdoor viewpoints and hikes have been safely replaced with indoor heritage havelis & museums.";
+    desc.textContent = "Outdoor viewpoints have been safely replaced with indoor heritage havelis & museums.";
   } else if (state.activeDisruption === "delay") {
     icon.textContent = "⏱️";
     title.textContent = "Active: Delay Express Mode";
-    desc.textContent = "Schedule condensed to essential priority sights with time buffers to comfortably handle transit delays.";
+    desc.textContent = "Schedule condensed to essential priority sights with morning buffers to handle transit delays.";
   } else if (state.activeDisruption === "chill") {
     icon.textContent = "🧘";
     title.textContent = "Active: Relaxation & Wellness Mode";
@@ -4861,7 +5838,7 @@ function updateDisruptionBarUI() {
 }
 
 // =============================================================================
-// 9. RENDERING & UI SYNC
+// 14. UI RENDERING & SUB-VIEWS
 // =============================================================================
 
 function renderDashboard() {
@@ -4879,18 +5856,16 @@ function renderDashboard() {
     highlightsContainer.innerHTML = destInfo.highlights.map(h => `<span class="meta-chip">✨ ${escapeHtml(h)}</span>`).join("");
   }
 
-  // Update AI Diagnostics & Disruption Bar
   updateAiDiagnosticsUI();
   updateDisruptionBarUI();
+  updateUndoRedoUI();
 
-  // Render Sub-Views
   renderDayTabs();
   renderDayContent();
   recalculateBudget();
   renderInsights();
   renderTransitView();
 
-  // If map is currently active view, render map
   if (state.activeViewMode === "map") {
     setTimeout(initOrUpdateMap, 80);
   }
@@ -4979,198 +5954,335 @@ function renderDayContent() {
   container.innerHTML = "";
 
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const center = destInfo.centerCoords || [26.9124, 75.7873];
+  const startCoords = state.hotelOrigin || destInfo.centerCoords;
 
-  const daysToRender = state.activeDayTab === -1 
-    ? state.itinerary 
+  const daysToRender = state.activeDayTab === -1
+    ? state.itinerary
     : [state.itinerary[state.activeDayTab]].filter(Boolean);
 
-  if (daysToRender.length === 0) {
-    container.innerHTML = `<div class="day-header-card"><p>No activities scheduled for this day.</p></div>`;
-    return;
-  }
+  daysToRender.forEach((day, dayIndexInView) => {
+    const actualDayIndex = state.activeDayTab === -1 ? dayIndexInView : state.activeDayTab;
+    const dayCard = document.createElement("div");
+    dayCard.className = "day-card";
+    dayCard.dataset.dayIndex = actualDayIndex;
 
-  daysToRender.forEach((day) => {
-    const dayIndex = state.itinerary.findIndex(d => d.dayNum === day.dayNum);
-    const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
-    const totalDayKm = calculatePathDistance(day.activities, center);
-    const totalDayDriveTime = estimateDriveTimeMin(totalDayKm);
+    const dayDist = calculatePathDistance(day.activities, startCoords);
+    const dayDriveMins = Math.round((dayDist / 25) * 60);
 
-    const daySection = document.createElement("div");
-    daySection.style.marginBottom = "24px";
-
-    const header = document.createElement("div");
-    header.className = "day-header-card";
-    header.innerHTML = `
-      <div class="day-title-group">
-        <h3>Day ${day.dayNum}: ${escapeHtml(day.title.replace(/^Day \d+:\s*/, ''))}</h3>
-        <p>${day.activities.length} activities planned · ${totalDayKm > 0 ? `🚗 ~${totalDayKm} km travel (~${totalDayDriveTime}m cab) · ` : ''}Estimated daily spend</p>
-      </div>
-      <div class="day-header-actions">
-        <span class="day-subtotal-badge">Day Subtotal: ₹${dayCost.toLocaleString('en-IN')}</span>
-        <button type="button" class="btn btn-secondary btn-sm" title="Optimize stop order for Day ${day.dayNum}" onclick="window.autoRerouteItinerary(${dayIndex})">
-          <span>⚡ Optimize Day</span>
-        </button>
-        ${state.itinerary.length > 1 ? `
-          <button type="button" class="btn-icon-sm delete" title="Delete this Day" onclick="window.deleteDay(${dayIndex})">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    dayCard.innerHTML = `
+      <div class="day-card-header">
+        <div>
+          <h3 class="day-title">${escapeHtml(day.title || `Day ${day.dayNum}`)}</h3>
+          <span class="day-route-meta">🛣️ Daily Commute: ~${dayDist} km (approx. ${dayDriveMins} mins cab travel)</span>
+        </div>
+        <div class="day-card-actions">
+          <button class="btn-optimize-day" data-day-index="${actualDayIndex}" title="Auto-reorder stops geographically">
+            <span>⚡ Optimize Day ${day.dayNum}</span>
           </button>
-        ` : ''}
+          <button class="btn-add-activity" data-day-index="${actualDayIndex}" title="Add new stop">
+            <span>+ Add Stop</span>
+          </button>
+        </div>
+      </div>
+      <div class="activities-list" id="activities-day-${actualDayIndex}">
+        <!-- Activities rendered dynamically -->
       </div>
     `;
-    daySection.appendChild(header);
 
-    const actList = document.createElement("div");
-    actList.className = "activities-list";
-    actList.style.marginTop = "12px";
+    const actsList = dayCard.querySelector(".activities-list");
 
-    day.activities.forEach((act, actIndex) => {
-      const actCard = document.createElement("div");
-      actCard.className = `activity-card ${act.category === 'transit' ? 'is-transit' : ''}`;
-      actCard.draggable = true;
-      actCard.dataset.dayIndex = dayIndex;
-      actCard.dataset.actIndex = actIndex;
+    day.activities.forEach((act, actIdx) => {
+      let segmentDist = 0;
+      let segmentDrive = 0;
 
-      const catClass = `cat-${escapeHtml(act.category || 'culture')}`;
-      const catLabel = getCategoryLabel(act.category);
+      if (actIdx < day.activities.length - 1) {
+        const c1 = act.coords || startCoords;
+        const c2 = day.activities[actIdx + 1].coords || startCoords;
+        segmentDist = calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+        segmentDrive = estimateDriveTimeMin(segmentDist);
+      }
 
-      actCard.innerHTML = `
-        <div class="drag-handle" title="Drag to Reorder">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
-        </div>
+      const actEl = document.createElement("div");
+      actEl.className = "activity-item";
+      actEl.draggable = true;
+      actEl.dataset.dayIndex = actualDayIndex;
+      actEl.dataset.actIndex = actIdx;
 
-        <div class="activity-main">
-          <div>
-            <span class="activity-badge-category ${catClass}">${escapeHtml(catLabel)}</span>
-            <span class="activity-time">⏰ ${escapeHtml(act.timeSlot || '')}</span>
+      actEl.innerHTML = `
+        <div class="act-drag-handle" title="Drag to reorder">⋮⋮</div>
+        <div class="act-body">
+          <div class="act-top-row">
+            <span class="act-time-badge">${escapeHtml(act.timeSlot || 'Morning')}</span>
+            <span class="act-category-pill category-${escapeHtml(act.category || 'culture')}">${escapeHtml(act.category || 'Culture')}</span>
+            <div class="act-cost-badge">
+              <span>₹</span>
+              <input type="number" class="cost-inline-input" value="${Number(act.cost) || 0}" min="0" step="50" data-day="${actualDayIndex}" data-act="${actIdx}">
+            </div>
+            <button class="btn-delete-act" data-day="${actualDayIndex}" data-act="${actIdx}" title="Delete stop">✕</button>
           </div>
-          <h4 class="activity-name">${escapeHtml(act.name)}</h4>
-          ${act.description ? `<p class="activity-desc">${escapeHtml(act.description)}</p>` : ''}
-          ${act.tip ? `
-            <div class="activity-tip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              <span><strong>Tip:</strong> ${escapeHtml(act.tip)}</span>
+          <h4 class="act-name">${escapeHtml(act.name)}</h4>
+          <p class="act-desc">${escapeHtml(act.description || '')}</p>
+          ${act.tip ? `<div class="act-tip">💡 <strong>Tip:</strong> ${escapeHtml(act.tip)}</div>` : ''}
+          ${segmentDist > 0 ? `
+            <div class="act-transit-connector">
+              <span>🚗 ~${segmentDist} km to next stop (approx. ${segmentDrive}m)</span>
+              <a href="https://www.google.com/maps/dir/?api=1&origin=${act.coords ? act.coords[0] + ',' + act.coords[1] : ''}&destination=${day.activities[actIdx + 1]?.coords ? day.activities[actIdx + 1].coords[0] + ',' + day.activities[actIdx + 1].coords[1] : ''}" target="_blank" rel="noopener noreferrer">Directions ↗</a>
             </div>
           ` : ''}
         </div>
-
-        <div class="activity-right">
-          <div class="cost-input-wrap" title="Click to edit activity cost">
-            <span class="cost-currency">₹</span>
-            <input type="number" class="cost-field" value="${Number(act.cost) || 0}" min="0" step="50" data-day="${dayIndex}" data-act="${actIndex}">
-          </div>
-
-          <div class="activity-actions">
-            <button type="button" class="btn-icon-sm" title="Move Up" onclick="window.moveActivity(${dayIndex}, ${actIndex}, -1)" ${actIndex === 0 ? 'disabled style="opacity:0.3;"' : ''}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="18 15 12 9 6 15"/></svg>
-            </button>
-            <button type="button" class="btn-icon-sm" title="Move Down" onclick="window.moveActivity(${dayIndex}, ${actIndex}, 1)" ${actIndex === day.activities.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <button type="button" class="btn-icon-sm" title="Edit Place Details" onclick="window.openEditActivityModal(${dayIndex}, ${actIndex})">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button type="button" class="btn-icon-sm delete" title="Delete Activity" onclick="window.deleteActivity(${dayIndex}, ${actIndex})">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </div>
-        </div>
       `;
 
-      setupCardDragAndDrop(actCard, dayIndex, actIndex);
-
-      const costInput = actCard.querySelector(".cost-field");
-      costInput.addEventListener("input", (e) => {
-        const newCost = Number(e.target.value) || 0;
-        state.itinerary[dayIndex].activities[actIndex].cost = newCost;
-        recalculateBudget();
-        updateDaySubtotalBadges();
+      // Cost inline edit
+      const costInput = actEl.querySelector(".cost-inline-input");
+      costInput.addEventListener("change", (e) => {
+        pushStateToUndoHistory("Budget Cost Edit");
+        state.itinerary[actualDayIndex].activities[actIdx].cost = Number(e.target.value) || 0;
         saveToLocalStorage();
+        recalculateBudget();
       });
 
-      actList.appendChild(actCard);
+      // Delete stop
+      const btnDel = actEl.querySelector(".btn-delete-act");
+      btnDel.addEventListener("click", () => {
+        pushStateToUndoHistory(`Deleted Stop: ${act.name}`);
+        state.itinerary[actualDayIndex].activities.splice(actIdx, 1);
+        saveToLocalStorage();
+        renderDashboard();
+        showToast("Stop Removed", `Removed "${act.name}" from Day ${day.dayNum}.`, "info");
+      });
 
-      // Render Transit / Distance Connector between consecutive stops
-      if (actIndex < day.activities.length - 1) {
-        const nextAct = day.activities[actIndex + 1];
-        const c1 = act.coords || center;
-        const c2 = nextAct.coords || center;
-        const distKm = calculateDistanceKm(c1[0], c1[1], c2[0], c2[1]);
-        const driveM = estimateDriveTimeMin(distKm);
+      // Drag and drop handlers
+      setupDragDropHandlers(actEl, actualDayIndex, actIdx);
 
-        const connector = document.createElement("div");
-        connector.className = "transit-connector-card";
-        connector.innerHTML = `
-          <div class="tc-left">
-            <span>🚗</span>
-            <span class="tc-badge">${distKm} km</span>
-            <span>~${driveM} min cab ride</span>
-          </div>
-          <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(act.name + ' ' + destInfo.name)}&destination=${encodeURIComponent(nextAct.name + ' ' + destInfo.name)}" target="_blank" rel="noopener" class="tc-link" title="Open directions in Google Maps">
-            <span>🗺️ Directions &rarr;</span>
-          </a>
-        `;
-        actList.appendChild(connector);
-      }
+      actsList.appendChild(actEl);
     });
 
-    const addBtn = document.createElement("button");
-    addBtn.type = "button";
-    addBtn.className = "add-activity-btn";
-    addBtn.style.marginTop = "8px";
-    addBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      <span>Add New Place / Activity to Day ${day.dayNum}</span>
-    `;
-    addBtn.addEventListener("click", () => openAddActivityModal(dayIndex));
-    actList.appendChild(addBtn);
+    // Day action listeners
+    dayCard.querySelector(".btn-optimize-day").addEventListener("click", () => {
+      autoRerouteItinerary(actualDayIndex);
+    });
 
-    daySection.appendChild(actList);
-    container.appendChild(daySection);
+    dayCard.querySelector(".btn-add-activity").addEventListener("click", () => {
+      openAddActivityModal(actualDayIndex);
+    });
+
+    container.appendChild(dayCard);
   });
 }
 
-function updateDaySubtotalBadges() {
-  const tabs = document.querySelectorAll(".day-tab-btn");
-  state.itinerary.forEach((day, idx) => {
-    const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
-    if (tabs[idx + 1]) {
-      const costSpan = tabs[idx + 1].querySelector(".tab-day-cost");
-      if (costSpan) costSpan.textContent = `₹${dayCost.toLocaleString('en-IN')}`;
-    }
+function setupDragDropHandlers(el, dayIdx, actIdx) {
+  el.addEventListener("dragstart", (e) => {
+    draggedCard = { dayIdx, actIdx };
+    el.classList.add("dragging");
+    e.dataTransfer.setData("text/plain", `${dayIdx}:${actIdx}`);
   });
 
-  const headerBadges = document.querySelectorAll(".day-subtotal-badge");
-  headerBadges.forEach((badge, i) => {
-    const targetDay = state.activeDayTab === -1 ? state.itinerary[i] : state.itinerary[state.activeDayTab];
-    if (targetDay) {
-      const dayCost = targetDay.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
-      badge.textContent = `Day Subtotal: ₹${dayCost.toLocaleString('en-IN')}`;
-    }
+  el.addEventListener("dragend", () => {
+    el.classList.remove("dragging");
+    draggedCard = null;
+  });
+
+  el.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    el.classList.add("drag-over");
+  });
+
+  el.addEventListener("dragleave", () => {
+    el.classList.remove("drag-over");
+  });
+
+  el.addEventListener("drop", (e) => {
+    e.preventDefault();
+    el.classList.remove("drag-over");
+    if (!draggedCard) return;
+
+    const fromDay = draggedCard.dayIdx;
+    const fromAct = draggedCard.actIdx;
+    const toDay = dayIdx;
+    const toAct = actIdx;
+
+    if (fromDay === toDay && fromAct === toAct) return;
+
+    pushStateToUndoHistory("Reordered Stops");
+    const item = state.itinerary[fromDay].activities.splice(fromAct, 1)[0];
+    state.itinerary[toDay].activities.splice(toAct, 0, item);
+
+    saveToLocalStorage();
+    renderDashboard();
+    showToast("Stop Reordered", `Moved "${item.name}" successfully.`, "success");
+  });
+}
+
+function recalculateBudget() {
+  const totalBudget = Number(state.totalBudget) || 18000;
+  let spentTotal = 0;
+
+  state.itinerary.forEach(day => {
+    day.activities.forEach(act => {
+      spentTotal += Number(act.cost) || 0;
+    });
+  });
+
+  const remaining = totalBudget - spentTotal;
+  const pct = Math.min(100, Math.round((spentTotal / totalBudget) * 100));
+
+  const fillEl = document.getElementById("budget-bar-fill");
+  const spentPctEl = document.getElementById("budget-spent-pct");
+  const remainingEl = document.getElementById("budget-remaining-text");
+  const badgeEl = document.getElementById("budget-status-badge");
+
+  if (fillEl) {
+    fillEl.style.width = `${pct}%`;
+    fillEl.className = remaining >= 0 ? "budget-bar-fill within" : "budget-bar-fill exceeded";
+  }
+
+  if (spentPctEl) spentPctEl.textContent = `${pct}% allocated (₹${spentTotal.toLocaleString('en-IN')})`;
+  if (remainingEl) {
+    remainingEl.textContent = remaining >= 0 
+      ? `₹${remaining.toLocaleString('en-IN')} remaining`
+      : `⚠️ Over budget by ₹${Math.abs(remaining).toLocaleString('en-IN')}`;
+    remainingEl.style.color = remaining >= 0 ? "var(--emerald)" : "var(--rose)";
+  }
+
+  if (badgeEl) {
+    badgeEl.textContent = remaining >= 0 ? "Within Budget" : "Budget Exceeded";
+    badgeEl.className = remaining >= 0 ? "budget-status-pill within" : "budget-status-pill exceeded";
+  }
+}
+
+function renderInsights() {
+  const container = document.getElementById("budget-insights-list");
+  if (!container) return;
+
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const totalBudget = Number(state.totalBudget) || 18000;
+  const dailyAvg = Math.round(totalBudget / (state.daysCount || 3));
+
+  let totalKm = 0;
+  state.itinerary.forEach(day => {
+    totalKm += calculatePathDistance(day.activities, destInfo.centerCoords);
+  });
+
+  const approxCabSpend = Math.round((totalKm / 10) * 150);
+
+  container.innerHTML = `
+    <div class="insight-item">
+      <span>💰 Daily Target Allocation:</span>
+      <strong>₹${dailyAvg.toLocaleString('en-IN')}/day</strong>
+    </div>
+    <div class="insight-item">
+      <span>🚕 Est. City Commute Fuel/Cab:</span>
+      <strong>~₹${approxCabSpend.toLocaleString('en-IN')} total (${totalKm.toFixed(1)} km)</strong>
+    </div>
+    <div class="insight-item">
+      <span>🏛️ Sights & Experiences:</span>
+      <strong>${state.itinerary.reduce((s, d) => s + d.activities.length, 0)} stops selected</strong>
+    </div>
+  `;
+}
+
+function renderTransitView() {
+  const container = document.getElementById("transit-content-area");
+  if (!container) return;
+
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const transit = destInfo.transitInfo || {};
+
+  container.innerHTML = `
+    <div class="transit-hub-card">
+      <div class="transit-hub-header">
+        <h3>🚖 Intercity & Local Transportation for ${escapeHtml(destInfo.name)}</h3>
+        <span class="brand-badge">${escapeHtml(destInfo.state)}</span>
+      </div>
+
+      <div class="transit-booking-shortcuts">
+        <h4>Direct Intercity Booking Links</h4>
+        <div class="transit-links-grid">
+          <a href="${transit.intercityLinks?.flights || '#'}" target="_blank" rel="noopener noreferrer" class="transit-link-card">
+            <span>✈️</span>
+            <div><strong>Book Flights</strong><small>MakeMyTrip</small></div>
+          </a>
+          <a href="${transit.intercityLinks?.trains || '#'}" target="_blank" rel="noopener noreferrer" class="transit-link-card">
+            <span>🚆</span>
+            <div><strong>Book Trains</strong><small>IRCTC Official</small></div>
+          </a>
+          <a href="${transit.intercityLinks?.cabs || '#'}" target="_blank" rel="noopener noreferrer" class="transit-link-card">
+            <span>🚗</span>
+            <div><strong>Outstation Cabs</strong><small>Uber / Ola</small></div>
+          </a>
+          <a href="${transit.intercityLinks?.buses || '#'}" target="_blank" rel="noopener noreferrer" class="transit-link-card">
+            <span>🚌</span>
+            <div><strong>Book Buses</strong><small>RedBus</small></div>
+          </a>
+        </div>
+      </div>
+
+      <div class="transit-local-options">
+        <h4>Recommended Local Commute Rates</h4>
+        <div class="local-transit-table">
+          ${(transit.localTransport || []).map(opt => `
+            <div class="local-transit-row">
+              <div class="transit-mode-info">
+                <strong>${escapeHtml(opt.type)}</strong>
+                <p>${escapeHtml(opt.tip)}</p>
+              </div>
+              <div class="transit-cost-col">
+                <span class="cost-tag">~₹${opt.avgCost}</span>
+                <button class="btn btn-secondary btn-sm btn-add-transit-to-plan" data-type="${escapeHtml(opt.type)}" data-cost="${opt.avgCost}">
+                  + Add to Day 1
+                </button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.querySelectorAll(".btn-add-transit-to-plan").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const type = btn.dataset.type;
+      const cost = Number(btn.dataset.cost) || 500;
+      if (state.itinerary[0]) {
+        pushStateToUndoHistory(`Added Transit: ${type}`);
+        state.itinerary[0].activities.unshift({
+          id: `transit-custom-${Date.now()}`,
+          name: `Local Commute: ${type}`,
+          timeSlot: "Morning (08:30 AM)",
+          category: "adventure",
+          cost: cost,
+          duration: "1 hour",
+          description: `Scheduled local transport pickup and city transfer.`,
+          tip: "Keep driver contact handy.",
+          coords: destInfo.centerCoords,
+          slotPreference: "morning",
+          weatherSensitive: false,
+          exertionLevel: "low",
+          costTier: "budget"
+        });
+        saveToLocalStorage();
+        renderDashboard();
+        showToast("Transit Added! 🚕", `Added ${type} (₹${cost}) to Day 1 schedule and budget.`, "success");
+      }
+    });
   });
 }
 
 // =============================================================================
-// 10. LIVE LEAFLET MAP VISUALIZER
+// 15. INTERACTIVE LEAFLET MAP VISUALIZER
 // =============================================================================
 
 function initOrUpdateMap() {
-  const mapContainer = document.getElementById("travel-map-container");
+  const mapContainer = document.getElementById("leaflet-map");
   if (!mapContainer) return;
 
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const center = destInfo.centerCoords || [26.9124, 75.7873];
+  const center = state.hotelOrigin || destInfo.centerCoords || [26.9124, 75.7873];
 
   if (!mapInstance) {
-    mapInstance = L.map('travel-map-container', {
-      center: center,
-      zoom: 12,
-      scrollWheelZoom: false
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
+    mapInstance = L.map("leaflet-map").setView(center, 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapInstance);
 
     mapMarkersGroup = L.layerGroup().addTo(mapInstance);
@@ -5181,494 +6293,269 @@ function initOrUpdateMap() {
     mapPolylinesGroup.clearLayers();
   }
 
-  // Determine which days to plot
-  const daysToPlot = state.activeDayTab === -1
+  const allPoints = [];
+
+  // Hotel origin marker if selected
+  if (state.hotelOrigin) {
+    const hotelIcon = L.divIcon({
+      className: "hotel-map-pin",
+      html: `<div style="background:#4f46e5; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; border:2px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.3);">🏨</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+    const hMarker = L.marker(state.hotelOrigin, { icon: hotelIcon })
+      .bindPopup(`<strong>Hotel Starting Point</strong><br>${escapeHtml(state.hotelName || 'Your Accommodation')}`);
+    mapMarkersGroup.addLayer(hMarker);
+    allPoints.push(state.hotelOrigin);
+  }
+
+  const daysToMap = state.activeDayTab === -1
     ? state.itinerary
     : [state.itinerary[state.activeDayTab]].filter(Boolean);
 
-  const allLatLngs = [];
-  const legendContainer = document.getElementById("map-legend-pills");
-  if (legendContainer) legendContainer.innerHTML = "";
+  daysToMap.forEach((day, dayIdx) => {
+    const color = DAY_COLORS[dayIdx % DAY_COLORS.length];
+    const dayCoords = [];
 
-  daysToPlot.forEach((day) => {
-    const dayColor = DAY_COLORS[day.dayNum % DAY_COLORS.length] || "#ea580c";
-    const dayLatLngs = [];
-
-    // Add legend pill
-    if (legendContainer) {
-      const pill = document.createElement("span");
-      pill.className = "map-pill-item";
-      pill.style.background = `${dayColor}18`;
-      pill.style.color = dayColor;
-      pill.style.border = `1px solid ${dayColor}40`;
-      pill.innerHTML = `● Day ${day.dayNum}: ${day.activities.length} Stops`;
-      legendContainer.appendChild(pill);
-    }
+    if (state.hotelOrigin) dayCoords.push(state.hotelOrigin);
 
     day.activities.forEach((act, actIdx) => {
-      let coords = act.coords;
-      if (!coords) {
-        coords = [
-          center[0] + (Math.random() - 0.5) * 0.04,
-          center[1] + (Math.random() - 0.5) * 0.04
-        ];
-      }
+      const coords = act.coords || center;
+      dayCoords.push(coords);
+      allPoints.push(coords);
 
-      dayLatLngs.push(coords);
-      allLatLngs.push(coords);
+      const labelTag = `D${day.dayNum}-${actIdx + 1}`;
+      const markerHtml = `
+        <div class="custom-map-pin" style="background-color: ${color};">
+          <span>${labelTag}</span>
+        </div>
+      `;
 
-      // Custom HTML pin with Day + Stop number
-      const icon = L.divIcon({
-        className: 'custom-pin-wrapper',
-        html: `<div class="custom-map-pin" style="background:${dayColor};">D${day.dayNum}-${actIdx + 1}</div>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
+      const customIcon = L.divIcon({
+        className: "leaflet-div-custom-pin",
+        html: markerHtml,
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
+        popupAnchor: [0, -32]
       });
 
       const popupHtml = `
-        <div style="min-width:200px;">
-          <div style="font-size:0.7rem; font-weight:700; color:${dayColor}; text-transform:uppercase;">Day ${day.dayNum} · Stop #${actIdx + 1}</div>
-          <div style="font-weight:800; font-size:1rem; margin-top:2px; color:#0f172a;">${escapeHtml(act.name)}</div>
-          <div style="font-size:0.78rem; color:#64748b; margin-top:3px;">⏰ ${escapeHtml(act.timeSlot)} · ₹${(Number(act.cost) || 0).toLocaleString('en-IN')}</div>
-          ${act.description ? `<p style="font-size:0.75rem; color:#334155; margin-top:5px; line-height:1.35;">${escapeHtml(act.description)}</p>` : ''}
-          ${act.tip ? `<div style="font-size:0.72rem; color:#d97706; background:#fef3c7; padding:4px 6px; border-radius:4px; margin-top:6px;">💡 ${escapeHtml(act.tip)}</div>` : ''}
-          <div style="margin-top:10px; border-top:1px solid #e2e8f0; padding-top:6px;">
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.name + ' ' + destInfo.name)}" target="_blank" rel="noopener" style="color:#ea580c; font-weight:700; font-size:0.78rem; text-decoration:none;">Open in Google Maps &rarr;</a>
+        <div class="map-popup-card">
+          <span class="popup-time">${escapeHtml(act.timeSlot)}</span>
+          <h4 class="popup-title">${escapeHtml(act.name)}</h4>
+          <p class="popup-desc">${escapeHtml(act.description || '')}</p>
+          <div class="popup-footer">
+            <span>₹${act.cost || 0}</span>
+            <a href="https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}" target="_blank" rel="noopener noreferrer">Open GPS ↗</a>
           </div>
         </div>
       `;
 
-      const marker = L.marker(coords, { icon: icon }).bindPopup(popupHtml);
-
-      // Permanent tooltip label above pin
-      const tooltipHtml = `
-        <div class="map-label-card">
-          <div class="map-label-header" style="color:${dayColor};">Stop ${actIdx + 1} · Day ${day.dayNum}</div>
-          <div class="map-label-title">${escapeHtml(act.name)}</div>
-          <div class="map-label-meta">⏰ ${escapeHtml(act.timeSlot)} · ₹${(Number(act.cost) || 0).toLocaleString('en-IN')}</div>
-        </div>
-      `;
-
-      marker.bindTooltip(tooltipHtml, {
-        permanent: true,
-        direction: 'top',
-        offset: [0, -14],
-        className: 'leaflet-custom-tooltip'
-      });
-
+      const marker = L.marker(coords, { icon: customIcon }).bindPopup(popupHtml);
       mapMarkersGroup.addLayer(marker);
-
-      // Midpoint distance badge along polyline segment
-      if (actIdx < day.activities.length - 1) {
-        const nextAct = day.activities[actIdx + 1];
-        const nextCoords = nextAct.coords || center;
-        const distKm = calculateDistanceKm(coords[0], coords[1], nextCoords[0], nextCoords[1]);
-        const driveTime = estimateDriveTimeMin(distKm);
-
-        const midLat = (coords[0] + nextCoords[0]) / 2;
-        const midLng = (coords[1] + nextCoords[1]) / 2;
-
-        const distIcon = L.divIcon({
-          className: 'map-dist-badge-wrapper',
-          html: `<div class="map-distance-badge" title="Distance from Stop ${actIdx + 1} to Stop ${actIdx + 2}">🚗 ${distKm} km (~${driveTime}m)</div>`,
-          iconSize: [120, 24],
-          iconAnchor: [60, 12]
-        });
-
-        const distMarker = L.marker([midLat, midLng], { icon: distIcon, interactive: false });
-        mapMarkersGroup.addLayer(distMarker);
-      }
     });
 
-    // Draw route connecting lines for the day
-    if (dayLatLngs.length > 1) {
-      const polyline = L.polyline(dayLatLngs, {
-        color: dayColor,
-        weight: 3.5,
+    if (dayCoords.length > 1) {
+      const polyline = L.polyline(dayCoords, {
+        color: color,
+        weight: 4,
         opacity: 0.85,
-        dashArray: '6, 8'
+        dashArray: "6, 8"
       });
       mapPolylinesGroup.addLayer(polyline);
     }
   });
 
-  // Fit bounds to markers
-  if (allLatLngs.length > 0) {
+  if (allPoints.length > 1) {
     try {
-      const bounds = L.latLngBounds(allLatLngs);
-      mapInstance.fitBounds(bounds, { padding: [50, 50] });
+      mapInstance.fitBounds(L.latLngBounds(allPoints), { padding: [40, 40] });
     } catch (e) {
-      // Handled
-    }
-  }
-
-  mapInstance.invalidateSize();
-}
-
-// =============================================================================
-// 11. TRANSIT & CAB BOOKING HUB
-// =============================================================================
-
-function renderTransitView() {
-  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const transit = destInfo.transitInfo;
-  if (!transit) return;
-
-  const airportElem = document.getElementById("transit-airport-info");
-  const localList = document.getElementById("local-transport-options-list");
-  const avgBadge = document.getElementById("local-transit-avg-badge");
-
-  if (airportElem) {
-    airportElem.innerHTML = `
-      <strong>✈️ Airport:</strong> ${escapeHtml(transit.airport)}<br>
-      <strong>🚆 Railway:</strong> ${escapeHtml(transit.railway)}
-    `;
-  }
-
-  if (avgBadge) {
-    avgBadge.textContent = `Avg ₹${destInfo.avgDailyTransport}/day`;
-  }
-
-  if (localList) {
-    localList.innerHTML = transit.localTransport.map(lt => `
-      <div class="local-transit-item">
-        <div class="lt-left">
-          <span class="lt-name">${escapeHtml(lt.type)}</span>
-          <span class="lt-sub">${escapeHtml(lt.bookingPartner)} · ${escapeHtml(lt.tip)}</span>
-        </div>
-        <div class="lt-cost">₹${Number(lt.avgCost) || 0}</div>
-      </div>
-    `).join("");
-  }
-}
-
-function addTransitActivity(name, cost, timeSlot = "Morning (08:30 AM)") {
-  const targetDay = state.itinerary[0];
-  if (!targetDay) return;
-
-  const transitItem = {
-    id: `transit-${Date.now()}`,
-    name: name,
-    timeSlot: timeSlot,
-    category: "transit",
-    cost: Number(cost) || 750,
-    duration: "1 hour",
-    description: "Dedicated pre-booked transit transfer with door-to-door cab pickup.",
-    tip: "Keep driver contact and OTP handy for quick boarding.",
-    coords: DESTINATIONS_DATA[state.destination]?.centerCoords,
-    slotPreference: "morning",
-    weatherSensitive: false,
-    exertionLevel: "low",
-    costTier: "moderate"
-  };
-
-  targetDay.activities.unshift(transitItem);
-  saveToLocalStorage();
-  renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
-  showToast("Transit Added to Day 1!", `Added "${name}" (₹${cost}) to your itinerary and budget.`, "success");
-}
-
-// =============================================================================
-// 12. LIVE BUDGET TRACKER & FINANCIAL SUMMARY
-// =============================================================================
-
-function recalculateBudget() {
-  let totalCost = 0;
-  state.itinerary.forEach(day => {
-    day.activities.forEach(act => {
-      totalCost += (Number(act.cost) || 0);
-    });
-  });
-
-  const setBudget = Number(state.totalBudget) || 18000;
-  const remaining = setBudget - totalCost;
-  const spentPct = setBudget > 0 ? Math.min(Math.round((totalCost / setBudget) * 100), 100) : 100;
-  const numDays = state.itinerary.length || 1;
-  const dailyAvg = Math.round(totalCost / numDays);
-
-  const statusBadge = document.getElementById("budget-status-badge");
-  const barFill = document.getElementById("budget-bar-fill");
-  const spentPctText = document.getElementById("budget-spent-pct");
-  const remainingText = document.getElementById("budget-remaining-text");
-  const valSetBudget = document.getElementById("val-set-budget");
-  const valTotalCost = document.getElementById("val-total-cost");
-  const valDailyAvg = document.getElementById("val-daily-avg");
-  const valBalance = document.getElementById("val-balance");
-  const lblBalance = document.getElementById("lbl-balance-status");
-
-  if (valSetBudget) valSetBudget.textContent = `₹${setBudget.toLocaleString('en-IN')}`;
-  if (valTotalCost) valTotalCost.textContent = `₹${totalCost.toLocaleString('en-IN')}`;
-  if (valDailyAvg) valDailyAvg.textContent = `₹${dailyAvg.toLocaleString('en-IN')} / day`;
-
-  if (barFill) {
-    barFill.style.width = `${Math.min((totalCost / setBudget) * 100, 100)}%`;
-  }
-
-  if (remaining >= 0) {
-    if (statusBadge) {
-      statusBadge.textContent = "✓ Within Budget";
-      statusBadge.className = "budget-status-pill within";
-    }
-    if (barFill) barFill.className = "budget-bar-fill within";
-    if (spentPctText) spentPctText.textContent = `${spentPct}% allocated`;
-    if (remainingText) remainingText.textContent = `₹${remaining.toLocaleString('en-IN')} remaining`;
-    if (lblBalance) lblBalance.textContent = "Remaining Balance";
-    if (valBalance) {
-      valBalance.textContent = `+ ₹${remaining.toLocaleString('en-IN')}`;
-      valBalance.className = "b-num-val green";
-    }
-  } else {
-    const overAmt = Math.abs(remaining);
-    if (statusBadge) {
-      statusBadge.textContent = `⚠️ Over Budget by ₹${overAmt.toLocaleString('en-IN')}`;
-      statusBadge.className = "budget-status-pill over";
-    }
-    if (barFill) barFill.className = "budget-bar-fill over";
-    if (spentPctText) spentPctText.textContent = `${Math.round((totalCost / setBudget) * 100)}% allocated`;
-    if (remainingText) remainingText.textContent = `₹${overAmt.toLocaleString('en-IN')} deficit`;
-    if (lblBalance) lblBalance.textContent = "Over Budget By";
-    if (valBalance) {
-      valBalance.textContent = `- ₹${overAmt.toLocaleString('en-IN')}`;
-      valBalance.className = "b-num-val red";
+      console.warn("Could not fit bounds:", e);
     }
   }
 }
 
-function renderInsights() {
-  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  const container = document.getElementById("destination-insights-list");
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="insight-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <div><strong>Best Season:</strong> ${escapeHtml(destInfo.bestTime)} for pleasant travel.</div>
-    </div>
-    <div class="insight-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      <div><strong>Local Commute:</strong> Avg ₹${destInfo.avgDailyTransport}/day for Autos, Scooters & Taxis.</div>
-    </div>
-    <div class="insight-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <div><strong>Hybrid TSP Optimizer:</strong> Evaluates exact permutations for minimal travel distances with zero lag.</div>
-    </div>
-  `;
-}
-
-function getCategoryLabel(cat) {
-  switch (cat) {
-    case "culture": return "🏛️ Culture";
-    case "nature": return "🌿 Nature";
-    case "adventure": return "⚡ Adventure";
-    case "food": return "🍛 Food";
-    case "nightlife": return "🍸 Nightlife";
-    case "wellness": return "🧘 Wellness";
-    case "shopping": return "🛍️ Shopping";
-    case "transit": return "🚗 Transport";
-    default: return "📍 Attraction";
-  }
-}
-
 // =============================================================================
-// 13. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
+// 16. MODALS & TRIP SETUP HANDLERS
 // =============================================================================
-
-function moveActivity(dayIndex, actIndex, direction) {
-  const activities = state.itinerary[dayIndex].activities;
-  const targetIndex = actIndex + direction;
-  if (targetIndex < 0 || targetIndex >= activities.length) return;
-
-  const temp = activities[actIndex];
-  activities[actIndex] = activities[targetIndex];
-  activities[targetIndex] = temp;
-
-  saveToLocalStorage();
-  renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
-  showToast("Reordered", `Moved activity ${direction < 0 ? 'up' : 'down'}.`, "info");
-}
-
-function deleteActivity(dayIndex, actIndex) {
-  const actName = state.itinerary[dayIndex].activities[actIndex]?.name || "Activity";
-  state.itinerary[dayIndex].activities.splice(actIndex, 1);
-  saveToLocalStorage();
-  renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
-  showToast("Activity Removed", `Deleted "${actName}" from Day ${state.itinerary[dayIndex].dayNum}.`, "info");
-}
 
 function addNewDay() {
-  const newDayNum = state.itinerary.length + 1;
+  pushStateToUndoHistory("Added Day");
+  const nextDayNum = state.itinerary.length + 1;
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  
-  const existingNames = new Set();
-  state.itinerary.forEach(d => d.activities.forEach(a => existingNames.add(a.name)));
-  const available = destInfo.places.filter(p => !existingNames.has(p.name));
-  const newActivities = [];
-
-  if (available.length > 0) {
-    newActivities.push(JSON.parse(JSON.stringify(available[0])));
-    if (available.length > 1) newActivities.push(JSON.parse(JSON.stringify(available[1])));
-  } else {
-    newActivities.push({
-      id: `custom-chill-${newDayNum}`,
-      name: `Local Market & Sunset Walk in ${destInfo.name}`,
-      timeSlot: "Evening (05:00 PM)",
-      category: "nature",
-      cost: 200,
-      duration: "2 hours",
-      description: "Relax, explore regional handicraft stores, and try street food snacks.",
-      tip: "Great day for casual photography and buying souvenirs.",
-      coords: destInfo.centerCoords,
-      slotPreference: "evening",
-      weatherSensitive: true,
-      exertionLevel: "low",
-      costTier: "budget"
-    });
-  }
 
   state.itinerary.push({
-    dayNum: newDayNum,
-    title: `Day ${newDayNum}: Extended Highlights of ${destInfo.name}`,
-    activities: newActivities
+    dayNum: nextDayNum,
+    title: `Day ${nextDayNum}: Extended Leisure & Exploration in ${destInfo.name}`,
+    activities: [
+      {
+        id: `custom-ext-${Date.now()}`,
+        name: `Local Street Exploration & Artisan Markets`,
+        timeSlot: "Morning (10:00 AM)",
+        category: "culture",
+        cost: 250,
+        duration: "2 hours",
+        description: `Explore authentic neighborhood bazaars, try fresh street foods, and discover artisan crafts.`,
+        tip: "Ask locals for their favorite chai stall.",
+        coords: destInfo.centerCoords,
+        slotPreference: "morning",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      }
+    ]
   });
 
   state.daysCount = state.itinerary.length;
-  state.activeDayTab = state.itinerary.length - 1;
   saveToLocalStorage();
   renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
-  showToast(`Day ${newDayNum} Added!`, `Trip extended to ${state.daysCount} days.`, "success");
+  showToast("Trip Extended! 📅", `Added Day ${nextDayNum} to your itinerary.`, "success");
 }
-
-function deleteDay(dayIndex) {
-  if (state.itinerary.length <= 1) {
-    alert("Your trip must have at least 1 day.");
-    return;
-  }
-  state.itinerary.splice(dayIndex, 1);
-  state.itinerary.forEach((d, i) => {
-    d.dayNum = i + 1;
-    d.title = d.title.replace(/^Day \d+/, `Day ${i + 1}`);
-  });
-  state.daysCount = state.itinerary.length;
-  if (state.activeDayTab >= state.itinerary.length) {
-    state.activeDayTab = state.itinerary.length - 1;
-  }
-  saveToLocalStorage();
-  renderDashboard();
-  if (state.activeViewMode === "map") initOrUpdateMap();
-  showToast("Day Deleted", `Trip adjusted to ${state.daysCount} days.`, "info");
-}
-
-function setupCardDragAndDrop(card, dayIndex, actIndex) {
-  card.addEventListener("dragstart", (e) => {
-    draggedCard = { dayIndex, actIndex };
-    card.classList.add("dragging");
-    e.dataTransfer.effectAllowed = "move";
-  });
-
-  card.addEventListener("dragend", () => {
-    card.classList.remove("dragging");
-    draggedCard = null;
-  });
-
-  card.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  });
-
-  card.addEventListener("drop", (e) => {
-    e.preventDefault();
-    if (!draggedCard) return;
-
-    const fromDay = draggedCard.dayIndex;
-    const fromAct = draggedCard.actIndex;
-    const toDay = dayIndex;
-    const toAct = actIndex;
-
-    if (fromDay === toDay && fromAct === toAct) return;
-
-    const movedItem = state.itinerary[fromDay].activities.splice(fromAct, 1)[0];
-    state.itinerary[toDay].activities.splice(toAct, 0, movedItem);
-
-    saveToLocalStorage();
-    renderDashboard();
-    if (state.activeViewMode === "map") initOrUpdateMap();
-    showToast("Reordered via Drag & Drop", "Moved to new position.", "info");
-  });
-}
-
-// =============================================================================
-// 14. MODALS & EVENT LISTENERS
-// =============================================================================
 
 function openAddActivityModal(dayIndex) {
-  const modal = document.getElementById("modal-activity");
-  const title = document.getElementById("modal-activity-title");
-  if (!modal) return;
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const name = prompt(`Enter stop name in ${destInfo.name}:`);
+  if (!name || !name.trim()) return;
 
-  document.getElementById("modal-day-index").value = dayIndex;
-  document.getElementById("modal-act-index").value = "-1";
-  title.textContent = `Add Place / Activity to Day ${state.itinerary[dayIndex].dayNum}`;
+  const costStr = prompt(`Estimated cost in ₹ INR:`, "300");
+  const cost = Number(costStr) || 0;
 
-  document.getElementById("modal-act-name").value = "";
-  document.getElementById("modal-act-time").value = "Morning (10:00 AM)";
-  document.getElementById("modal-act-category").value = "culture";
-  document.getElementById("modal-act-cost").value = 250;
-  document.getElementById("modal-act-duration").value = "2 hours";
-  document.getElementById("modal-act-desc").value = "";
-  document.getElementById("modal-act-tip").value = "";
+  pushStateToUndoHistory(`Added Stop: ${name}`);
 
-  modal.classList.remove("hidden");
+  state.itinerary[dayIndex].activities.push({
+    id: `custom-user-${Date.now()}`,
+    name: name.trim(),
+    timeSlot: "Afternoon (03:00 PM)",
+    category: "culture",
+    cost: cost,
+    duration: "2 hours",
+    description: `Custom activity stop added by traveler.`,
+    tip: "Enjoy your personalized visit!",
+    coords: destInfo.centerCoords,
+    slotPreference: "afternoon",
+    weatherSensitive: false,
+    exertionLevel: "moderate",
+    costTier: cost > 800 ? "premium" : "moderate"
+  });
+
+  state.itinerary[dayIndex].activities = optimizeDayPath(
+    state.itinerary[dayIndex].activities,
+    state.hotelOrigin || destInfo.centerCoords
+  );
+
+  saveToLocalStorage();
+  renderDashboard();
+  showToast("Stop Added!", `Added "${name}" to Day ${dayIndex + 1}.`, "success");
 }
 
-function openEditActivityModal(dayIndex, actIndex) {
-  const modal = document.getElementById("modal-activity");
-  const title = document.getElementById("modal-activity-title");
-  const act = state.itinerary[dayIndex].activities[actIndex];
-  if (!modal || !act) return;
+function showToast(title, message, type = "info") {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
 
-  document.getElementById("modal-day-index").value = dayIndex;
-  document.getElementById("modal-act-index").value = actIndex;
-  title.textContent = `Edit Details: ${act.name}`;
+  const toast = document.createElement("div");
+  toast.className = `toast-card toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-body">
+      <strong>${escapeHtml(title)}</strong>
+      <p>${escapeHtml(message)}</p>
+    </div>
+    <button class="toast-close-btn">✕</button>
+  `;
 
-  document.getElementById("modal-act-name").value = act.name || "";
-  document.getElementById("modal-act-time").value = act.timeSlot || "Morning (10:00 AM)";
-  document.getElementById("modal-act-category").value = act.category || "culture";
-  document.getElementById("modal-act-cost").value = Number(act.cost) || 0;
-  document.getElementById("modal-act-duration").value = act.duration || "2 hours";
-  document.getElementById("modal-act-desc").value = act.description || "";
-  document.getElementById("modal-act-tip").value = act.tip || "";
+  toast.querySelector(".toast-close-btn").addEventListener("click", () => {
+    toast.remove();
+  });
 
-  modal.classList.remove("hidden");
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 300);
+  }, 4500);
 }
 
-function closeActivityModal() {
-  document.getElementById("modal-activity")?.classList.add("hidden");
+function saveToLocalStorage() {
+  try {
+    localStorage.setItem("travelpilot_saved_trip", JSON.stringify(state));
+  } catch (e) {
+    console.warn("Could not save to localStorage:", e);
+  }
 }
+
+// =============================================================================
+// 17. EVENT LISTENERS & INITIALIZATION
+// =============================================================================
 
 function setupEventListeners() {
   // Form Submit
-  document.getElementById("trip-planner-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    state.destination = document.getElementById("select-destination").value;
-    state.daysCount = Number(document.getElementById("input-days").value) || 3;
-    state.totalBudget = Number(document.getElementById("input-budget").value) || 18000;
-    generateItinerary();
+  const form = document.getElementById("trip-planner-form");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      state.destination = document.getElementById("select-destination").value;
+      state.daysCount = Number(document.getElementById("input-days").value) || 3;
+      state.totalBudget = Number(document.getElementById("input-budget").value) || 18000;
+      state.startDate = document.getElementById("input-start-date")?.value || state.startDate;
+
+      generateItinerary(true);
+
+      document.getElementById("section-dashboard")?.scrollIntoView({ behavior: "smooth" });
+    });
+  }
+
+  // Quick Example Jaipur
+  document.getElementById("btn-sample-trip")?.addEventListener("click", () => {
+    state.destination = "jaipur";
+    state.daysCount = 3;
+    state.totalBudget = 18000;
+    state.selectedInterests = ["culture", "food", "nature"];
+    syncFormWithState();
+    generateItinerary(true);
+    document.getElementById("section-dashboard")?.scrollIntoView({ behavior: "smooth" });
   });
 
-  // AI Co-Pilot Form Submit
-  document.getElementById("form-copilot")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const promptInput = document.getElementById("input-copilot-prompt");
-    if (promptInput && promptInput.value.trim()) {
-      parseAndExecuteAiPrompt(promptInput.value.trim());
+  // Reset Form
+  document.getElementById("btn-reset-form")?.addEventListener("click", () => {
+    if (confirm("Start a new trip? This will reset the planner.")) {
+      localStorage.removeItem("travelpilot_saved_trip");
+      window.location.hash = "";
+      window.location.reload();
     }
   });
 
-  // AI Co-Pilot Quick Prompt Chips
+  // Undo / Redo Header Buttons
+  document.getElementById("btn-header-undo")?.addEventListener("click", performUndo);
+  document.getElementById("btn-header-redo")?.addEventListener("click", performRedo);
+
+  // Global Keyboard Shortcuts (Cmd+Z / Ctrl+Z = Undo, Cmd+Shift+Z / Ctrl+Y = Redo)
+  window.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
+      if (e.shiftKey) {
+        e.preventDefault();
+        performRedo();
+      } else {
+        e.preventDefault();
+        performUndo();
+      }
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") {
+      e.preventDefault();
+      performRedo();
+    }
+  });
+
+  // AI Co-Pilot Form
+  const copilotForm = document.getElementById("form-copilot");
+  if (copilotForm) {
+    copilotForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = document.getElementById("input-copilot-prompt");
+      if (input && input.value) {
+        parseAndExecuteAiPrompt(input.value);
+      }
+    });
+  }
+
+  // AI Co-Pilot Quick Chips
   document.querySelectorAll(".copilot-chip").forEach(chip => {
     chip.addEventListener("click", () => {
       const promptText = chip.dataset.prompt;
@@ -5678,190 +6565,170 @@ function setupEventListeners() {
     });
   });
 
-  // View Mode Switcher buttons
-  document.querySelectorAll(".view-mode-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const mode = btn.dataset.mode;
-      switchViewMode(mode);
-    });
-  });
-
-  // Route Optimizer Buttons
+  // Auto-Reroute Buttons
   document.getElementById("btn-ai-auto-reroute")?.addEventListener("click", () => autoRerouteItinerary(-1));
-  document.getElementById("btn-map-optimize")?.addEventListener("click", () => autoRerouteItinerary(-1));
-  document.getElementById("btn-map-fit-bounds")?.addEventListener("click", () => {
-    if (mapInstance) {
-      initOrUpdateMap();
-      showToast("Map Centered", "Fitted map view to all destination stops.", "info");
-    }
-  });
-
-  // Disruption Scenario Buttons
   document.getElementById("btn-scenario-rain")?.addEventListener("click", () => applyDisruptionScenario("rain"));
   document.getElementById("btn-scenario-delay")?.addEventListener("click", () => applyDisruptionScenario("delay"));
   document.getElementById("btn-scenario-chill")?.addEventListener("click", () => applyDisruptionScenario("chill"));
   document.getElementById("btn-reset-reroute")?.addEventListener("click", () => applyDisruptionScenario("reset"));
 
-  // Quick Transit Add Buttons
-  document.getElementById("btn-add-airport-pickup")?.addEventListener("click", () => {
-    addTransitActivity("Airport to Hotel Private AC Cab Pickup", 750, "Morning (08:30 AM)");
+  // View Mode Tabs
+  document.querySelectorAll(".view-mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      switchViewMode(btn.dataset.mode);
+    });
   });
 
-  document.getElementById("btn-add-station-transfer")?.addEventListener("click", () => {
-    addTransitActivity("Railway Station to Hotel Auto/Cab Transfer", 400, "Morning (09:00 AM)");
-  });
+  // Diff Modal Actions
+  document.getElementById("btn-diff-approve")?.addEventListener("click", applyPendingDiff);
+  document.getElementById("btn-diff-cancel")?.addEventListener("click", closeDiffPreviewModal);
+  document.getElementById("btn-diff-close")?.addEventListener("click", closeDiffPreviewModal);
 
-  document.getElementById("btn-add-daily-cab")?.addEventListener("click", () => {
-    addTransitActivity("Full-Day Private Sightseeing AC Taxi (8 hrs)", 1800, "Morning (09:00 AM)");
-  });
+  // Impact Metrics Modal Actions
+  document.getElementById("btn-view-metrics")?.addEventListener("click", showImpactMetricsModal);
+  document.getElementById("btn-metrics-close")?.addEventListener("click", closeImpactMetricsModal);
 
-  // Quick Sample Trip
-  document.getElementById("btn-sample-trip")?.addEventListener("click", () => {
-    state.destination = "jaipur";
-    state.daysCount = 3;
-    state.totalBudget = 18000;
-    state.selectedInterests = ["culture", "food", "nature"];
-    syncFormWithState();
-    generateItinerary();
-  });
+  // AI Settings Modal Actions
+  document.getElementById("btn-ai-settings")?.addEventListener("click", openAiSettingsModal);
+  document.getElementById("btn-ai-settings-close")?.addEventListener("click", closeAiSettingsModal);
+  document.getElementById("form-ai-settings")?.addEventListener("submit", saveAiSettings);
 
-  // Brand Home Reset
-  document.getElementById("btn-brand-home")?.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-
-  document.getElementById("btn-reset-form")?.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    document.getElementById("select-destination").focus();
-  });
-
-  // Modal Submit
-  document.getElementById("form-activity-edit")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const dayIndex = Number(document.getElementById("modal-day-index").value);
-    const actIndex = Number(document.getElementById("modal-act-index").value);
-
-    const updatedActivity = {
-      id: actIndex === -1 ? `custom-${Date.now()}` : state.itinerary[dayIndex].activities[actIndex].id,
-      name: document.getElementById("modal-act-name").value.trim(),
-      timeSlot: document.getElementById("modal-act-time").value.trim(),
-      category: document.getElementById("modal-act-category").value,
-      cost: Number(document.getElementById("modal-act-cost").value) || 0,
-      duration: document.getElementById("modal-act-duration").value.trim(),
-      description: document.getElementById("modal-act-desc").value.trim(),
-      tip: document.getElementById("modal-act-tip").value.trim(),
-      coords: actIndex === -1 
-        ? DESTINATIONS_DATA[state.destination]?.centerCoords 
-        : (state.itinerary[dayIndex].activities[actIndex].coords || DESTINATIONS_DATA[state.destination]?.centerCoords),
-      slotPreference: actIndex === -1 
-        ? "any" 
-        : (state.itinerary[dayIndex].activities[actIndex].slotPreference || "any"),
-      weatherSensitive: actIndex === -1 
-        ? false 
-        : (state.itinerary[dayIndex].activities[actIndex].weatherSensitive || false),
-      exertionLevel: actIndex === -1 
-        ? "moderate" 
-        : (state.itinerary[dayIndex].activities[actIndex].exertionLevel || "moderate"),
-      costTier: "moderate"
-    };
-
-    if (actIndex === -1) {
-      state.itinerary[dayIndex].activities.push(updatedActivity);
-      showToast("Activity Added", `Added "${updatedActivity.name}" to Day ${state.itinerary[dayIndex].dayNum}.`, "success");
-    } else {
-      state.itinerary[dayIndex].activities[actIndex] = updatedActivity;
-      showToast("Activity Updated", `Updated details for "${updatedActivity.name}".`, "success");
-    }
-
-    closeActivityModal();
-    saveToLocalStorage();
-    renderDashboard();
-    if (state.activeViewMode === "map") initOrUpdateMap();
-  });
-
-  document.getElementById("btn-close-modal")?.addEventListener("click", closeActivityModal);
-  document.getElementById("btn-cancel-modal")?.addEventListener("click", closeActivityModal);
-
+  // Calendar & Share
+  document.getElementById("btn-export-ics")?.addEventListener("click", exportTripToIcs);
+  document.getElementById("btn-share-trip")?.addEventListener("click", generateShareableUrl);
+  document.getElementById("btn-copy-itinerary")?.addEventListener("click", copyTextItinerary);
   document.getElementById("btn-print-itinerary")?.addEventListener("click", () => window.print());
-  document.getElementById("btn-copy-itinerary")?.addEventListener("click", copyItineraryToClipboard);
 }
 
-function copyItineraryToClipboard() {
+function openAiSettingsModal() {
+  const modal = document.getElementById("ai-settings-modal");
+  const provider = document.getElementById("ai-provider-select");
+  const key = document.getElementById("ai-api-key");
+  const model = document.getElementById("ai-model-name");
+  const endpoint = document.getElementById("ai-endpoint-url");
+
+  if (!modal) return;
+
+  if (provider) provider.value = state.llmConfig.provider || "builtin_fallback";
+  if (key) key.value = state.llmConfig.apiKey || "";
+  if (model) model.value = state.llmConfig.model || "gpt-4o-mini";
+  if (endpoint) endpoint.value = state.llmConfig.endpoint || "https://api.openai.com/v1/chat/completions";
+
+  modal.style.display = "flex";
+}
+
+function closeAiSettingsModal() {
+  const modal = document.getElementById("ai-settings-modal");
+  if (modal) modal.style.display = "none";
+}
+
+function saveAiSettings(e) {
+  e.preventDefault();
+  state.llmConfig.provider = document.getElementById("ai-provider-select").value;
+  state.llmConfig.apiKey = document.getElementById("ai-api-key").value.trim();
+  state.llmConfig.model = document.getElementById("ai-model-name").value.trim();
+  state.llmConfig.endpoint = document.getElementById("ai-endpoint-url").value.trim();
+
+  saveToLocalStorage();
+  closeAiSettingsModal();
+  showToast("AI Settings Saved ⚙️", `Active provider: ${state.llmConfig.provider}`, "success");
+}
+
+function copyTextItinerary() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
-  let text = `✈️ TravelPilot Itinerary: ${destInfo.name}, India (${state.daysCount} Days)\n`;
-  text += `💰 Budget: ₹${state.totalBudget.toLocaleString('en-IN')}\n\n`;
+  let text = `✈️ ${destInfo.name} — ${state.daysCount} Day TravelPlan\nTotal Budget: ₹${state.totalBudget}\n\n`;
 
   state.itinerary.forEach(day => {
-    const dayCost = day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
-    text += `═══════════════════════════════════\n`;
-    text += `📅 DAY ${day.dayNum}: ${day.title.replace(/^Day \d+:\s*/, '')} (Subtotal: ₹${dayCost.toLocaleString('en-IN')})\n`;
-    text += `═══════════════════════════════════\n`;
-    
-    day.activities.forEach((act, i) => {
-      text += `${i + 1}. [${act.timeSlot}] ${act.name} — ₹${act.cost}\n`;
-      if (act.description) text += `   • ${act.description}\n`;
-      if (act.tip) text += `   💡 Tip: ${act.tip}\n`;
+    text += `📅 ${day.title}\n`;
+    day.activities.forEach((act, idx) => {
+      text += `  ${idx + 1}. [${act.timeSlot}] ${act.name} (₹${act.cost}) - ${act.description}\n`;
     });
-    text += `\n`;
+    text += "\n";
   });
-
-  text += `Generated with TravelPilot India Trip Planner.\n`;
 
   navigator.clipboard.writeText(text).then(() => {
-    showToast("Copied to Clipboard!", "Full plan ready to share on WhatsApp or Notes.", "success");
-  }).catch(() => {
-    showToast("Copy Note", "Please select and copy text manually.", "info");
+    showToast("Itinerary Copied! 📋", "Complete trip text copied to clipboard.", "success");
   });
 }
 
-function saveToLocalStorage() {
-  try {
-    localStorage.setItem("travelpilot_saved_trip", JSON.stringify(state));
-  } catch (e) {
-    // Handled
-  }
-}
-
-function showToast(title, message, type = "success") {
-  const container = document.getElementById("toast-container");
+function renderInterestChips() {
+  const container = document.getElementById("interests-container");
   if (!container) return;
+  container.innerHTML = "";
 
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `
-    <span>${type === 'success' ? '✅' : 'ℹ️'}</span>
-    <div>
-      <div style="font-weight: 700;">${escapeHtml(title)}</div>
-      <div style="font-size: 0.78rem; opacity: 0.9;">${escapeHtml(message)}</div>
-    </div>
-  `;
+  INTEREST_CATEGORIES.forEach(cat => {
+    const isChecked = state.selectedInterests.includes(cat.id);
+    const label = document.createElement("label");
+    label.className = `interest-chip ${isChecked ? 'selected' : ''}`;
+    label.innerHTML = `
+      <input type="checkbox" name="interest" value="${escapeHtml(cat.id)}" ${isChecked ? 'checked' : ''}>
+      <span>${escapeHtml(cat.icon)}</span>
+      <span>${escapeHtml(cat.label)}</span>
+    `;
 
-  container.appendChild(toast);
+    label.querySelector("input").addEventListener("change", (e) => {
+      if (e.target.checked) {
+        if (!state.selectedInterests.includes(cat.id)) state.selectedInterests.push(cat.id);
+        label.classList.add("selected");
+      } else {
+        state.selectedInterests = state.selectedInterests.filter(id => id !== cat.id);
+        label.classList.remove("selected");
+      }
+    });
 
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(10px)";
-    toast.style.transition = "all 0.25s ease";
-    setTimeout(() => toast.remove(), 250);
-  }, 3500);
+    container.appendChild(label);
+  });
 }
 
-// =============================================================================
-// 15. GLOBAL WINDOW EXPORTS FOR EVENT HANDLING
-// =============================================================================
+function syncFormWithState() {
+  const destSelect = document.getElementById("select-destination");
+  const daysSelect = document.getElementById("input-days");
+  const budgetInput = document.getElementById("input-budget");
+  const dateInput = document.getElementById("input-start-date");
 
-window.moveActivity = moveActivity;
-window.deleteActivity = deleteActivity;
-window.openEditActivityModal = openEditActivityModal;
-window.openAddActivityModal = openAddActivityModal;
-window.deleteDay = deleteDay;
-window.addNewDay = addNewDay;
-window.switchViewMode = switchViewMode;
-window.applyDisruptionScenario = applyDisruptionScenario;
-window.addTransitActivity = addTransitActivity;
-window.autoRerouteItinerary = autoRerouteItinerary;
-window.parseAndExecuteAiPrompt = parseAndExecuteAiPrompt;
-window.initOrUpdateMap = initOrUpdateMap;
+  if (destSelect) destSelect.value = state.destination;
+  if (daysSelect) daysSelect.value = String(state.daysCount);
+  if (budgetInput) budgetInput.value = state.totalBudget;
+  if (dateInput && state.startDate) dateInput.value = state.startDate;
+
+  const chips = document.querySelectorAll(".interest-chip");
+  chips.forEach(chip => {
+    const input = chip.querySelector("input");
+    if (input) {
+      const isChecked = state.selectedInterests.includes(input.value);
+      input.checked = isChecked;
+      if (isChecked) chip.classList.add("selected");
+      else chip.classList.remove("selected");
+    }
+  });
+}
+
+// Initial Boot
+document.addEventListener("DOMContentLoaded", () => {
+  renderInterestChips();
+  setupEventListeners();
+
+  // Load from URL Hash if shared
+  if (loadStateFromUrlHash()) return;
+
+  // Load from localStorage if present
+  const saved = localStorage.getItem("travelpilot_saved_trip");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.itinerary && parsed.itinerary.length > 0) {
+        state = { ...state, ...parsed };
+        syncFormWithState();
+        renderDashboard();
+        return;
+      }
+    } catch (e) {
+      console.warn("Could not load saved trip:", e);
+    }
+  }
+
+  generateItinerary(false);
+});
 
 </script>
 </body>
