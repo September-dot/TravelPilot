@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — Algorithmic Trip Planner & AI Route Optimizer for India</title>
-  <meta name="description" content="AI trip planner for India featuring natural language co-pilot rerouting, exact TSP route optimization, live Open-Meteo weather adaptation, geodesic distance calculation, transit booking hubs, and multi-day contingency adaptation.">
+  <title>TravelPilot — AI Agent Travel Operations & Itinerary Engine</title>
+  <meta name="description" content="AI Agent Travel Operations Dashboard featuring bounded autonomy, provably valid itineraries, constraint solver, live agent trace, budget engine, and what-if disruption simulation.">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <meta name="theme-color" content="#ea580c">
+  <meta name="theme-color" content="#2563eb">
 
   <!-- Leaflet Interactive Maps CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -27,360 +27,441 @@
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
 
-  <!-- Header Navigation -->
+  <!-- Top Navigation Header -->
   <header class="app-header">
-    <div class="container header-inner">
-      <button class="brand-wrap" id="btn-brand-home" title="Scroll to top">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.1-2.4.7l-.4.4 6 4-3.5 3.5L2 14.5l-.5.5 3 2 2 3 .5-.5-.8-3 3.5-3.5 4 6 .4-.4c.6-.6.9-1.5.7-2.4z"/>
-          </svg>
-        </div>
-        <div>
-          <h1 class="brand-title">Travel<span>Pilot</span></h1>
-        </div>
-        <span class="brand-badge">India Edition</span>
+    <div class="header-container">
+      
+      <!-- Brand Logo -->
+      <button type="button" class="brand-wrap" id="btn-brand-home" title="TravelPilot Dashboard">
+        <div class="brand-logo-badge">tp</div>
+        <span class="brand-title">TravelPilot</span>
       </button>
 
-      <div class="header-actions">
+      <!-- Center Nav Tabs -->
+      <nav class="main-top-nav">
+        <button type="button" class="nav-tab active" data-view="dashboard" id="tab-nav-dashboard">Dashboard</button>
+        <button type="button" class="nav-tab" data-view="planner" id="tab-nav-planner">Trip Planner</button>
+        <button type="button" class="nav-tab" data-view="simulator" id="tab-nav-simulator">Simulator</button>
+        <button type="button" class="nav-tab" data-view="alternatives" id="tab-nav-alternatives">Alternatives</button>
+        <button type="button" class="nav-tab" data-view="map" id="tab-nav-map">Route Map</button>
+        <button type="button" class="nav-tab" data-view="ask-agent" id="tab-nav-ask-agent">Ask Agent</button>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="header-right-actions">
         <!-- Undo / Redo Controls -->
         <div class="undo-redo-group">
-          <button class="btn btn-ghost btn-sm" id="btn-header-undo" title="Undo Last Change (Cmd+Z)" disabled style="opacity: 0.4;">
-            <span>↩️ Undo</span>
+          <button type="button" class="btn-icon-top" id="btn-header-undo" title="Undo Last Change (Cmd+Z)" disabled>
+            <span>↩️</span>
           </button>
-          <button class="btn btn-ghost btn-sm" id="btn-header-redo" title="Redo (Cmd+Shift+Z)" disabled style="opacity: 0.4;">
-            <span>↪️ Redo</span>
+          <button type="button" class="btn-icon-top" id="btn-header-redo" title="Redo (Cmd+Shift+Z)" disabled>
+            <span>↪️</span>
           </button>
         </div>
 
-        <button class="btn btn-ghost btn-sm" id="btn-ai-settings" title="Configure AI Provider / API Key">
-          <span>⚙️ AI Settings</span>
+        <button type="button" class="btn-icon-top" id="btn-ai-settings" title="Configure AI Provider / API Key">
+          <span>⚙️</span>
         </button>
-        <button class="btn btn-ghost btn-sm" id="btn-sample-trip">
-          <span>✨ Quick Example</span>
+
+        <button type="button" class="btn-icon-top" id="btn-header-notifications" title="Trip Health Alerts">
+          <span>🔔</span>
+          <span class="notification-badge-dot"></span>
         </button>
-        <button class="btn btn-secondary btn-sm" id="btn-reset-form">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          <span>New Trip</span>
-        </button>
+
+        <div class="user-avatar-pill" id="user-avatar-badge" title="Active Planner Session">
+          <span>DU</span>
+        </div>
       </div>
+
     </div>
   </header>
 
-  <!-- Main Content Viewport -->
-  <main class="container">
+  <!-- Proactive Weather Alert Banner -->
+  <div id="proactive-weather-banner" class="proactive-weather-banner" style="display: none;"></div>
 
-    <!-- STEP 1: TRIP SETUP FORM -->
-    <section class="hero-section" id="section-setup">
-      <div class="hero-header">
-        <div class="hero-pill">
-          <span>🇮🇳 Bounded Autonomy AI Planning & Optimization</span>
-        </div>
-        <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter destination, start date, budget, and travel vibe. Features budget-aware generation, Hybrid TSP optimization, live Open-Meteo forecast alerts, and an interactive natural-language AI Co-Pilot with before/after diff approval.</p>
-      </div>
+  <!-- Main 3-Column Operations Workspace -->
+  <main class="workspace-container">
 
-      <div class="setup-card">
-        <form id="trip-planner-form">
-          <div class="form-grid">
-            <!-- Destination Input -->
-            <div class="form-group">
-              <label class="form-label" for="select-destination">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <span>Destination (India)</span>
-              </label>
-              <select id="select-destination" class="input-control" required>
-                <option value="jaipur">Jaipur, Rajasthan (Pink City & Forts)</option>
-                <option value="goa">Goa (Beaches, Cafes & Heritage)</option>
-                <option value="manali">Manali, Himachal (Mountains & Adventure)</option>
-                <option value="kerala">Kerala (Backwaters, Tea Hills & Ayurveda)</option>
-                <option value="rishikesh">Rishikesh, Uttarakhand (Rafting & Yoga)</option>
-                <option value="udaipur">Udaipur, Rajasthan (Lakes & Palaces)</option>
-              </select>
-            </div>
-
-            <!-- Start Date Input -->
-            <div class="form-group">
-              <label class="form-label" for="input-start-date">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span>Trip Start Date</span>
-              </label>
-              <input type="date" id="input-start-date" class="input-control" required>
-            </div>
-
-            <!-- Duration Input -->
-            <div class="form-group">
-              <label class="form-label" for="input-days">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span>Trip Duration</span>
-              </label>
-              <select id="input-days" class="input-control" required>
-                <option value="2">2 Days (Weekend Getaway)</option>
-                <option value="3" selected>3 Days (Ideal Short Trip)</option>
-                <option value="4">4 Days (Relaxed Exploration)</option>
-                <option value="5">5 Days (Complete Holiday)</option>
-                <option value="6">6 Days (Extended Discovery)</option>
-                <option value="7">7 Days (Full 1-Week Adventure)</option>
-              </select>
-            </div>
-
-            <!-- Total Budget in INR -->
-            <div class="form-group">
-              <label class="form-label" for="input-budget">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                <span>Total Budget (₹ INR)</span>
-              </label>
-              <input type="number" id="input-budget" class="input-control" placeholder="e.g. 18000" value="18000" min="2000" step="500" required>
-            </div>
-          </div>
-
-          <!-- Interests Checkboxes -->
-          <div class="interests-group">
-            <div class="interests-header">
-              <label class="form-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <span>What are your interests?</span>
-              </label>
-              <span class="interests-hint">Select all that apply</span>
-            </div>
-
-            <div class="interests-grid" id="interests-container">
-              <!-- Dynamically populated chips -->
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary full-width" style="height: 52px; font-size: 1.05rem;" id="btn-generate">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span>Generate Custom Itinerary</span>
-          </button>
-        </form>
-      </div>
-    </section>
-
-    <!-- STEP 2: GENERATED ITINERARY & ADAPTIVE DASHBOARD -->
-    <section class="dashboard-section" id="section-dashboard" style="display: none;">
+    <!-- ============================================================= -->
+    <!-- COLUMN 1: AI AGENT SUITE & CURRENT TRIP WIDGET                -->
+    <!-- ============================================================= -->
+    <aside class="col-agent-suite">
       
-      <!-- Proactive Weather Alert Banner (Auto-Triggered via Open-Meteo) -->
-      <div id="proactive-weather-banner" class="proactive-weather-banner" style="display: none;">
-        <!-- Dynamically rendered if rain forecasted -->
-      </div>
-
-      <!-- Destination Top Banner -->
-      <div class="destination-banner" id="dest-banner">
-        <div>
-          <div class="dest-badge-row">
-            <span class="brand-badge" id="dest-state-badge">Rajasthan</span>
-            <span class="meta-chip" id="dest-time-badge">Best Time: Oct - Mar</span>
+      <!-- AI Agent Suite Card (Dark Navy) -->
+      <div class="agent-suite-card">
+        <div class="agent-suite-header">
+          <div class="suite-title-row">
+            <span class="suite-icon">🤖</span>
+            <h4>AI Agent Suite</h4>
           </div>
-          <h2 class="dest-title" id="dest-title">Jaipur Itinerary</h2>
-          <p class="dest-subtitle" id="dest-tagline">The Pink City of Royal Forts, Palaces & Vibrant Bazaars</p>
-          <div class="dest-meta-chips" id="dest-highlights-list">
-            <!-- Dynamic highlights -->
-          </div>
+          <p class="suite-subtitle">Select an agent to assist with your itinerary</p>
         </div>
 
-        <div class="dest-actions">
-          <button class="btn btn-secondary btn-sm" id="btn-view-metrics" title="View Commute & Optimization Metrics">
-            <span>📊 Impact Metrics</span>
-          </button>
-          <button class="btn btn-secondary btn-sm" id="btn-export-ics" title="Export to Google / Apple Calendar">
-            <span>📅 Export .ICS</span>
-          </button>
-          <button class="btn btn-secondary btn-sm" id="btn-share-trip" title="Copy Shareable Trip URL">
-            <span>🔗 Share Link</span>
-          </button>
-          <button class="btn btn-secondary btn-sm" id="btn-copy-itinerary" title="Copy Text Itinerary">
-            <span>📋 Copy Plan</span>
-          </button>
-          <button class="btn btn-secondary btn-sm" id="btn-print-itinerary" title="Print or Save as PDF">
-            <span>🖨️ Print / PDF</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- AI CO-PILOT NATURAL LANGUAGE ADAPTATION BAR -->
-      <div class="ai-copilot-card" id="ai-copilot-card">
-        <div class="ai-copilot-header">
-          <div class="ai-copilot-title">
-            <span>🧠 AI Co-Pilot: Bounded Autonomy Intent Layer</span>
-          </div>
-          <span class="meta-chip" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">Intent $\rightarrow$ Deterministic Executor</span>
-        </div>
-        <p style="font-size: 0.82rem; color: #581c87; margin-bottom: 12px;">
-          Type any live scenario in plain English (e.g. <em>"my train is delayed by 2 hours"</em>, <em>"pouring rain and exhausted"</em>). The AI maps your intent into bounded actions and presents a before/after diff for your review.
-        </p>
-
-        <form id="form-copilot" class="ai-copilot-input-row">
-          <input type="text" id="input-copilot-prompt" class="ai-copilot-input" placeholder="e.g. It's pouring rain and my train is delayed..." autocomplete="off">
-          <button type="submit" class="btn-copilot-submit" id="btn-copilot-submit">
-            <span>⚡ Run AI Adaptation</span>
-          </button>
-        </form>
-
-        <div class="copilot-prompts-row">
-          <span class="copilot-prompts-lbl">Quick Scenarios:</span>
-          <button type="button" class="copilot-chip" data-prompt="It is pouring rain outside, please move us to indoor covered spots">🌧️ "Pouring rain, need indoor spots"</button>
-          <button type="button" class="copilot-chip" data-prompt="My train is delayed by 2 hours, shorten the day to top highlights">🚆 "Train delayed 2 hrs"</button>
-          <button type="button" class="copilot-chip" data-prompt="Exhausted from travel, switch to chill wellness and high-tea mode">😴 "Tired, chill wellness mode"</button>
-          <button type="button" class="copilot-chip" data-prompt="We are on a tight budget, switch to free sights and street food">💰 "Tight budget, free sights"</button>
-          <button type="button" class="copilot-chip" data-prompt="Splurge on luxury royal high tea and exclusive boat tours">👑 "Luxury upgrade"</button>
-        </div>
-      </div>
-
-      <!-- AI PROACTIVE ROUTE HEALTH & DELAY DETECTOR CARD -->
-      <div class="ai-diagnosis-card" id="ai-diagnosis-card">
-        <div class="ai-diag-left">
-          <div class="ai-diag-icon" id="ai-diag-icon">🧭</div>
-          <div>
-            <h4 class="ai-diag-title" id="ai-diag-title">
-              <span>Route Diagnostics & Transit Analyzer</span>
-            </h4>
-            <p class="ai-diag-desc" id="ai-diag-desc">Analyzing geographic proximity, transit durations, and weather vulnerabilities...</p>
-            <div class="ai-risk-tags" id="ai-risk-tags-container"></div>
-          </div>
-        </div>
-        <div>
-          <button class="btn-ai-reroute" id="btn-ai-auto-reroute">
-            <span>⚡ Optimize Route & Fix Delays</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- View Mode Selector (Itinerary vs Interactive Map vs Transit Hub) -->
-      <nav class="view-mode-nav">
-        <button class="view-mode-btn active" id="btn-mode-itinerary" data-mode="itinerary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span>1. Daily Itinerary & Distances</span>
-        </button>
-        <button class="view-mode-btn" id="btn-mode-map" data-mode="map">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-          <span>2. Interactive Route Map</span>
-        </button>
-        <button class="view-mode-btn" id="btn-mode-transit" data-mode="transit">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-          <span>3. Cabs & Transit Hub</span>
-        </button>
-      </nav>
-
-      <!-- Dynamic Weather / Delay Disruption Assistant Bar -->
-      <div class="disruption-bar-card" id="disruption-bar">
-        <div class="disruption-info">
-          <div class="disruption-icon-wrap" id="disruption-icon">⚡</div>
-          <div class="disruption-text">
-            <h4 id="disruption-title">Trip Disruption Assistant</h4>
-            <p id="disruption-desc">Unexpected weather, flight delay, or fatigue? Adapt your route and budget with preview diffs.</p>
-          </div>
-        </div>
-        <div class="disruption-actions">
-          <button class="btn-disruption-scenario" id="btn-scenario-rain" title="Auto-reroute for heavy rain">
-            <span>🌧️ Heavy Rain Alert</span>
-          </button>
-          <button class="btn-disruption-scenario" id="btn-scenario-delay" title="Auto-condense for flight/traffic delay">
-            <span>⏱️ 2+ Hr Traffic Delay</span>
-          </button>
-          <button class="btn-disruption-scenario" id="btn-scenario-chill" title="Switch to relaxed wellness day">
-            <span>😴 Relaxed Chill Day</span>
-          </button>
-          <button class="btn btn-ghost btn-sm" id="btn-reset-reroute" style="font-size:0.75rem; color:#78350f;">
-            <span>Reset Route</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- ============================================================= -->
-      <!-- VIEW 1: ITINERARY DASHBOARD                                   -->
-      <!-- ============================================================= -->
-      <div class="dashboard-grid" id="view-section-itinerary">
-        
-        <!-- Left Pane: Day Tabs & Activities -->
-        <div class="itinerary-left-pane">
-          
-          <!-- Day Tabs Selector -->
-          <div class="days-nav" id="days-nav-tabs">
-            <!-- Populated dynamically -->
-          </div>
-
-          <!-- Active Day Container -->
-          <div class="day-container" id="day-content-area">
-            <!-- Populated dynamically with active day's itinerary -->
-          </div>
-        </div>
-
-        <!-- Right Pane: Live Editable Budget & Insights -->
-        <div class="sidebar-sticky">
-          
-          <!-- Real-Time Budget Summary Card -->
-          <div class="budget-card">
-            <div class="budget-card-header">
-              <h3 class="budget-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; color: var(--primary);"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <span>Trip Budget Tracker</span>
-              </h3>
-              <span class="budget-status-pill within" id="budget-status-badge">Within Budget</span>
+        <div class="agent-items-list">
+          <button type="button" class="agent-suite-item active" id="agent-btn-constraints" data-agent="constraints">
+            <div class="agent-item-icon icon-purple">🧩</div>
+            <div class="agent-item-text">
+              <strong>Constraint Parser</strong>
+              <span>Plan from natural language</span>
             </div>
+          </button>
 
-            <!-- Progress Meter -->
-            <div class="budget-meter-wrap">
-              <div class="budget-bar-track">
-                <div class="budget-bar-fill within" id="budget-bar-fill" style="width: 65%;"></div>
-              </div>
-              <div class="budget-meter-labels">
-                <span id="budget-spent-pct">65% allocated</span>
-                <span id="budget-remaining-text">₹6,200 left</span>
-              </div>
+          <button type="button" class="agent-suite-item" id="agent-btn-alternatives" data-agent="alternatives">
+            <div class="agent-item-icon icon-teal">🔄</div>
+            <div class="agent-item-text">
+              <strong>Alternatives</strong>
+              <span>Find replacement activities</span>
             </div>
+          </button>
 
-            <!-- Insights / Quick Stats -->
-            <div class="budget-insights" id="budget-insights-list">
-              <!-- Populated dynamically -->
+          <button type="button" class="agent-suite-item" id="agent-btn-simulator" data-agent="simulator">
+            <div class="agent-item-icon icon-amber">⚡</div>
+            <div class="agent-item-text">
+              <strong>What-If Simulator</strong>
+              <span>Test hypothetical changes</span>
             </div>
-          </div>
+          </button>
 
-          <!-- Local Tips & Cultural Guidelines -->
-          <div class="tips-card">
-            <h4 class="tips-title">
-              <span>💡 Essential Travel Protocol</span>
-            </h4>
-            <ul class="tips-list">
-              <li><strong>Peak Monuments:</strong> Visit popular forts before 10:30 AM to avoid heat & tourist crowds.</li>
-              <li><strong>Dress Codes:</strong> Temples and sacred ghats require modest dress (shoulders & knees covered).</li>
-              <li><strong>Offline Map:</strong> Bookmark your daily stops for offline connectivity in hilly regions.</li>
-            </ul>
-          </div>
+          <button type="button" class="agent-suite-item" id="agent-btn-qa" data-agent="qa">
+            <div class="agent-item-icon icon-blue">💬</div>
+            <div class="agent-item-text">
+              <strong>Q&A Agent</strong>
+              <span>Ask about your trip plan</span>
+            </div>
+          </button>
+
+          <button type="button" class="agent-suite-item" id="agent-btn-explainer" data-agent="explainer">
+            <div class="agent-item-icon icon-indigo">📊</div>
+            <div class="agent-item-text">
+              <strong>Explainer Trace</strong>
+              <span>View agent reasoning</span>
+            </div>
+          </button>
         </div>
-
       </div>
 
-      <!-- ============================================================= -->
-      <!-- VIEW 2: INTERACTIVE ROUTE MAP                                 -->
-      <!-- ============================================================= -->
-      <div class="map-view-section" id="view-section-map" style="display: none;">
-        <div class="map-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <h3>📍 Route Geometry & Geographic Sequence</h3>
-            <p>Pins indicate sequential order (D1-1, D1-2...). Lines indicate direct paths optimized to eliminate transit delays.</p>
-          </div>
-          <div class="map-actions-bar">
-            <button type="button" id="btn-toggle-hotel-mode" class="btn btn-secondary btn-sm" onclick="toggleHotelSelectMode()" title="Toggle hotel origin selection mode">
-              <span id="hotel-mode-icon">🏨</span> <span id="hotel-mode-text">Set Hotel (Click Map)</span>
-            </button>
-          </div>
+      <!-- Current Trip Card (Vibrant Royal Blue) -->
+      <div class="current-trip-card">
+        <div class="current-trip-plane-bg">✈️</div>
+        <div class="current-trip-header">
+          <span class="ct-lbl">Current Trip</span>
+          <h3 class="ct-dest" id="sidebar-trip-dest">3 Days in Jaipur, India</h3>
         </div>
-        <div id="leaflet-map" class="leaflet-map-canvas"></div>
+        <div class="current-trip-footer">
+          <span class="status-pill-green" id="sidebar-trip-status">
+            <span class="pulse-dot"></span> Status: Conflict-Free
+          </span>
+          <button type="button" class="btn-modify-constraints" id="btn-sidebar-modify-trip">
+            Modify Constraints
+          </button>
+        </div>
       </div>
 
-      <!-- ============================================================= -->
-      <!-- VIEW 3: TRANSIT & BOOKING HUB                                 -->
-      <!-- ============================================================= -->
-      <div class="transit-view-section" id="view-section-transit" style="display: none;">
-        <div id="transit-content-area">
-          <!-- Populated dynamically -->
+      <!-- Quick Action Utilities -->
+      <div class="sidebar-action-pills">
+        <button type="button" class="pill-act-btn" id="btn-export-ics">📅 Export .ICS</button>
+        <button type="button" class="pill-act-btn" id="btn-share-trip">🔗 Share Link</button>
+        <button type="button" class="pill-act-btn" id="btn-print-itinerary">🖨️ PDF</button>
+      </div>
+
+    </aside>
+
+    <!-- ============================================================= -->
+    <!-- COLUMN 2: PROVABLY VALID ITINERARY (VERTICAL TIMELINE FEED)   -->
+    <!-- ============================================================= -->
+    <section class="col-main-timeline">
+      
+      <!-- Timeline Header Bar -->
+      <div class="timeline-header-bar">
+        <div class="timeline-title-wrap">
+          <h2>Provably Valid Itinerary</h2>
+          <span class="timeline-verification-tag" id="itinerary-verification-tag">
+            <span class="check-icon">✓</span> Guaranteed Feasible & Optimized
+          </span>
         </div>
+
+        <!-- Day Pills Selector -->
+        <div class="day-pills-row" id="day-pills-container">
+          <!-- Populated dynamically: Day 1, Day 2, Day 3, + Add Day -->
+        </div>
+      </div>
+
+      <!-- Connected Vertical Timeline Feed -->
+      <div class="timeline-feed-container" id="timeline-feed-container">
+        <!-- Populated dynamically with timeline nodes, activity cards, and transit steps -->
       </div>
 
     </section>
+
+    <!-- ============================================================= -->
+    <!-- COLUMN 3: BUDGET ENGINE & LIVE AGENT TRACE                    -->
+    <!-- ============================================================= -->
+    <aside class="col-budget-trace">
+      
+      <!-- Budget Engine Card -->
+      <div class="budget-engine-card">
+        <div class="budget-engine-header">
+          <h4>Budget Engine</h4>
+          <button type="button" class="btn-icon-sm" id="btn-budget-settings" title="Budget allocation settings">⚙️</button>
+        </div>
+
+        <!-- Circular SVG Donut Gauge Chart -->
+        <div class="donut-chart-wrap">
+          <svg class="donut-svg" viewBox="0 0 160 160">
+            <circle class="donut-track" cx="80" cy="80" r="60" />
+            <circle class="donut-segment donut-seg-acts" id="donut-seg-activities" cx="80" cy="80" r="60" stroke-dasharray="377" stroke-dashoffset="150" />
+            <circle class="donut-segment donut-seg-food" id="donut-seg-food" cx="80" cy="80" r="60" stroke-dasharray="377" stroke-dashoffset="270" />
+            <circle class="donut-segment donut-seg-transit" id="donut-seg-transit" cx="80" cy="80" r="60" stroke-dasharray="377" stroke-dashoffset="330" />
+          </svg>
+          <div class="donut-center-info">
+            <span class="dc-lbl">Total</span>
+            <span class="dc-amount" id="donut-total-amount">₹18,000</span>
+            <span class="dc-status" id="donut-status-lbl">Allocated</span>
+          </div>
+        </div>
+
+        <!-- Category Breakdown List -->
+        <div class="budget-breakdown-list">
+          <div class="b-row">
+            <div class="b-col-left">
+              <span class="b-dot dot-blue"></span>
+              <span>Activities & Tours</span>
+            </div>
+            <strong id="b-val-activities">₹7,200</strong>
+          </div>
+          <div class="b-row">
+            <div class="b-col-left">
+              <span class="b-dot dot-green"></span>
+              <span>Food & Dining</span>
+            </div>
+            <strong id="b-val-food">₹5,400</strong>
+          </div>
+          <div class="b-row">
+            <div class="b-col-left">
+              <span class="b-dot dot-teal"></span>
+              <span>Transport & Cabs</span>
+            </div>
+            <strong id="b-val-transport">₹5,400</strong>
+          </div>
+        </div>
+
+        <button type="button" class="btn-simulate-cost" id="btn-simulate-cost-change">
+          Simulate Cost Change
+        </button>
+      </div>
+
+      <!-- Live Agent Trace Card (Dark Code Console) -->
+      <div class="live-agent-trace-card">
+        <div class="trace-header">
+          <div class="trace-title-row">
+            <span class="trace-icon">💻</span>
+            <h4>Live Agent Trace</h4>
+          </div>
+          <span class="trace-live-badge"><span class="live-dot"></span> LIVE</span>
+        </div>
+
+        <div class="trace-terminal-box" id="trace-terminal-logs">
+          <div class="trace-line trace-cyan">> Trace Log Initialized</div>
+          <div class="trace-line trace-green">[Agent] Bounded autonomy intent active</div>
+          <div class="trace-line trace-amber">[Solver] Extracted constraints: 3 Days, ₹18k</div>
+          <div class="trace-line trace-purple">[TSP] 2-Opt solver optimized route in 0.8ms</div>
+          <div class="trace-line trace-emerald">[Status] Zero conflicts detected</div>
+        </div>
+      </div>
+
+    </aside>
 
   </main>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: TRIP PLANNER & CONSTRAINT MODIFIER                         -->
+  <!-- ================================================================= -->
+  <div id="modal-trip-planner" class="modal-overlay" style="display: none;">
+    <div class="modal-box planner-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>✈️ Trip Planner & Constraints</h3>
+          <p class="modal-subtitle">Configure destination, duration, budget, and travel interests.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-planner-close">✕</button>
+      </div>
+
+      <form id="trip-planner-form">
+        <div class="form-grid">
+          <!-- Destination -->
+          <div class="form-group">
+            <label class="form-label" for="select-destination">Destination (India)</label>
+            <select id="select-destination" class="input-control" required>
+              <option value="jaipur">Jaipur, Rajasthan (Pink City & Forts)</option>
+              <option value="goa">Goa (Beaches, Cafes & Heritage)</option>
+              <option value="manali">Manali, Himachal (Mountains & Adventure)</option>
+              <option value="kerala">Kerala (Backwaters, Tea Hills & Ayurveda)</option>
+              <option value="rishikesh">Rishikesh, Uttarakhand (Rafting & Yoga)</option>
+              <option value="udaipur">Udaipur, Rajasthan (Lakes & Palaces)</option>
+            </select>
+          </div>
+
+          <!-- Start Date -->
+          <div class="form-group">
+            <label class="form-label" for="input-start-date">Start Date</label>
+            <input type="date" id="input-start-date" class="input-control" required>
+          </div>
+
+          <!-- Duration -->
+          <div class="form-group">
+            <label class="form-label" for="input-days">Duration</label>
+            <select id="input-days" class="input-control" required>
+              <option value="2">2 Days (Weekend Getaway)</option>
+              <option value="3" selected>3 Days (Ideal Short Trip)</option>
+              <option value="4">4 Days (Relaxed Exploration)</option>
+              <option value="5">5 Days (Complete Holiday)</option>
+              <option value="6">6 Days (Extended Discovery)</option>
+              <option value="7">7 Days (Full 1-Week Adventure)</option>
+            </select>
+          </div>
+
+          <!-- Budget -->
+          <div class="form-group">
+            <label class="form-label" for="input-budget">Total Budget (₹ INR)</label>
+            <input type="number" id="input-budget" class="input-control" placeholder="e.g. 18000" value="18000" min="2000" step="500" required>
+          </div>
+        </div>
+
+        <!-- Interests -->
+        <div class="interests-group">
+          <label class="form-label">What are your interests?</label>
+          <div class="interests-grid" id="interests-container">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-secondary" id="btn-planner-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-generate">Generate Optimized Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: WHAT-IF SIMULATOR & AI CO-PILOT                            -->
+  <!-- ================================================================= -->
+  <div id="modal-simulator" class="modal-overlay" style="display: none;">
+    <div class="modal-box simulator-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>⚡ What-If Simulator & AI Intent Co-Pilot</h3>
+          <p class="modal-subtitle">Inject live travel disruptions or natural language scenarios.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-simulator-close">✕</button>
+      </div>
+
+      <!-- Scenario Prompt Form -->
+      <form id="form-copilot" class="simulator-prompt-form">
+        <label class="form-label">Natural Language Scenario Input</label>
+        <div class="sim-input-row">
+          <input type="text" id="input-copilot-prompt" class="sim-input" placeholder="e.g. It's pouring rain and our morning train is delayed by 2 hours..." autocomplete="off">
+          <button type="submit" class="btn btn-primary" id="btn-copilot-submit">Run AI Adaptation</button>
+        </div>
+      </form>
+
+      <!-- Quick Disruption Triggers -->
+      <div class="quick-disruption-section">
+        <span class="sim-section-lbl">Instant Scenario Presets:</span>
+        <div class="sim-presets-grid">
+          <button type="button" class="sim-preset-btn" id="btn-scenario-rain">
+            <span>🌧️</span>
+            <div><strong>Heavy Monsoon Rain</strong><small>Swap outdoor forts for havelis</small></div>
+          </button>
+          <button type="button" class="sim-preset-btn" id="btn-scenario-delay">
+            <span>⏱️</span>
+            <div><strong>2-Hour Traffic Delay</strong><small>Re-sequence to top highlights</small></div>
+          </button>
+          <button type="button" class="sim-preset-btn" id="btn-scenario-chill">
+            <span>😴</span>
+            <div><strong>Fatigue Wellness Day</strong><small>Switch to tea & gentle wellness</small></div>
+          </button>
+          <button type="button" class="sim-preset-btn" id="btn-scenario-budget">
+            <span>💰</span>
+            <div><strong>Budget Cut (≤₹1,800/day)</strong><small>Focus on free heritage walks</small></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Clarification Area (if ambiguous) -->
+      <div id="ai-reasoning-container" class="ai-reasoning-container" style="display: none;">
+        <h4 id="ai-reasoning-title">AI Intent Analysis</h4>
+        <div id="ai-reasoning-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: ALTERNATIVES VENUE PICKER                                  -->
+  <!-- ================================================================= -->
+  <div id="modal-alternatives" class="modal-overlay" style="display: none;">
+    <div class="modal-box alternatives-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 id="alternatives-modal-title">🔄 Alternative Activities</h3>
+          <p class="modal-subtitle">Select a replacement venue guaranteed to fit your time slot and budget.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-alternatives-close">✕</button>
+      </div>
+
+      <div class="alternatives-list" id="alternatives-list-container">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: INTERACTIVE ROUTE MAP & HOTEL ORIGIN                       -->
+  <!-- ================================================================= -->
+  <div id="modal-map-view" class="modal-overlay" style="display: none;">
+    <div class="modal-box map-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>📍 Interactive Route Geometry & Map</h3>
+          <p class="modal-subtitle">Pins indicate geographic sequence. Click "Set Hotel" to reposition origin.</p>
+        </div>
+        <div class="map-modal-actions">
+          <button type="button" id="btn-toggle-hotel-mode" class="btn btn-secondary btn-sm" onclick="toggleHotelSelectMode()">
+            <span id="hotel-mode-icon">🏨</span> <span id="hotel-mode-text">Set Hotel (Click Map)</span>
+          </button>
+          <button type="button" class="modal-close-btn" id="btn-map-close">✕</button>
+        </div>
+      </div>
+
+      <div id="leaflet-map" class="leaflet-map-canvas"></div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: Q&A AGENT & TRAVEL KNOWLEDGE ASSISTANT                    -->
+  <!-- ================================================================= -->
+  <div id="modal-qa-agent" class="modal-overlay" style="display: none;">
+    <div class="modal-box qa-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>💬 Q&A Travel Assistant</h3>
+          <p class="modal-subtitle">Instant verified answers for your destination.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-qa-close">✕</button>
+      </div>
+
+      <div class="qa-quick-questions">
+        <button type="button" class="qa-q-btn" onclick="handleQaQuestion('dress_code')">👗 What is the temple dress code?</button>
+        <button type="button" class="qa-q-btn" onclick="handleQaQuestion('peak_hours')">⏰ What are peak crowd hours?</button>
+        <button type="button" class="qa-q-btn" onclick="handleQaQuestion('cab_costs')">🚕 How much are local cabs?</button>
+        <button type="button" class="qa-q-btn" onclick="handleQaQuestion('monsoon')">🌧️ What if it rains heavily?</button>
+      </div>
+
+      <div class="qa-answer-box" id="qa-answer-box">
+        <div class="qa-placeholder">Select a question above or ask anything about your trip.</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ================================================================= -->
   <!-- MODAL: BEFORE / AFTER DIFF PREVIEW & APPROVAL                     -->
@@ -392,115 +473,171 @@
           <h3 id="diff-modal-title">Review Proposed Adaptation</h3>
           <p class="modal-subtitle">Evaluate the algorithmic impact before applying changes to your live plan.</p>
         </div>
-        <button class="modal-close-btn" id="btn-diff-close">✕</button>
+        <button type="button" class="modal-close-btn" id="btn-diff-close">✕</button>
       </div>
 
       <div class="diff-rationale-box">
         <span class="diff-rationale-icon">💡</span>
         <div>
-          <strong>AI Adaptation Rationale:</strong>
-          <p id="diff-modal-rationale">Analyzing proposed changes...</p>
+          <strong id="diff-rationale-heading">Optimization Rationale</strong>
+          <p id="diff-rationale-text">Route modified to eliminate unnecessary transit backtracking.</p>
         </div>
       </div>
 
-      <!-- Metric Deltas -->
-      <div class="diff-stats-grid" id="diff-stats-container">
-        <!-- Rendered dynamically -->
+      <div class="diff-stats-grid">
+        <div class="diff-stat-card">
+          <span class="diff-stat-label">Commute Saved</span>
+          <strong class="diff-stat-val positive" id="diff-val-dist">-3.4 km</strong>
+        </div>
+        <div class="diff-stat-card">
+          <span class="diff-stat-label">Cab Drive Time</span>
+          <strong class="diff-stat-val positive" id="diff-val-time">-14 mins</strong>
+        </div>
+        <div class="diff-stat-card">
+          <span class="diff-stat-label">Budget Variance</span>
+          <strong class="diff-stat-val neutral" id="diff-val-cost">₹0</strong>
+        </div>
+        <div class="diff-stat-card">
+          <span class="diff-stat-label">Conflicts Resolved</span>
+          <strong class="diff-stat-val positive" id="diff-val-conflicts">2 Resolved</strong>
+        </div>
       </div>
 
-      <!-- Day-by-Day Before vs After List -->
-      <div class="diff-days-scroll" id="diff-days-container">
-        <!-- Rendered dynamically -->
+      <div class="diff-comparison-grid">
+        <div class="diff-col before">
+          <div class="diff-col-header">
+            <h4>Original Plan</h4>
+          </div>
+          <div class="diff-list" id="diff-list-before"></div>
+        </div>
+
+        <div class="diff-col after">
+          <div class="diff-col-header">
+            <h4>Proposed Adaptation</h4>
+          </div>
+          <div class="diff-list" id="diff-list-after"></div>
+        </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-ghost" id="btn-diff-cancel">Cancel & Keep Current Plan</button>
-        <button class="btn btn-primary" id="btn-diff-approve">
-          <span>✅ Approve & Apply Adaptation</span>
-        </button>
+      <div class="modal-footer-actions">
+        <button type="button" class="btn btn-secondary" id="btn-diff-cancel">✕ Discard Proposed Change</button>
+        <button type="button" class="btn btn-primary" id="btn-diff-approve">✓ Approve & Apply to Trip</button>
       </div>
     </div>
   </div>
 
   <!-- ================================================================= -->
-  <!-- MODAL: IN-APP IMPACT & OPTIMIZATION METRICS                       -->
+  <!-- MODAL: ADD CUSTOM STOP                                            -->
   <!-- ================================================================= -->
-  <div id="impact-metrics-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-box">
+  <div id="add-activity-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box add-stop-modal-box">
       <div class="modal-header">
         <div>
-          <h3>📊 Trip Optimization & Impact Panel</h3>
-          <p class="modal-subtitle">Mathematical benchmarks, transit distance metrics, and constraint checks.</p>
+          <h3>+ Add Stop to Itinerary</h3>
+          <p class="modal-subtitle">Pick from curated regional attractions or create a custom place.</p>
         </div>
-        <button class="modal-close-btn" id="btn-metrics-close">✕</button>
+        <button type="button" class="modal-close-btn" id="btn-add-act-close">✕</button>
       </div>
 
-      <div id="impact-metrics-content" class="modal-body">
-        <!-- Rendered dynamically -->
+      <div class="add-stop-tabs">
+        <button type="button" class="tab-btn active" id="tab-btn-curated">Curated Destinations</button>
+        <button type="button" class="tab-btn" id="tab-btn-custom">Custom Activity</button>
+      </div>
+
+      <div id="add-tab-curated" class="add-tab-content">
+        <div class="curated-places-grid" id="curated-places-list"></div>
+      </div>
+
+      <div id="add-tab-custom" class="add-tab-content" style="display: none;">
+        <form id="form-custom-activity">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="custom-act-name">Place / Activity Name</label>
+              <input type="text" id="custom-act-name" class="input-control" placeholder="e.g. Nahargarh Stepwell Cafe" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custom-act-cost">Cost per person (₹ INR)</label>
+              <input type="number" id="custom-act-cost" class="input-control" value="250" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custom-act-category">Category</label>
+              <select id="custom-act-category" class="input-control">
+                <option value="culture">🏛️ Culture & Heritage</option>
+                <option value="nature">🌿 Nature & Scenic</option>
+                <option value="food">🍛 Food & Dining</option>
+                <option value="adventure">🧗 Adventure & Sports</option>
+                <option value="wellness">🧘 Wellness & Spa</option>
+                <option value="shopping">🛍️ Shopping & Bazaars</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custom-act-slot">Time Preference</label>
+              <select id="custom-act-slot" class="input-control">
+                <option value="morning">Morning (09:00 AM)</option>
+                <option value="afternoon">Afternoon (02:00 PM)</option>
+                <option value="evening">Evening (06:00 PM)</option>
+                <option value="night">Night (08:30 PM)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label" for="custom-act-desc">Description / Notes</label>
+            <input type="text" id="custom-act-desc" class="input-control" placeholder="e.g. Try special masala chai and watch the sunset">
+          </div>
+          <div class="modal-footer-actions">
+            <button type="submit" class="btn btn-primary full-width">Add to Selected Day</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <!-- ================================================================= -->
-  <!-- MODAL: AI SETTINGS & LLM CONFIGURATION                            -->
+  <!-- MODAL: AI SETTINGS & PROVIDER CONFIGURATION                       -->
   <!-- ================================================================= -->
   <div id="ai-settings-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-box">
+    <div class="modal-box ai-modal-box">
       <div class="modal-header">
         <div>
-          <h3>⚙️ AI Co-Pilot Configuration</h3>
-          <p class="modal-subtitle">Connect a live LLM endpoint or use the built-in deterministic intent engine.</p>
+          <h3>⚙️ AI Provider & LLM Engine Settings</h3>
+          <p class="modal-subtitle">Configure OpenAI, Groq, OpenRouter, or built-in deterministic proxy.</p>
         </div>
-        <button class="modal-close-btn" id="btn-ai-settings-close">✕</button>
+        <button type="button" class="modal-close-btn" id="btn-ai-settings-close">✕</button>
       </div>
 
-      <form id="form-ai-settings" class="modal-body">
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label class="form-label" for="ai-provider-select">AI Provider</label>
+      <form id="form-ai-settings">
+        <div class="form-group">
+          <label class="form-label" for="ai-provider-select">AI Mode / Provider</label>
           <select id="ai-provider-select" class="input-control">
-            <option value="builtin_fallback">Built-in Tokenized Engine (Zero API Key Needed)</option>
-            <option value="openai">OpenAI (GPT-4o-mini / GPT-4o)</option>
-            <option value="groq">Groq (Llama-3-70b-versatile)</option>
-            <option value="openrouter">OpenRouter / Any Compatible API</option>
-            <option value="custom">Custom Proxy / Cloudflare Worker Endpoint</option>
+            <option value="builtin_fallback">Deterministic Rules Engine (Zero Key / Fast)</option>
+            <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+            <option value="groq">Groq (Llama-3-70B-Fast)</option>
+            <option value="openrouter">OpenRouter (Multi-Model)</option>
+            <option value="custom">Custom Proxy / Hosted LLM Server</option>
           </select>
         </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label class="form-label" for="ai-api-key">API Key</label>
-          <input type="password" id="ai-api-key" class="input-control" placeholder="sk-... (saved securely in browser localStorage only)">
+        <div class="form-group" id="ai-key-group">
+          <label class="form-label" for="ai-api-key">API Key (Saved in Session Only)</label>
+          <input type="password" id="ai-api-key" class="input-control" placeholder="sk-...">
         </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
+        <div class="form-group">
           <label class="form-label" for="ai-model-name">Model Name</label>
-          <input type="text" id="ai-model-name" class="input-control" value="gpt-4o-mini" placeholder="e.g. gpt-4o-mini, llama-3.1-70b">
+          <input type="text" id="ai-model-name" class="input-control" value="gpt-4o-mini">
         </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label class="form-label" for="ai-endpoint-url">API Endpoint</label>
-          <input type="url" id="ai-endpoint-url" class="input-control" value="https://api.openai.com/v1/chat/completions">
+        <div class="form-group">
+          <label class="form-label" for="ai-endpoint-url">API Endpoint URL</label>
+          <input type="text" id="ai-endpoint-url" class="input-control" value="https://api.openai.com/v1/chat/completions">
         </div>
 
-        <div class="modal-footer" style="padding-top: 14px; border-top: 1px solid var(--border-subtle);">
-          <button type="submit" class="btn btn-primary full-width">Save AI Configuration</button>
+        <div class="modal-footer-actions">
+          <button type="submit" class="btn btn-primary full-width">Save AI Settings</button>
         </div>
       </form>
     </div>
   </div>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    <div class="container footer-inner">
-      <div class="footer-left">
-        <p><strong>TravelPilot 🇮🇳</strong> — Production AI Trip Planner & Route Optimizer for India.</p>
-        <p class="footer-sub">Bounded Autonomy AI Layer + Hybrid TSP Geometric Optimizer. Licensed under MIT.</p>
-      </div>
-      <div class="footer-links">
-        <a href="https://github.com/September-dot/TravelPilot" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a>
-        <a href="https://github.com/September-dot/TravelPilot/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
-      </div>
-    </div>
-  </footer>
 
   <!-- Scripts -->
   <script src="data.js"></script>
