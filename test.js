@@ -9,9 +9,6 @@
  * 5. Disruption Swap ID Exclusion & Delay Buffer Verification
  */
 
-const fs = require('fs');
-const vm = require('vm');
-
 // 1. Setup Robust DOM Proxy Stub
 function createDomProxy() {
   const handler = {
@@ -35,44 +32,90 @@ function createDomProxy() {
 
 const domStub = createDomProxy();
 
-const sandbox = {
-  console: console,
-  document: {
+let sandbox;
+if (typeof require !== 'undefined') {
+  const fs = require('fs');
+  const vm = require('vm');
+  sandbox = {
+    console: console,
+    document: {
+      addEventListener: () => {},
+      getElementById: () => domStub,
+      querySelector: () => domStub,
+      querySelectorAll: () => [],
+      createElement: () => domStub,
+      body: domStub
+    },
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    setTimeout: (fn) => (typeof fn === 'function' ? fn() : null),
+    window: { addEventListener: () => {}, location: { hash: '', origin: 'http://localhost', pathname: '/', protocol: 'http:' } },
+    navigator: { clipboard: { writeText: () => Promise.resolve() }, serviceWorker: { register: () => Promise.resolve() } },
+    Date: Date,
+    Math: Math,
+    JSON: JSON,
+    Number: Number,
+    String: String,
+    Set: Set,
+    Array: Array,
+    RegExp: RegExp,
+    btoa: (str) => Buffer.from(str).toString('base64'),
+    atob: (b64) => Buffer.from(b64, 'base64').toString('utf8'),
+    encodeURIComponent: encodeURIComponent,
+    decodeURIComponent: decodeURIComponent
+  };
+
+  const dataCode = fs.readFileSync(__dirname + '/data.js', 'utf8');
+  const appCode = fs.readFileSync(__dirname + '/app.js', 'utf8');
+
+  vm.createContext(sandbox);
+  vm.runInContext(dataCode, sandbox);
+  vm.runInContext(appCode, sandbox);
+
+  sandbox.DESTINATIONS_DATA = vm.runInContext('DESTINATIONS_DATA', sandbox);
+  sandbox.state = vm.runInContext('state', sandbox);
+  sandbox.parseIntentWithRuleFallback = vm.runInContext('parseIntentWithRuleFallback', sandbox);
+  sandbox.optimizeDayPath = vm.runInContext('optimizeDayPath', sandbox);
+  sandbox.calculatePathDistance = vm.runInContext('calculatePathDistance', sandbox);
+  sandbox.buildItinerary = vm.runInContext('buildItinerary', sandbox);
+  sandbox.generateItinerary = vm.runInContext('generateItinerary', sandbox);
+  sandbox.applyDisruptionScenario = vm.runInContext('applyDisruptionScenario', sandbox);
+  sandbox.applyPendingDiff = vm.runInContext('applyPendingDiff', sandbox);
+  sandbox.performUndo = vm.runInContext('performUndo', sandbox);
+} else {
+  // macOS JSC environment
+  var console = { log: print, error: print, warn: print, info: print };
+  var document = {
     addEventListener: () => {},
     getElementById: () => domStub,
     querySelector: () => domStub,
     querySelectorAll: () => [],
     createElement: () => domStub,
     body: domStub
-  },
-  localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-  sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-  setTimeout: setTimeout,
-  window: { addEventListener: () => {}, location: { hash: '', origin: 'http://localhost', pathname: '/' } },
-  navigator: { clipboard: { writeText: () => Promise.resolve() }, serviceWorker: { register: () => Promise.resolve() } },
-  Date: Date,
-  Math: Math,
-  JSON: JSON,
-  Number: Number,
-  String: String,
-  Set: Set,
-  Array: Array,
-  RegExp: RegExp,
-  btoa: (str) => Buffer.from(str).toString('base64'),
-  atob: (b64) => Buffer.from(b64, 'base64').toString('utf8'),
-  encodeURIComponent: encodeURIComponent,
-  decodeURIComponent: decodeURIComponent
-};
+  };
+  var window = { addEventListener: () => {}, location: { hash: '', origin: 'http://localhost', pathname: '/', protocol: 'http:' } };
+  var localStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  var sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  var navigator = { clipboard: { writeText: () => Promise.resolve() }, serviceWorker: { register: () => Promise.resolve() } };
+  var setTimeout = (fn) => (typeof fn === 'function' ? fn() : null);
+  var process = { exit: (code) => { if (code !== 0) throw new Error('Test exited with code ' + code); } };
 
-const dataCode = fs.readFileSync(__dirname + '/data.js', 'utf8');
-const appCode = fs.readFileSync(__dirname + '/app.js', 'utf8');
+  load('data.js');
+  load('app.js');
 
-vm.createContext(sandbox);
-vm.runInContext(dataCode, sandbox);
-vm.runInContext(appCode, sandbox);
-
-sandbox.DESTINATIONS_DATA = vm.runInContext('DESTINATIONS_DATA', sandbox);
-sandbox.state = vm.runInContext('state', sandbox);
+  sandbox = {
+    DESTINATIONS_DATA: DESTINATIONS_DATA,
+    state: state,
+    parseIntentWithRuleFallback: parseIntentWithRuleFallback,
+    optimizeDayPath: optimizeDayPath,
+    calculatePathDistance: calculatePathDistance,
+    buildItinerary: buildItinerary,
+    generateItinerary: generateItinerary,
+    applyDisruptionScenario: applyDisruptionScenario,
+    applyPendingDiff: applyPendingDiff,
+    performUndo: performUndo
+  };
+}
 
 let totalPassed = 0;
 let totalFailed = 0;
@@ -99,16 +142,16 @@ console.log('--- 1. AI Co-Pilot Intent Parser: Tuning Set (25 Prompts) ---');
 const tuningSet = [
   { text: "my train is delayed", expected: ["traffic_delay"], forbidden: ["weather_rain"], desc: "Train delay without false rain trigger" },
   { text: "train delay by 2 hours", expected: ["traffic_delay"], forbidden: ["weather_rain"], desc: "Train delay with duration" },
-  { text: "taking the morning train", expected: ["reroute_optimize"], forbidden: ["traffic_delay", "weather_rain"], desc: "Neutral train travel without delay words" },
+  { text: "taking the morning train", expected: [], forbidden: ["traffic_delay", "weather_rain"], desc: "Neutral train travel without delay words" },
   { text: "it is pouring rain outside", expected: ["weather_rain"], forbidden: [], desc: "Pouring rain" },
   { text: "heavy monsoon downpour in goa", expected: ["weather_rain"], forbidden: [], desc: "Monsoon downpour" },
   { text: "streets are waterlogged, need indoor havelis", expected: ["weather_rain"], forbidden: [], desc: "Waterlogged streets" },
   { text: "stormy wet weather", expected: ["weather_rain"], forbidden: [], desc: "Stormy wet weather" },
   { text: "we are drenched in rain", expected: ["weather_rain"], forbidden: [], desc: "Drenched in rain" },
-  { text: "it is not raining keep outdoor sights", expected: ["reroute_optimize"], forbidden: ["weather_rain"], desc: "Clause negation: not raining" },
-  { text: "no delay today, on time", expected: ["reroute_optimize"], forbidden: ["traffic_delay"], desc: "Clause negation: no delay" },
-  { text: "don't want indoor museums", expected: ["reroute_optimize"], forbidden: ["weather_rain"], desc: "Clause negation: don't want indoor" },
-  { text: "not tired at all", expected: ["reroute_optimize"], forbidden: ["fatigue_chill"], desc: "Clause negation: not tired" },
+  { text: "it is not raining keep outdoor sights", expected: [], forbidden: ["weather_rain"], desc: "Clause negation: not raining" },
+  { text: "no delay today, on time", expected: [], forbidden: ["traffic_delay"], desc: "Clause negation: no delay" },
+  { text: "don't want indoor museums", expected: [], forbidden: ["weather_rain"], desc: "Clause negation: don't want indoor" },
+  { text: "not tired at all", expected: [], forbidden: ["fatigue_chill"], desc: "Clause negation: not tired" },
   { text: "our flight is delayed by 3 hours", expected: ["traffic_delay"], forbidden: [], desc: "Flight delay" },
   { text: "stuck in heavy highway traffic", expected: ["traffic_delay"], forbidden: [], desc: "Highway traffic" },
   { text: "we are completely exhausted from the flight", expected: ["fatigue_chill"], forbidden: [], desc: "Exhausted" },
@@ -127,8 +170,8 @@ const tuningSet = [
 let tuningPassed = 0;
 tuningSet.forEach((tc, idx) => {
   const res = sandbox.parseIntentWithRuleFallback(tc.text);
-  const detected = res.intents;
-  const hasExpected = tc.expected.every(e => detected.includes(e));
+  const detected = res ? res.intents : [];
+  const hasExpected = tc.expected.length === 0 ? detected.length === 0 : tc.expected.every(e => detected.includes(e));
   const hasForbidden = tc.forbidden.some(f => detected.includes(f));
   const pass = hasExpected && !hasForbidden;
 
@@ -148,7 +191,7 @@ const heldOutSet = [
   // 1. Scoped negation: "no worries, it's pouring" (Earlier clause has "no", but "pouring" is positive intent)
   { text: "no worries, it's pouring rain outside", expected: ["weather_rain"], forbidden: [], desc: "Scoped negation: no worries + pouring" },
   // 2. Scoped negation: "we aren't delayed, just want lunch"
-  { text: "we aren't delayed, just want lunch", expected: ["reroute_optimize"], forbidden: ["traffic_delay"], desc: "Scoped negation: aren't delayed" },
+  { text: "we aren't delayed, just want lunch", expected: [], forbidden: ["traffic_delay"], desc: "Scoped negation: aren't delayed" },
   // 3. Train + stuck context
   { text: "stuck on train due to signal jam", expected: ["traffic_delay"], forbidden: ["weather_rain"], desc: "Train stuck" },
   // 4. Train + cancelled context
@@ -158,9 +201,9 @@ const heldOutSet = [
   // 6. "Over budget" maps to budget_low
   { text: "we are way over budget, cut costs", expected: ["budget_low"], forbidden: [], desc: "Over budget -> budget_low" },
   // 7. "Free time" should NOT trigger budget_low
-  { text: "give us some free time in the afternoon", expected: ["reroute_optimize"], forbidden: ["budget_low"], desc: "Free time is not free sights" },
+  { text: "give us some free time in the afternoon", expected: [], forbidden: ["budget_low"], desc: "Free time is not free sights" },
   // 8. "Royal palace" should be sightseeing, NOT luxury unless splurge/luxury requested
-  { text: "we want to visit the royal palace monuments", expected: ["reroute_optimize"], forbidden: ["budget_luxury"], desc: "Royal palace sightseeing" },
+  { text: "we want to visit the royal palace monuments", expected: [], forbidden: ["budget_luxury"], desc: "Royal palace sightseeing" },
   // 9. Luxury splurge with gourmet dining
   { text: "treat us to exclusive gourmet dining and private boat cruise", expected: ["budget_luxury"], forbidden: ["budget_low"], desc: "Gourmet + private cruise" },
   // 10. Multi-intent: stuck in traffic and broke
@@ -188,9 +231,9 @@ const heldOutSet = [
   // 21. Eliminate travel commute
   { text: "eliminate long commute between stops", expected: ["reroute_optimize"], forbidden: ["weather_rain"], desc: "Eliminate commute" },
   // 22. Drain / drainage isolation
-  { text: "drainage cleaning on main road", expected: ["reroute_optimize"], forbidden: ["weather_rain"], desc: "Drainage word isolation" },
+  { text: "drainage cleaning on main road", expected: [], forbidden: ["weather_rain"], desc: "Drainage word isolation" },
   // 23. Brainstorming isolation
-  { text: "brainstorming evening options", expected: ["reroute_optimize"], forbidden: ["weather_rain"], desc: "Brainstorming isolation" },
+  { text: "brainstorming evening options", expected: [], forbidden: ["weather_rain"], desc: "Brainstorming isolation" },
   // 24. Negation with but: "not raining now but we are late"
   { text: "it's not raining now but our cab is late", expected: ["traffic_delay"], forbidden: ["weather_rain"], desc: "Clause split: not raining but late" },
   // 25. Negation with comma: "without delay, let's relax"
@@ -200,8 +243,8 @@ const heldOutSet = [
 let heldOutPassed = 0;
 heldOutSet.forEach((tc, idx) => {
   const res = sandbox.parseIntentWithRuleFallback(tc.text);
-  const detected = res.intents;
-  const hasExpected = tc.expected.every(e => detected.includes(e));
+  const detected = res ? res.intents : [];
+  const hasExpected = tc.expected.length === 0 ? detected.length === 0 : tc.expected.every(e => detected.includes(e));
   const hasForbidden = tc.forbidden.some(f => detected.includes(f));
   const pass = hasExpected && !hasForbidden;
 

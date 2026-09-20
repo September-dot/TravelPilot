@@ -1,12 +1,18 @@
 {
-  "name": "TravelPilot India",
+  "name": "TravelPilot India - Intelligent Dynamic Itinerary Engine",
   "short_name": "TravelPilot",
   "description": "Bounded Autonomy AI Trip Planner & Route Optimizer for India",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#fbfaf8",
+  "background_color": "#090d16",
   "theme_color": "#ea580c",
   "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "https://img.icons8.com/color/192/compass--v1.png",
       "sizes": "192x192",

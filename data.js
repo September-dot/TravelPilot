@@ -52,7 +52,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           },
           {
             id: "jpr-alt-2",
@@ -67,7 +68,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: [1]
           },
           {
             id: "jpr-alt-3",
@@ -82,7 +84,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "premium"
+            costTier: "premium",
+            closedDays: []
           },
           {
             id: "jpr-alt-4",
@@ -97,7 +100,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           }
         ]
       },
@@ -123,7 +127,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "premium"
+            costTier: "premium",
+            closedDays: []
           },
           {
             id: "jpr-alt-6",
@@ -138,7 +143,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "premium"
+            costTier: "premium",
+            closedDays: []
           }
         ]
       }
@@ -157,7 +163,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "jpr-2",
@@ -172,7 +179,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "jpr-3",
@@ -187,7 +195,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "jpr-4",
@@ -202,7 +211,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "moderate",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "jpr-5",
@@ -217,7 +227,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "jpr-6",
@@ -232,7 +243,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "jpr-7",
@@ -247,7 +259,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "night",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "jpr-8",
@@ -262,7 +275,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "jpr-9",
@@ -277,7 +291,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "jpr-10",
@@ -292,7 +307,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "night",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "jpr-11",
@@ -307,7 +323,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "jpr-12",
@@ -322,7 +339,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       }
     ]
   },
@@ -370,7 +388,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: [1]
           },
           {
             id: "goa-alt-2",
@@ -385,7 +404,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: [1]
           },
           {
             id: "goa-alt-3",
@@ -400,7 +420,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "goa-alt-4",
@@ -415,7 +436,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       },
@@ -441,7 +463,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "premium"
+            costTier: "premium",
+            closedDays: []
           },
           {
             id: "goa-alt-6",
@@ -456,7 +479,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       }
@@ -475,7 +499,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "goa-2",
@@ -490,7 +515,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: false,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "goa-3",
@@ -505,7 +531,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "goa-4",
@@ -520,7 +547,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "goa-5",
@@ -535,7 +563,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "goa-6",
@@ -550,7 +579,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "goa-7",
@@ -565,7 +595,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "goa-8",
@@ -580,7 +611,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "goa-9",
@@ -595,7 +627,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "goa-10",
@@ -610,7 +643,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "goa-11",
@@ -625,7 +659,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "night",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       }
     ]
   },
@@ -672,7 +707,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "mnl-alt-2",
@@ -687,7 +723,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "mnl-alt-3",
@@ -702,7 +739,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           },
           {
             id: "mnl-alt-4",
@@ -717,7 +755,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       },
@@ -743,7 +782,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "mnl-alt-6",
@@ -758,7 +798,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       }
@@ -777,7 +818,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: false,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "mnl-2",
@@ -792,7 +834,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "mnl-3",
@@ -807,7 +850,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "mnl-4",
@@ -822,7 +866,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "mnl-5",
@@ -837,7 +882,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "mnl-6",
@@ -852,7 +898,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "mnl-7",
@@ -867,7 +914,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "mnl-8",
@@ -882,7 +930,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "mnl-9",
@@ -897,7 +946,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "mnl-10",
@@ -912,7 +962,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "mnl-11",
@@ -927,7 +978,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       }
     ]
   },
@@ -974,7 +1026,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: [1]
           },
           {
             id: "ker-alt-2",
@@ -989,7 +1042,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "premium"
+            costTier: "premium",
+            closedDays: [1]
           },
           {
             id: "ker-alt-3",
@@ -1004,7 +1058,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           },
           {
             id: "ker-alt-4",
@@ -1019,7 +1074,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       },
@@ -1045,7 +1101,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "premium"
+            costTier: "premium",
+            closedDays: []
           },
           {
             id: "ker-alt-6",
@@ -1060,7 +1117,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       }
@@ -1079,7 +1137,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "ker-2",
@@ -1094,7 +1153,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "ker-3",
@@ -1109,7 +1169,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "ker-4",
@@ -1124,7 +1185,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "ker-5",
@@ -1139,7 +1201,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "ker-6",
@@ -1154,7 +1217,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: [5]
       },
       {
         id: "ker-7",
@@ -1169,7 +1233,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "ker-8",
@@ -1184,7 +1249,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "ker-9",
@@ -1199,7 +1265,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "ker-10",
@@ -1214,7 +1281,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "ker-11",
@@ -1229,7 +1297,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       }
     ]
   },
@@ -1276,7 +1345,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "rsh-alt-2",
@@ -1291,7 +1361,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           },
           {
             id: "rsh-alt-3",
@@ -1306,7 +1377,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "rsh-alt-4",
@@ -1321,7 +1393,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       },
@@ -1347,7 +1420,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: true,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "rsh-alt-6",
@@ -1362,7 +1436,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       }
@@ -1381,7 +1456,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "rsh-2",
@@ -1396,7 +1472,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "rsh-3",
@@ -1411,7 +1488,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "rsh-4",
@@ -1426,7 +1504,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "rsh-5",
@@ -1441,7 +1520,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "rsh-6",
@@ -1456,7 +1536,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "rsh-7",
@@ -1471,7 +1552,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "rsh-8",
@@ -1486,7 +1568,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "high",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "rsh-9",
@@ -1501,7 +1584,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "rsh-10",
@@ -1516,7 +1600,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "rsh-11",
@@ -1531,7 +1616,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "night",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       }
     ]
   },
@@ -1578,7 +1664,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           },
           {
             id: "udp-alt-2",
@@ -1593,7 +1680,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "udp-alt-3",
@@ -1608,7 +1696,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           },
           {
             id: "udp-alt-4",
@@ -1623,7 +1712,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "morning",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           }
         ]
       },
@@ -1649,7 +1739,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "afternoon",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "budget"
+            costTier: "budget",
+            closedDays: []
           },
           {
             id: "udp-alt-6",
@@ -1664,7 +1755,8 @@ const DESTINATIONS_DATA = {
             slotPreference: "evening",
             weatherSensitive: false,
             exertionLevel: "low",
-            costTier: "moderate"
+            costTier: "moderate",
+            closedDays: []
           }
         ]
       }
@@ -1683,7 +1775,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: false,
         exertionLevel: "moderate",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "udp-2",
@@ -1698,7 +1791,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "moderate"
+        costTier: "moderate",
+        closedDays: []
       },
       {
         id: "udp-3",
@@ -1713,7 +1807,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "udp-4",
@@ -1728,7 +1823,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "night",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "udp-5",
@@ -1743,7 +1839,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "udp-6",
@@ -1758,7 +1855,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "udp-7",
@@ -1773,7 +1871,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "morning",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "udp-8",
@@ -1788,7 +1887,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: true,
         exertionLevel: "moderate",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "udp-9",
@@ -1803,7 +1903,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       },
       {
         id: "udp-10",
@@ -1818,7 +1919,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "afternoon",
         weatherSensitive: false,
         exertionLevel: "low",
-        costTier: "premium"
+        costTier: "premium",
+        closedDays: []
       },
       {
         id: "udp-11",
@@ -1833,7 +1935,8 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "low",
-        costTier: "budget"
+        costTier: "budget",
+        closedDays: []
       }
     ]
   }

@@ -1,14 +1,15 @@
 /**
- * TravelPilot - Algorithmic Trip Planner & AI Route Optimizer for India
+ * TravelPilot - Production Algorithmic Trip Planner & AI Route Optimizer for India
  * 
- * Technical Architecture:
- *  - AI Co-Pilot: Bounded Autonomy Intent Parser (LLM + Clause-Scoped Negation Rule Fallback)
+ * Technical Highlights:
+ *  - AI Co-Pilot: Bounded Autonomy Intent Parser (LLM Layer + Clause-Scoped Negation Fallback)
+ *  - Fail-Safe UX: Suggestion chips ("Did you mean: Rain / Delay / Tired / Cheaper?") on ambiguous queries
  *  - Hybrid TSP Route Optimizer: Exact Permutations (n <= 7) & 2-Opt Local Search with Slot Penalties (n > 7)
- *  - Preview, Approve & Undo: Before/After Diff Modal, Dynamic Rationale, and Full Undo/Redo History Stack
+ *  - Pure Function Architecture: buildItinerary(params) for deterministic testing & explicit budget tiers
+ *  - Preview, Approve & Undo: Before/After Diff Modal, Dynamic Rationale, and Multi-Level Undo/Redo Stack
+ *  - Hotel Start Origin: Map-click hotel placement with before/after diff impact calculation
  *  - Proactive Live Weather Forecast: Open-Meteo REST API date range queries (start_date/end_date)
- *  - Pure Function Architecture: buildItinerary(params) for deterministic testing and budget regeneration
- *  - Map Click Hotel Origin: Click anywhere on map to set custom hotel starting location
- *  - RFC-5545 iCalendar Exporter: Properly escaped .ics generator with real scheduled slots
+ *  - Calendar & Sharing: Properly escaped .ics generator with index-computed slot times & shareable URL state
  *  - Security: SessionStorage for API keys & HTML entity sanitization (XSS Defense)
  */
 
@@ -22,8 +23,9 @@ let state = {
   totalBudget: 18000,
   startDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow's date
   selectedInterests: ["culture", "food", "nature"],
-  hotelOrigin: null, // Custom starting coordinates [lat, lon] or null for city center
+  hotelOrigin: null, // [lat, lon]
   hotelName: null,
+  isHotelPickerMode: false,
   activeDayTab: 0, // 0 for Day 1, -1 for "All Days"
   activeViewMode: "itinerary", // "itinerary" | "map" | "transit"
   itinerary: [],
@@ -38,7 +40,7 @@ let state = {
     model: "gpt-4o-mini"
   },
   liveForecast: null,
-  activePendingDiff: null // Holds proposed changes awaiting user approval in diff modal
+  activePendingDiff: null
 };
 
 let mapInstance = null;
@@ -53,7 +55,6 @@ const DAY_COLORS = ["#ea580c", "#4f46e5", "#059669", "#e11d48", "#d97706", "#7c3
 // 2. SECURITY, FORMATTING & CALENDAR UTILITIES
 // =============================================================================
 
-// Safe HTML escaping for all user-provided / editable text
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
   return String(str)
@@ -64,7 +65,6 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-// RFC-5545 iCalendar text escaping
 function escapeIcsText(str) {
   if (str === null || str === undefined) return "";
   return String(str)
@@ -74,7 +74,6 @@ function escapeIcsText(str) {
     .replace(/\n/g, "\\n");
 }
 
-// Geodesic Distance via Haversine Formula (in Kilometers)
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return 0;
   const R = 6371;
@@ -88,14 +87,12 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   return Number((R * c).toFixed(1));
 }
 
-// Estimate Drive/Cab Time in Minutes (urban/hill speed estimate ~25 km/h + 5m buffer)
 function estimateDriveTimeMin(distKm) {
   if (distKm <= 0.3) return 5;
   const driveMinutes = Math.round((distKm / 25) * 60) + 5;
   return Math.max(driveMinutes, 8);
 }
 
-// Calculate cumulative route distance for an array of activities
 function calculatePathDistance(activities, defaultCenter) {
   if (!activities || activities.length <= 1) return 0;
   let total = 0;
@@ -107,7 +104,6 @@ function calculatePathDistance(activities, defaultCenter) {
   return Number(total.toFixed(1));
 }
 
-// Slot Affinity Penalty Calculator
 function calculateSlotPenalty(activities) {
   if (!activities || activities.length <= 1) return 0;
   let penalty = 0;
@@ -125,12 +121,10 @@ function calculateSlotPenalty(activities) {
   return penalty;
 }
 
-// Total Route Cost (Distance + Slot Penalty)
 function calculateTotalRouteCost(activities, center) {
   return calculatePathDistance(activities, center) + calculateSlotPenalty(activities);
 }
 
-// Generate all permutations of an array (used only when n <= 7)
 function getPermutations(arr) {
   if (arr.length <= 1) return [arr];
   const result = [];
@@ -145,12 +139,11 @@ function getPermutations(arr) {
   return result;
 }
 
-// Nearest-Neighbour Heuristic with 2-Opt Local Search for larger lists (n > 7)
 function nearestNeighborWithTwoOpt(activities, defaultCenter) {
   if (activities.length <= 2) return activities;
   const center = defaultCenter || [26.9124, 75.7873];
   
-  // Step 1: Construct initial tour using Nearest-Neighbour Greedy Heuristic
+  // Greedy nearest neighbor construction
   const unvisited = [...activities];
   const tour = [unvisited.shift()];
   
@@ -171,7 +164,7 @@ function nearestNeighborWithTwoOpt(activities, defaultCenter) {
     tour.push(unvisited.splice(nearestIdx, 1)[0]);
   }
   
-  // Step 2: Refine tour using 2-Opt Local Search with Slot Penalties
+  // 2-Opt local search refinement with slot penalties
   let bestRoute = tour;
   let bestCost = calculateTotalRouteCost(bestRoute, center);
   let improved = true;
@@ -200,23 +193,26 @@ function nearestNeighborWithTwoOpt(activities, defaultCenter) {
   return bestRoute;
 }
 
-// Generate time slot dynamically from stop index
+// Generate time slot dynamically by index to remove 8 PM pile-ups
 function getTimeSlotForIndex(idx, isDelayed = false) {
-  const standardSlots = [
-    "Morning (09:00 AM)",
-    "Morning (11:30 AM)",
-    "Afternoon (02:00 PM)",
-    "Evening (05:30 PM)",
-    "Night (08:00 PM)"
-  ];
-  const delayedSlots = [
-    "Morning (10:30 AM)",
-    "Afternoon (02:30 PM)",
-    "Evening (05:30 PM)",
-    "Night (08:00 PM)"
-  ];
-  const template = isDelayed ? delayedSlots : standardSlots;
-  return template[Math.min(idx, template.length - 1)];
+  const standardHours = [9.0, 11.5, 14.0, 16.5, 18.5, 20.0, 21.5];
+  const delayedHours = [10.5, 13.0, 15.5, 17.5, 19.5, 21.0, 22.0];
+  const hours = isDelayed ? delayedHours : standardHours;
+  
+  let h;
+  if (idx < hours.length) {
+    h = hours[idx];
+  } else {
+    h = hours[hours.length - 1] + (idx - hours.length + 1) * 1.25;
+  }
+
+  const intH = Math.floor(h);
+  const min = Math.round((h - intH) * 60);
+  const period = intH >= 12 && intH < 24 ? "PM" : "AM";
+  const displayH = intH > 12 ? intH - 12 : (intH === 0 ? 12 : intH);
+  const label = intH < 12 ? "Morning" : (intH < 17 ? "Afternoon" : (intH < 20 ? "Evening" : "Night"));
+  
+  return `${label} (${String(displayH).padStart(2, "0")}:${String(min).padStart(2, "0")} ${period})`;
 }
 
 // =============================================================================
@@ -229,11 +225,13 @@ function pushStateToUndoHistory(actionName = "Itinerary Modification") {
     itinerary: JSON.parse(JSON.stringify(state.itinerary)),
     totalBudget: state.totalBudget,
     activeDisruption: state.activeDisruption,
+    hotelOrigin: state.hotelOrigin ? [...state.hotelOrigin] : null,
+    hotelName: state.hotelName,
     timestamp: Date.now()
   };
   state.undoStack.push(snapshot);
   if (state.undoStack.length > 20) state.undoStack.shift();
-  state.redoStack = []; // Clear redo stack on fresh action
+  state.redoStack = [];
   updateUndoRedoUI();
   saveToLocalStorage();
 }
@@ -248,6 +246,8 @@ function performUndo() {
     itinerary: JSON.parse(JSON.stringify(state.itinerary)),
     totalBudget: state.totalBudget,
     activeDisruption: state.activeDisruption,
+    hotelOrigin: state.hotelOrigin ? [...state.hotelOrigin] : null,
+    hotelName: state.hotelName,
     timestamp: Date.now()
   };
   state.redoStack.push(currentSnapshot);
@@ -256,6 +256,8 @@ function performUndo() {
   state.itinerary = JSON.parse(JSON.stringify(prev.itinerary));
   state.totalBudget = prev.totalBudget;
   state.activeDisruption = prev.activeDisruption;
+  state.hotelOrigin = prev.hotelOrigin;
+  state.hotelName = prev.hotelName;
 
   updateUndoRedoUI();
   saveToLocalStorage();
@@ -273,6 +275,8 @@ function performRedo() {
     itinerary: JSON.parse(JSON.stringify(state.itinerary)),
     totalBudget: state.totalBudget,
     activeDisruption: state.activeDisruption,
+    hotelOrigin: state.hotelOrigin ? [...state.hotelOrigin] : null,
+    hotelName: state.hotelName,
     timestamp: Date.now()
   };
   state.undoStack.push(currentSnapshot);
@@ -281,6 +285,8 @@ function performRedo() {
   state.itinerary = JSON.parse(JSON.stringify(next.itinerary));
   state.totalBudget = next.totalBudget;
   state.activeDisruption = next.activeDisruption;
+  state.hotelOrigin = next.hotelOrigin;
+  state.hotelName = next.hotelName;
 
   updateUndoRedoUI();
   saveToLocalStorage();
@@ -316,7 +322,6 @@ function optimizeDayPath(activities, defaultCenter, isDelayed = false) {
   let bestPermutation = activities;
 
   if (n <= 7) {
-    // Exact Permutation Solver for n <= 7 (Instantaneous <1ms)
     let minCost = Infinity;
     const allPerms = getPermutations(activities);
 
@@ -329,11 +334,9 @@ function optimizeDayPath(activities, defaultCenter, isDelayed = false) {
       }
     }
   } else {
-    // Fallback for n > 7: Nearest-Neighbor + 2-Opt Local Search with Slot Penalties
     bestPermutation = nearestNeighborWithTwoOpt(activities, center);
   }
 
-  // Assign clean chronological time slots based on the optimized order
   const result = bestPermutation.map((act, idx) => {
     const updated = { ...act };
     updated.timeSlot = getTimeSlotForIndex(idx, isDelayed);
@@ -343,7 +346,6 @@ function optimizeDayPath(activities, defaultCenter, isDelayed = false) {
   return result;
 }
 
-// Auto-reroute all days or target day using TSP optimizer
 function autoRerouteItinerary(targetDayIndex = -1, promptForApproval = true) {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const center = state.hotelOrigin || destInfo.centerCoords || [26.9124, 75.7873];
@@ -380,10 +382,9 @@ function autoRerouteItinerary(targetDayIndex = -1, promptForApproval = true) {
 }
 
 // =============================================================================
-// 5. PURE GENERATION FUNCTION & BUDGET-AWARE ENGINE
+// 5. PURE GENERATION FUNCTION & EXPLICIT BUDGET TIERS
 // =============================================================================
 
-// Pure itinerary generation function for clean testing & deterministic re-generation
 function buildItinerary({ destination, daysCount, totalBudget, selectedInterests, hotelOrigin }) {
   const destInfo = DESTINATIONS_DATA[destination] || DESTINATIONS_DATA.jaipur;
   const allPlaces = [...(destInfo.places || [])];
@@ -399,10 +400,10 @@ function buildItinerary({ destination, daysCount, totalBudget, selectedInterests
 
     const cost = Number(p.cost) || 0;
     if (targetDailyBudget < 2500) {
-      if (cost <= 250 || p.costTier === "budget") score += 5;
-      else if (cost > 1000 || p.costTier === "premium") score -= 8;
+      if (cost <= 250 || p.costTier === "budget") score += 6;
+      else if (cost > 900 || p.costTier === "premium") score -= 10;
     } else if (targetDailyBudget > 6000) {
-      if (cost >= 800 || p.costTier === "premium") score += 6;
+      if (cost >= 800 || p.costTier === "premium") score += 7;
       else if (cost === 0 && p.category !== "nature") score -= 2;
     } else {
       if (cost <= 750) score += 3;
@@ -456,9 +457,7 @@ function buildItinerary({ destination, daysCount, totalBudget, selectedInterests
     if (d === 1) dayTheme = `Day 1: Iconic Landmarks & First Impressions`;
     else if (d === 2) dayTheme = `Day 2: Heritage, Culture & Local Flavors`;
     else if (d === 3) dayTheme = `Day 3: Scenic Vistas & Sunset Magic`;
-    else if (d === 4) dayTheme = `Day 4: Adventure & Offbeat Trails`;
-    else if (d === 5) dayTheme = `Day 5: Artisan Bazaars & Wellness`;
-    else if (d >= 6) dayTheme = `Day ${d}: Extended Discovery & Leisure`;
+    else if (d >= 4) dayTheme = `Day ${d}: Extended Discovery & Leisure`;
 
     const optimizedActs = optimizeDayPath(dayActivities, startCoords);
 
@@ -497,10 +496,10 @@ function generateItinerary(pushHistory = true) {
 }
 
 // =============================================================================
-// 6. AI CO-PILOT (CLAUSE-SCOPED NEGATION PARSER & LLM LAYER)
+// 6. AI CO-PILOT: CLAUSE-SCOPED PARSER & FAIL-SAFE UX
 // =============================================================================
 
-const NEGATION_REGEX = /\b(not|no|never|without|don'?t|isn'?t|aren'?t|nothing)\b/i;
+const NEGATION_REGEX = /\b(not|no|never|without|don'?t|isn'?t|aren'?t|wasn'?t|weren'?t|can'?t|couldn'?t|won'?t|nothing)\b/i;
 
 function hasIntentMatch(text, patternRegex) {
   for (const m of text.matchAll(new RegExp(patternRegex.source, 'gi'))) {
@@ -512,7 +511,6 @@ function hasIntentMatch(text, patternRegex) {
   return false;
 }
 
-// Scoped negation & context-aware rule fallback
 function parseIntentWithRuleFallback(promptText) {
   if (!promptText || !promptText.trim()) return null;
   const text = promptText.toLowerCase();
@@ -535,28 +533,43 @@ function parseIntentWithRuleFallback(promptText) {
   const isChill = hasIntentMatch(text, /\b(tired|exhausted|exhaust|chill|relax|relaxing|spa|massage|rest|wellness|slow down|leisure|gentle)\b/);
   if (isChill) intents.push("fatigue_chill");
 
-  // Intent 4: Budget Low ("too expensive", "cheap", "free sights", excluding "free time")
-  const hasFreeSights = hasIntentMatch(text, /\bfree\b/) && !/\bfree\s+(time|schedule|day|hours?)\b/i.test(text);
-  const isTightBudget = hasIntentMatch(text, /\b(tight budget|cheap|low budget|save money|street food|broke|economical|too expensive|over budget|budget cut|cheaper)\b/) || hasFreeSights;
-  if (isTightBudget) {
+  // Intent 4: Budget Low ("too expensive", "way too pricey", "cut costs", "cheap", "free sights")
+  // Exclude "free breakfast", "free wifi", "free parking", "free time"
+  const isExcludedFree = /\bfree\s+(breakfast|wifi|parking|cancellation|time|schedule|day|hours?)\b/i.test(text);
+  const hasFreeSights = hasIntentMatch(text, /\bfree\b/) && !isExcludedFree;
+  const isPriceSensitive = hasIntentMatch(text, /\b(tight budget|cheap|low budget|save money|street food|broke|economical|too expensive|way too pricey|over budget|budget cut|cheaper|cut costs|can'?t afford)\b/);
+  
+  if (isPriceSensitive || hasFreeSights) {
     intents.push("budget_low");
-    constraints.budgetScale = 0.6;
+    constraints.dailyBudgetTier = 1800; // Explicit budget tier: ₹1,800/day
   }
 
   // Intent 5: Luxury Upgrade ("splurge", "luxury", "5 star", "high tea")
   const isLuxury = hasIntentMatch(text, /\b(luxury|splurge|5 star|five star|vip|high tea|private cruise|fine dining|gourmet)\b/);
   if (isLuxury) {
     intents.push("budget_luxury");
-    constraints.budgetScale = 1.5;
+    constraints.dailyBudgetTier = 8500; // Explicit luxury tier: ₹8,500/day
   }
 
-  // Intent 6: Reset
-  const isReset = hasIntentMatch(text, /\b(reset|start over|restart|undo all|baseline)\b/);
+  // Intent 6: Reset ("original plan", "baseline plan", "baseline schedule", "start over", "reset")
+  const isReset = hasIntentMatch(text, /\b(reset|start\s+over|restart|undo\s+all|baseline\s+(plan|schedule)|original\s+plan|back\s+to\s+start)\b/);
   if (isReset) intents.push("reset_plan");
 
+  // Intent 7: Route Optimization ("optimize route", "shortest route", "eliminate long commute")
+  const isReroute = hasIntentMatch(text, /\b(reroute|optimize(\s+route)?|shortest(\s+travel)?\s+route|efficient\s+route|eliminate(\s+long)?\s+commute)\b/);
+  if (isReroute) intents.push("reroute_optimize");
+
+  // If no clear intent matched, DO NOT guess or silently reroute. Return low confidence!
   if (intents.length === 0) {
-    intents.push("reroute_optimize");
-    confidence = 0.75;
+    return {
+      intents: [],
+      confidence: 0.0,
+      targetDays: [1, 2, 3],
+      constraints,
+      userSummary: "Ambiguous query. Showing clarifying suggestion chips.",
+      source: "tokenized_rule_fallback",
+      needsClarification: true
+    };
   }
 
   let userSummary = "";
@@ -569,13 +582,11 @@ function parseIntentWithRuleFallback(promptText) {
   } else if (intents.includes("fatigue_chill")) {
     userSummary = "Detected fatigue. Proposing relaxed pacing with royal tea lounges and wellness stops.";
   } else if (intents.includes("budget_low")) {
-    userSummary = "Detected economical budget request. Rebuilding plan with free heritage stepwells, walking tours, and street dining.";
+    userSummary = "Detected economical budget request. Rebuilding plan with free heritage stepwells, walking tours, and street dining (≤₹1,800/day tier).";
   } else if (intents.includes("budget_luxury")) {
-    userSummary = "Detected luxury upgrade request. Rebuilding plan with royal high tea, private boat cruises, and signature heritage dining.";
+    userSummary = "Detected luxury upgrade request. Rebuilding plan with royal high tea, private boat cruises, and signature heritage dining (₹8,500/day tier).";
   } else if (intents.includes("reset_plan")) {
     userSummary = "Detected request to restore baseline generated itinerary.";
-  } else {
-    userSummary = "Evaluating route geometry to minimize travel commute distance.";
   }
 
   return {
@@ -584,11 +595,11 @@ function parseIntentWithRuleFallback(promptText) {
     targetDays: [1, 2, 3],
     constraints,
     userSummary,
-    source: "tokenized_rule_fallback"
+    source: "tokenized_rule_fallback",
+    needsClarification: false
   };
 }
 
-// Real LLM API caller with structured JSON output and bounded autonomy
 async function callLlmIntentApi(promptText) {
   const sessionKey = sessionStorage.getItem("travelpilot_api_key") || state.llmConfig.apiKey;
 
@@ -600,15 +611,16 @@ async function callLlmIntentApi(promptText) {
 Convert the user's plain-English prompt into structured JSON ONLY.
 Output JSON schema:
 {
-  "intents": ["weather_rain" | "traffic_delay" | "fatigue_chill" | "budget_low" | "budget_luxury" | "reroute_optimize" | "reset_plan"],
+  "intents": ["weather_rain" | "traffic_delay" | "fatigue_chill" | "budget_low" | "budget_luxury" | "reset_plan"],
   "confidence": number (0.0 to 1.0),
   "targetDays": number[],
   "constraints": {
     "delayHours"?: number,
-    "budgetScale"?: number,
+    "dailyBudgetTier"?: number,
     "excludeOutdoor"?: boolean
   },
-  "userSummary": string
+  "userSummary": string,
+  "needsClarification": boolean
 }
 Do NOT include markdown backticks or explanations. Output pure JSON only.`;
 
@@ -635,22 +647,45 @@ Do NOT include markdown backticks or explanations. Output pure JSON only.`;
     const content = data.choices?.[0]?.message?.content;
     const parsed = JSON.parse(content);
 
-    const validIntents = ["weather_rain", "traffic_delay", "fatigue_chill", "budget_low", "budget_luxury", "reroute_optimize", "reset_plan"];
+    const validIntents = ["weather_rain", "traffic_delay", "fatigue_chill", "budget_low", "budget_luxury", "reset_plan"];
     const filteredIntents = (parsed.intents || []).filter(i => validIntents.includes(i));
 
     return {
-      intents: filteredIntents.length > 0 ? filteredIntents : ["reroute_optimize"],
-      confidence: parsed.confidence || 0.95,
+      intents: filteredIntents,
+      confidence: parsed.confidence || (filteredIntents.length > 0 ? 0.95 : 0.2),
       targetDays: parsed.targetDays || [1, 2, 3],
       constraints: parsed.constraints || {},
       userSummary: parsed.userSummary || "Parsed user intent via LLM.",
-      source: "llm_agent"
+      source: "llm_agent",
+      needsClarification: parsed.needsClarification || filteredIntents.length === 0
     };
   } catch (err) {
     console.warn("LLM API call failed, falling back to rule engine:", err);
     showToast("AI Fallback Active", "Used built-in intent engine (API unreachable).", "info");
     return parseIntentWithRuleFallback(promptText);
   }
+}
+
+// Render Clarification Banner when prompt is ambiguous
+function showAiClarificationPrompt(promptText) {
+  const container = document.getElementById("ai-reasoning-container");
+  const title = document.getElementById("ai-reasoning-title");
+  const text = document.getElementById("ai-reasoning-text");
+
+  if (!container || !text) return;
+
+  container.style.display = "flex";
+  if (title) title.textContent = "AI Clarification Required";
+  text.innerHTML = `
+    <span>I couldn't confidently detect a disruption scenario in <em>"${escapeHtml(promptText)}"</em>. Did you mean:</span>
+    <div class="copilot-prompts-row" style="margin-top:8px;">
+      <button type="button" class="copilot-chip" onclick="parseAndExecuteAiPrompt('pouring rain, move indoors')">🌧️ Rain Alert</button>
+      <button type="button" class="copilot-chip" onclick="parseAndExecuteAiPrompt('delayed by 2 hours, shorten day')">⏱️ Flight/Train Delay</button>
+      <button type="button" class="copilot-chip" onclick="parseAndExecuteAiPrompt('tired, switch to chill wellness mode')">😴 Tired / Relax</button>
+      <button type="button" class="copilot-chip" onclick="parseAndExecuteAiPrompt('too expensive, make it cheaper')">💰 Cheaper Budget</button>
+      <button type="button" class="copilot-chip" onclick="autoRerouteItinerary(-1)">⚡ Optimize Route Distance</button>
+    </div>
+  `;
 }
 
 // Execute AI Co-Pilot Adaptation (Bounded Autonomy with Preview Diff)
@@ -670,7 +705,11 @@ async function parseAndExecuteAiPrompt(promptText) {
     btnSubmit.innerHTML = `<span>⚡ Run AI Adaptation</span>`;
   }
 
-  if (!parsedPlan) return;
+  if (!parsedPlan || parsedPlan.needsClarification || parsedPlan.intents.length === 0) {
+    showAiClarificationPrompt(promptText);
+    showToast("Clarification Needed 🤔", "Please select what you'd like to adjust.", "info");
+    return;
+  }
 
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const startCoords = state.hotelOrigin || destInfo.centerCoords;
@@ -686,9 +725,9 @@ async function parseAndExecuteAiPrompt(promptText) {
       proposedDisruption = null;
     }
   } else {
-    // Budget intents: rebuild plan deterministically
+    // Explicit daily budget tiering
     if (intents.includes("budget_low")) {
-      draftBudget = Math.max(6000, Math.round(state.totalBudget * 0.6));
+      draftBudget = state.daysCount * 1800; // Explicit ₹1,800/day tier
       const rebuilt = buildItinerary({
         destination: state.destination,
         daysCount: state.daysCount,
@@ -698,7 +737,7 @@ async function parseAndExecuteAiPrompt(promptText) {
       });
       draftItinerary = rebuilt.days;
     } else if (intents.includes("budget_luxury")) {
-      draftBudget = Math.max(30000, Math.round(state.totalBudget * 1.5));
+      draftBudget = state.daysCount * 8500; // Explicit ₹8,500/day luxury tier
       const rebuilt = buildItinerary({
         destination: state.destination,
         daysCount: state.daysCount,
@@ -709,7 +748,7 @@ async function parseAndExecuteAiPrompt(promptText) {
       draftItinerary = rebuilt.days;
     }
 
-    // Rain handling: exclude already-used IDs
+    // Rain handling: exclude active IDs
     if (intents.includes("weather_rain")) {
       proposedDisruption = "rain";
       const plans = destInfo.contingencyPlans;
@@ -755,7 +794,7 @@ async function parseAndExecuteAiPrompt(promptText) {
       });
     }
 
-    // Fatigue / Chill handling: exclude already-used IDs
+    // Fatigue / Chill handling: exclude active IDs
     if (intents.includes("fatigue_chill")) {
       proposedDisruption = proposedDisruption || "chill";
       const plans = destInfo.contingencyPlans;
@@ -783,15 +822,6 @@ async function parseAndExecuteAiPrompt(promptText) {
           }
         });
       }
-    }
-
-    // TSP re-sequence
-    if (intents.includes("reroute_optimize") && !intents.includes("traffic_delay")) {
-      draftItinerary.forEach((day) => {
-        if (day.activities.length > 1) {
-          day.activities = optimizeDayPath(day.activities, startCoords);
-        }
-      });
     }
   }
 
@@ -900,7 +930,7 @@ function generateDynamicRationale(diff, baseSummary) {
   }
 
   if (diff.deltaCost !== 0) {
-    parts.push(`Budget variance: ${diff.deltaCost > 0 ? '+' : ''}₹${diff.deltaCost.toLocaleString('en-IN')}.`);
+    parts.push(`Budget adjustment: ${diff.deltaCost > 0 ? '+' : ''}₹${diff.deltaCost.toLocaleString('en-IN')}.`);
   }
 
   const totalSwaps = diff.dayDiffs.reduce((s, d) => s + d.added.length, 0);
@@ -1015,6 +1045,10 @@ function applyPendingDiff() {
   state.itinerary = JSON.parse(JSON.stringify(proposedState.itinerary));
   state.totalBudget = proposedState.totalBudget;
   state.activeDisruption = proposedState.activeDisruption;
+  if (proposedState.hotelOrigin !== undefined) {
+    state.hotelOrigin = proposedState.hotelOrigin;
+    state.hotelName = proposedState.hotelName;
+  }
 
   closeDiffPreviewModal();
   saveToLocalStorage();
@@ -1090,7 +1124,6 @@ async function checkLiveWeatherForecast() {
   }
 }
 
-// Check closed days for attractions based on real dates
 function getClosedDaysAdvisories() {
   const advisories = [];
   const start = new Date(state.startDate || Date.now());
@@ -1098,7 +1131,7 @@ function getClosedDaysAdvisories() {
   state.itinerary.forEach((day, dIdx) => {
     const dayDate = new Date(start);
     dayDate.setDate(dayDate.getDate() + dIdx);
-    const dayOfWeek = dayDate.getDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+    const dayOfWeek = dayDate.getDay();
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     day.activities.forEach(act => {
@@ -1305,17 +1338,23 @@ function exportTripToIcs() {
     const dateStr = dayDate.toISOString().split('T')[0].replace(/-/g, "");
 
     day.activities.forEach((act, aIdx) => {
-      // Parse slot hour
-      let startH = 9 + (aIdx * 3);
+      let startH = 9 + (aIdx * 2);
       let startM = 0;
-      if (act.timeSlot && act.timeSlot.includes("10:30")) { startH = 10; startM = 30; }
-      else if (act.timeSlot && act.timeSlot.includes("11:30")) { startH = 11; startM = 30; }
-      else if (act.timeSlot && act.timeSlot.includes("02:00") || act.timeSlot.includes("02:30")) { startH = 14; startM = 30; }
-      else if (act.timeSlot && act.timeSlot.includes("05:30")) { startH = 17; startM = 30; }
-      else if (act.timeSlot && act.timeSlot.includes("08:00")) { startH = 20; startM = 0; }
+      if (act.timeSlot) {
+        const timeMatch = act.timeSlot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (timeMatch) {
+          let h = parseInt(timeMatch[1], 10);
+          const m = parseInt(timeMatch[2], 10);
+          const p = timeMatch[3].toUpperCase();
+          if (p === "PM" && h < 12) h += 12;
+          if (p === "AM" && h === 12) h = 0;
+          startH = h;
+          startM = m;
+        }
+      }
 
       const dtStart = `${dateStr}T${String(startH).padStart(2, "0")}${String(startM).padStart(2, "0")}00`;
-      const dtEnd = `${dateStr}T${String(startH + 2).padStart(2, "0")}${String(startM).padStart(2, "0")}00`;
+      const dtEnd = `${dateStr}T${String(Math.min(23, startH + 2)).padStart(2, "0")}${String(startM).padStart(2, "0")}00`;
 
       icsContent.push(
         "BEGIN:VEVENT",
@@ -1570,7 +1609,6 @@ function renderDashboard() {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   document.getElementById("section-dashboard").style.display = "block";
 
-  // Banner Details
   document.getElementById("dest-title").textContent = `${destInfo.name} — ${state.daysCount} Day Adaptive Itinerary`;
   document.getElementById("dest-tagline").textContent = destInfo.tagline;
   document.getElementById("dest-state-badge").textContent = destInfo.state;
@@ -1739,6 +1777,7 @@ function renderDayContent() {
           <div class="act-top-row">
             <span class="act-time-badge">${escapeHtml(act.timeSlot || 'Morning')}</span>
             <span class="act-category-pill category-${escapeHtml(act.category || 'culture')}">${escapeHtml(act.category || 'Culture')}</span>
+            ${(act.closedDays && act.closedDays.length > 0) ? `<span class="act-closed-tag" title="Verified closed on these days">🔒 Closed: ${act.closedDays.map(d => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d]).join(', ')}</span>` : ''}
             <div class="act-cost-badge">
               <span>₹</span>
               <input type="number" class="cost-inline-input" value="${Number(act.cost) || 0}" min="0" step="50" data-day="${actualDayIndex}" data-act="${actIdx}">
@@ -1757,7 +1796,6 @@ function renderDayContent() {
         </div>
       `;
 
-      // Cost inline edit
       const costInput = actEl.querySelector(".cost-inline-input");
       costInput.addEventListener("change", (e) => {
         pushStateToUndoHistory("Budget Cost Edit");
@@ -1766,7 +1804,6 @@ function renderDayContent() {
         recalculateBudget();
       });
 
-      // Delete stop
       const btnDel = actEl.querySelector(".btn-delete-act");
       btnDel.addEventListener("click", () => {
         pushStateToUndoHistory(`Deleted Stop: ${act.name}`);
@@ -1828,6 +1865,16 @@ function setupDragDropHandlers(el, dayIdx, actIdx) {
     pushStateToUndoHistory("Reordered Stops");
     const item = state.itinerary[fromDay].activities.splice(fromAct, 1)[0];
     state.itinerary[toDay].activities.splice(toAct, 0, item);
+
+    // Re-index time slots by position to prevent slot collisions
+    state.itinerary[fromDay].activities.forEach((act, i) => {
+      act.timeSlot = getTimeSlotForIndex(i);
+    });
+    if (fromDay !== toDay) {
+      state.itinerary[toDay].activities.forEach((act, i) => {
+        act.timeSlot = getTimeSlotForIndex(i);
+      });
+    }
 
     saveToLocalStorage();
     renderDashboard();
@@ -1991,10 +2038,15 @@ function renderTransitView() {
 }
 
 // =============================================================================
-// 15. INTERACTIVE LEAFLET MAP & HOTEL ORIGIN SELECTION
+// 15. INTERACTIVE LEAFLET MAP & HOTEL ORIGIN (WITH DIFF PREVIEW)
 // =============================================================================
 
 function initOrUpdateMap() {
+  if (typeof L === "undefined") {
+    console.warn("Leaflet library not loaded.");
+    return;
+  }
+
   const mapContainer = document.getElementById("leaflet-map");
   if (!mapContainer) return;
 
@@ -2010,19 +2062,16 @@ function initOrUpdateMap() {
     mapMarkersGroup = L.layerGroup().addTo(mapInstance);
     mapPolylinesGroup = L.layerGroup().addTo(mapInstance);
 
-    // Map click sets custom hotel origin
+    // Map click triggers hotel placement via Diff Preview (when mode is active)
     mapInstance.on("click", (e) => {
+      if (!state.isHotelSelectMode) {
+        showToast("Map Navigation", "Click 'Set Hotel (Click Map)' above to reposition your hotel origin.", "info");
+        return;
+      }
       const lat = Number(e.latlng.lat.toFixed(4));
       const lon = Number(e.latlng.lng.toFixed(4));
-      if (confirm(`Set this location [${lat}, ${lon}] as your Hotel / Start Origin?`)) {
-        pushStateToUndoHistory("Set Hotel Location");
-        state.hotelOrigin = [lat, lon];
-        state.hotelName = "Custom Hotel Location";
-        saveToLocalStorage();
-        autoRerouteItinerary(-1, false);
-        initOrUpdateMap();
-        showToast("Hotel Origin Set 🏨", `Routes will now calculate from [${lat}, ${lon}].`, "success");
-      }
+      toggleHotelSelectMode(false);
+      handleHotelOriginChange([lat, lon], "Selected Hotel Location");
     });
   } else {
     mapInstance.setView(center, 12);
@@ -2032,7 +2081,6 @@ function initOrUpdateMap() {
 
   const allPoints = [];
 
-  // Hotel origin marker
   if (state.hotelOrigin) {
     const hotelIcon = L.divIcon({
       className: "hotel-map-pin",
@@ -2041,7 +2089,7 @@ function initOrUpdateMap() {
       iconAnchor: [17, 17]
     });
     const hMarker = L.marker(state.hotelOrigin, { icon: hotelIcon })
-      .bindPopup(`<strong>Hotel Starting Point</strong><br>${escapeHtml(state.hotelName || 'Your Accommodation')}<br><small>Click anywhere on map to change</small>`);
+      .bindPopup(`<strong>Hotel Starting Point</strong><br>${escapeHtml(state.hotelName || 'Your Accommodation')}<br><small>Click anywhere on map to change hotel</small>`);
     mapMarkersGroup.addLayer(hMarker);
     allPoints.push(state.hotelOrigin);
   }
@@ -2110,6 +2158,47 @@ function initOrUpdateMap() {
       console.warn("Could not fit bounds:", e);
     }
   }
+}
+
+function toggleHotelSelectMode(forceVal) {
+  state.isHotelSelectMode = typeof forceVal === "boolean" ? forceVal : !state.isHotelSelectMode;
+  const btn = document.getElementById("btn-toggle-hotel-mode");
+  const text = document.getElementById("hotel-mode-text");
+  if (state.isHotelSelectMode) {
+    if (btn) btn.classList.add("btn-primary-active");
+    if (text) text.textContent = "Click map to set Hotel";
+    showToast("Hotel Selection Active 📍", "Click any point on the map to set your hotel origin and preview route diff.", "info");
+  } else {
+    if (btn) btn.classList.remove("btn-primary-active");
+    if (text) text.textContent = "Set Hotel (Click Map)";
+  }
+}
+
+// Run hotel origin change through the diff preview
+function handleHotelOriginChange(coords, name = "Selected Hotel") {
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const draftItinerary = JSON.parse(JSON.stringify(state.itinerary));
+
+  draftItinerary.forEach(day => {
+    day.activities = optimizeDayPath(day.activities, coords);
+  });
+
+  const diffData = computeItineraryDiff(state.itinerary, draftItinerary, coords);
+  const rationale = `Recalculated daily routes and transit times with "${name}" [${coords[0]}, ${coords[1]}] as your starting origin point.`;
+
+  showDiffPreviewModal(
+    diffData,
+    {
+      itinerary: draftItinerary,
+      totalBudget: state.totalBudget,
+      activeDisruption: state.activeDisruption,
+      hotelOrigin: coords,
+      hotelName: name
+    },
+    rationale,
+    "Set Hotel Start Origin",
+    "Origin Recalculation"
+  );
 }
 
 // =============================================================================
@@ -2213,7 +2302,7 @@ function showToast(title, message, type = "info") {
 
 function saveToLocalStorage() {
   try {
-    const toSave = { ...state, llmConfig: { ...state.llmConfig, apiKey: "" } }; // Never store API key in localStorage
+    const toSave = { ...state, llmConfig: { ...state.llmConfig, apiKey: "" } };
     localStorage.setItem("travelpilot_saved_trip", JSON.stringify(toSave));
   } catch (e) {
     console.warn("Could not save to localStorage:", e);
@@ -2429,7 +2518,7 @@ function syncFormWithState() {
 }
 
 // Service Worker Registration for PWA Offline Support
-if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+if (typeof window !== 'undefined' && window.location && typeof window.location.protocol === 'string' && window.location.protocol.startsWith('http') && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(reg => {
       console.log('ServiceWorker registered:', reg.scope);
