@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — AI Trip Planner for India (Interactive Map, Transit Hub & Smart Delay Rerouting)</title>
-  <meta name="description" content="AI trip planner for India featuring live Leaflet route maps, geodesic distance calculations, transit and cab booking, and proactive AI delay detection and auto-rerouting.">
+  <title>TravelPilot — Algorithmic Trip Planner & Route Optimizer for India</title>
+  <meta name="description" content="AI trip planner for India featuring natural language co-pilot rerouting, exact TSP route optimization, geodesic distance calculation, transit booking hubs, and multi-day contingency adaptation.">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -507,6 +507,147 @@ body {
 .dest-actions {
   display: flex;
   gap: 10px;
+}
+
+/* ==========================================================================
+   AI CO-PILOT NATURAL LANGUAGE ADAPTATION BAR
+   ========================================================================== */
+.ai-copilot-card {
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+  border: 1.5px solid var(--purple-border);
+  border-radius: var(--radius-xl);
+  padding: 22px 26px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 22px rgba(124, 58, 237, 0.08);
+}
+
+.ai-copilot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ai-copilot-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #581c87;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-copilot-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ai-copilot-input {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  color: var(--text-main);
+  background: #ffffff;
+  border: 1.5px solid var(--purple-border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.ai-copilot-input:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.btn-copilot-submit {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  color: #ffffff;
+  border: none;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-copilot-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.35);
+}
+
+.copilot-prompts-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.copilot-prompts-lbl {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #6b21a8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.copilot-chip {
+  background: #ffffff;
+  border: 1px solid var(--purple-border);
+  color: #581c87;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.copilot-chip:hover {
+  background: #f3e8ff;
+  border-color: #a855f7;
+  transform: translateY(-1px);
+}
+
+.ai-reasoning-box {
+  background: #ffffff;
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-top: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: fadeIn 0.25s ease;
+}
+
+.ai-reasoning-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.ai-reasoning-body h5 {
+  font-family: var(--font-heading);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #581c87;
+  margin-bottom: 2px;
+}
+
+.ai-reasoning-body p {
+  font-size: 0.8rem;
+  color: #4b5563;
+  line-height: 1.45;
 }
 
 /* 3-View Mode Nav Bar */
@@ -1532,6 +1673,7 @@ body {
   .transit-links-row { grid-template-columns: 1fr; }
   .disruption-bar-card { flex-direction: column; align-items: flex-start; }
   .ai-diagnosis-card { flex-direction: column; align-items: flex-start; }
+  .ai-copilot-input-row { flex-direction: column; }
   .destination-banner { flex-direction: column; align-items: flex-start; gap: 16px; }
   .hero-title { font-size: 2rem; }
   .map-canvas { height: 380px; }
@@ -1581,7 +1723,7 @@ body {
           <span>🇮🇳 Smart Adaptive AI Planning for India</span>
         </div>
         <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Includes live interactive route maps, GPS distances, transit booking hubs, and automatic AI delay rerouting.</p>
+        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Features budget-aware generation, Traveling Salesperson (TSP) route optimization, transit booking hubs, and an interactive natural-language AI Co-Pilot.</p>
       </div>
 
       <div class="setup-card">
@@ -1681,13 +1823,51 @@ body {
         </div>
       </div>
 
+      <!-- AI CO-PILOT NATURAL LANGUAGE ADAPTATION BAR -->
+      <div class="ai-copilot-card" id="ai-copilot-card">
+        <div class="ai-copilot-header">
+          <div class="ai-copilot-title">
+            <span>🧠 AI Co-Pilot Intent & Disruption Assistant</span>
+          </div>
+          <span class="meta-chip" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">Natural Language Adaptation</span>
+        </div>
+        <p style="font-size: 0.82rem; color: #581c87; margin-bottom: 12px;">
+          Type any live scenario in plain English. The AI parses your intent, explains its reasoning, and safely executes route and budget adaptations.
+        </p>
+
+        <form id="form-copilot" class="ai-copilot-input-row">
+          <input type="text" id="input-copilot-prompt" class="ai-copilot-input" placeholder="e.g. It's pouring rain and we are exhausted from travel..." autocomplete="off">
+          <button type="submit" class="btn-copilot-submit" id="btn-copilot-submit">
+            <span>⚡ Run AI Adaptation</span>
+          </button>
+        </form>
+
+        <div class="copilot-prompts-row">
+          <span class="copilot-prompts-lbl">Quick Scenarios:</span>
+          <button type="button" class="copilot-chip" data-prompt="It is pouring rain outside, please move us to indoor covered spots">🌧️ "Pouring rain, need indoor spots"</button>
+          <button type="button" class="copilot-chip" data-prompt="Flight is delayed by 3 hours, shorten the day to top highlights">⏱️ "Flight delayed 3 hrs"</button>
+          <button type="button" class="copilot-chip" data-prompt="Exhausted from travel, switch to chill wellness and high-tea mode">😴 "Tired, chill wellness mode"</button>
+          <button type="button" class="copilot-chip" data-prompt="We are on a tight budget, switch to free sights and street food">💰 "Tight budget, free sights"</button>
+          <button type="button" class="copilot-chip" data-prompt="Maximize thrilling adventure sports and active sights">⚡ "Maximize adventure"</button>
+        </div>
+
+        <!-- Dynamic AI Reasoning Output Box -->
+        <div class="ai-reasoning-box" id="ai-reasoning-container" style="display: none;">
+          <div class="ai-reasoning-icon">💡</div>
+          <div class="ai-reasoning-body">
+            <h5 id="ai-reasoning-title">AI Decision Rationale</h5>
+            <p id="ai-reasoning-text">Analyzing user intent...</p>
+          </div>
+        </div>
+      </div>
+
       <!-- AI PROACTIVE ROUTE HEALTH & DELAY DETECTOR CARD -->
       <div class="ai-diagnosis-card" id="ai-diagnosis-card">
         <div class="ai-diag-left">
-          <div class="ai-diag-icon" id="ai-diag-icon">🤖</div>
+          <div class="ai-diag-icon" id="ai-diag-icon">🧭</div>
           <div>
             <h4 class="ai-diag-title" id="ai-diag-title">
-              <span>AI Route Diagnostics & Delay Analyzer</span>
+              <span>Route Diagnostics & Transit Analyzer</span>
             </h4>
             <p class="ai-diag-desc" id="ai-diag-desc">Analyzing geographic proximity, transit durations, and weather vulnerabilities...</p>
             <div class="ai-risk-tags" id="ai-risk-tags-container"></div>
@@ -1695,7 +1875,7 @@ body {
         </div>
         <div>
           <button class="btn-ai-reroute" id="btn-ai-auto-reroute">
-            <span>⚡ AI Auto-Reroute & Fix Delays</span>
+            <span>⚡ Optimize Route & Fix Delays</span>
           </button>
         </div>
       </div>
@@ -1721,8 +1901,8 @@ body {
         <div class="disruption-info">
           <div class="disruption-icon-wrap" id="disruption-icon">⚡</div>
           <div class="disruption-text">
-            <h4 id="disruption-title">Dynamic Trip Disruption Assistant</h4>
-            <p id="disruption-desc">Something unexpected happened during your trip? Auto-adapt your route and budget in 1 click.</p>
+            <h4 id="disruption-title">Trip Disruption Assistant</h4>
+            <p id="disruption-desc">Unexpected weather, flight delay, or fatigue? Adapt your route and budget in 1 click.</p>
           </div>
         </div>
         <div class="disruption-actions">
@@ -1843,7 +2023,7 @@ body {
                 <span>🎯 Recenter Map</span>
               </button>
               <button class="btn btn-primary btn-sm" id="btn-map-optimize">
-                <span>⚡ AI Optimize Route</span>
+                <span>⚡ Optimize Route</span>
               </button>
             </div>
           </div>
@@ -2025,7 +2205,7 @@ const DESTINATIONS_DATA = {
     bestTime: "October to March",
     avgDailyTransport: 600,
     centerCoords: [26.9124, 75.7873],
-    highlights: ["Amber Fort", "Hawa Mahal", "Nahargarh Sunset", "City Palace", "Albert Hall"],
+    highlights: ["Amber Fort", "Hawa Mahal", "Nahargarh Sunset", "City Palace", "Albert Hall", "Chokhi Dhani"],
     transitInfo: {
       airport: "Jaipur International Airport (JAI) - 12 km from city center",
       railway: "Jaipur Junction (JP) & Gandhinagar Jaipur (GADJ) - Vande Bharat & Shatabdi",
@@ -2091,20 +2271,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "premium"
+          },
+          {
+            id: "jpr-alt-4",
+            name: "Jaipur Wax Museum & Sheesh Mahal Indoors",
+            timeSlot: "Afternoon (03:00 PM)",
+            category: "culture",
+            cost: 500,
+            duration: "1.5 hours",
+            description: "Covered wax gallery and mirrored royal hall inside the Nahargarh palace complex.",
+            tip: "Fully air-conditioned indoor exhibit.",
+            coords: [26.9370, 75.8150],
+            slotPreference: "afternoon",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "moderate"
           }
         ]
       },
       timeDelay: {
         title: "Flight Delay / Traffic Jam Expressway Mode",
         desc: "Condensed 2-stop priority route hitting the crown jewels of Jaipur without rushing.",
-        keepIds: ["jpr-1", "jpr-4", "jpr-3"]
+        keepIds: ["jpr-1", "jpr-4", "jpr-3", "jpr-8"]
       },
       lowEnergy: {
         title: "Relaxed Leisure & Palace High Tea Mode",
         desc: "Swap uphill fort hikes with leisurely palace garden strolls and royal high-tea at Taj Rambagh.",
         replacements: [
           {
-            id: "jpr-alt-4",
+            id: "jpr-alt-5",
             name: "Royal Afternoon High Tea at Taj Rambagh Palace",
             timeSlot: "Afternoon (03:30 PM)",
             category: "food",
@@ -2119,7 +2314,7 @@ const DESTINATIONS_DATA = {
             costTier: "premium"
           },
           {
-            id: "jpr-alt-5",
+            id: "jpr-alt-6",
             name: "Ayurvedic Herbal Oil Relaxation Spa in C-Scheme",
             timeSlot: "Evening (06:00 PM)",
             category: "wellness",
@@ -2301,6 +2496,21 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "low",
         costTier: "budget"
+      },
+      {
+        id: "jpr-12",
+        name: "Jaigarh Fort & World's Largest Cannon (Jaivana)",
+        timeSlot: "Morning (11:00 AM)",
+        category: "adventure",
+        cost: 350,
+        duration: "2 hours",
+        description: "Rugged military fortress connected via subterranean passages to Amber Fort.",
+        tip: "Incredible vantage point overlooking the Aravalli hills.",
+        coords: [26.9850, 75.8456],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "moderate"
       }
     ]
   },
@@ -2313,7 +2523,7 @@ const DESTINATIONS_DATA = {
     bestTime: "November to March",
     avgDailyTransport: 800,
     centerCoords: [15.4989, 73.8278],
-    highlights: ["Baga Beach", "Dudhsagar Falls", "Fontainhas", "Fort Aguada", "Thalassa Sunset"],
+    highlights: ["Baga Beach", "Dudhsagar Falls", "Fontainhas", "Fort Aguada", "Thalassa Sunset", "Old Goa"],
     transitInfo: {
       airport: "Dabolim Airport (GOI) & Manohar International Mopa (GOX)",
       railway: "Madgaon Junction (MAO) & Thivim (THVM) - Vande Bharat from Mumbai/Bangalore",
@@ -2379,20 +2589,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
+          },
+          {
+            id: "goa-alt-4",
+            name: "Goa Chitra Ethnographic Museum (Covered Pavilions)",
+            timeSlot: "Morning (11:00 AM)",
+            category: "culture",
+            cost: 300,
+            duration: "2 hours",
+            description: "Indoor organic farm museum displaying 4,000+ ancient Goan farming tools, bullock carts, and artisanal machinery in Benaulim.",
+            tip: "Sheltered and fascinating historical heritage.",
+            coords: [15.2630, 73.9410],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Late Flight / Delay Quick Route",
         desc: "Streamlined coastal sunset and dining itinerary in North Goa.",
-        keepIds: ["goa-1", "goa-6", "goa-3"]
+        keepIds: ["goa-1", "goa-6", "goa-3", "goa-4"]
       },
       lowEnergy: {
         title: "South Goa Silent Retreat Mode",
         desc: "Calm beachfront lounging at Palolem with gentle Ayurvedic massage and coconut smoothies.",
         replacements: [
           {
-            id: "goa-alt-4",
+            id: "goa-alt-5",
             name: "Ayurvedic Beachside Spa & Warm Herbal Massage at Palolem",
             timeSlot: "Afternoon (03:00 PM)",
             category: "wellness",
@@ -2407,7 +2632,7 @@ const DESTINATIONS_DATA = {
             costTier: "premium"
           },
           {
-            id: "goa-alt-5",
+            id: "goa-alt-6",
             name: "Quiet Latin Quarter Patio Coffee at Panjim",
             timeSlot: "Evening (05:30 PM)",
             category: "food",
@@ -2529,6 +2754,66 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "high",
         costTier: "premium"
+      },
+      {
+        id: "goa-8",
+        name: "Chapora Fort (Dil Chahta Hai Point)",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Iconic red-laterite cliff fort overlooking Vagator Beach and the Ozran coast.",
+        tip: "Wear shoes with good grip for the red gravel slope.",
+        coords: [15.6058, 73.7364],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "goa-9",
+        name: "Anjuna Flea Market & Beach Shacks",
+        timeSlot: "Afternoon (03:30 PM)",
+        category: "shopping",
+        cost: 800,
+        duration: "2.5 hours",
+        description: "Vibrant bohemian open-air market with handmade jewelry, beachwear, Tibetan crafts, and live music.",
+        tip: "Wednesday afternoons are the most lively.",
+        coords: [15.5733, 73.7410],
+        slotPreference: "afternoon",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "moderate"
+      },
+      {
+        id: "goa-10",
+        name: "Palolem Beach Kayaking & Silent Noise Club",
+        timeSlot: "Evening (05:30 PM)",
+        category: "nightlife",
+        cost: 950,
+        duration: "3 hours",
+        description: "Peaceful sea kayaking around Monkey Island followed by headphones party on the beach.",
+        tip: "South Goa's cleanest crescent beach.",
+        coords: [15.0100, 74.0232],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "moderate"
+      },
+      {
+        id: "goa-11",
+        name: "Mandovi River Sunset Luxury Cruise",
+        timeSlot: "Night (07:30 PM)",
+        category: "culture",
+        cost: 750,
+        duration: "2 hours",
+        description: "Evening boat cruise with live Portuguese Dekhni folk dance, DJ music, and illuminated Panjim views.",
+        tip: "Boarding starts from Santa Monica jetty near Mandovi bridge.",
+        coords: [15.5000, 73.8350],
+        slotPreference: "night",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "moderate"
       }
     ]
   },
@@ -2541,7 +2826,7 @@ const DESTINATIONS_DATA = {
     bestTime: "March to June / Dec to Feb",
     avgDailyTransport: 700,
     centerCoords: [32.2396, 77.1887],
-    highlights: ["Solang Valley", "Atal Tunnel & Sissu", "Hadimba Temple", "Old Manali Cafes", "Jogini Waterfall"],
+    highlights: ["Solang Valley", "Atal Tunnel & Sissu", "Hadimba Temple", "Old Manali Cafes", "Jogini Waterfall", "Naggar Castle"],
     transitInfo: {
       airport: "Bhuntar Airport (KUU) - 50 km / Chandigarh (IXC) - 290 km",
       railway: "Chandigarh (CDG) / Kalka (KLK) connected to Volvo AC Sleeper buses",
@@ -2606,20 +2891,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "moderate"
+          },
+          {
+            id: "mnl-alt-4",
+            name: "Gadhan Thekchhokling Gompa Tibetan Monastery",
+            timeSlot: "Morning (11:30 AM)",
+            category: "culture",
+            cost: 50,
+            duration: "1.5 hours",
+            description: "Indoor prayer hall with golden Buddha statues and traditional Tibetan incense aroma.",
+            tip: "Protected indoor sanctuary near Mall Road.",
+            coords: [32.2405, 77.1890],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Express Valley Highlights Route",
         desc: "Optimized route focusing on Hadimba Forest and Old Manali riverside dining.",
-        keepIds: ["mnl-1", "mnl-4", "mnl-3"]
+        keepIds: ["mnl-1", "mnl-4", "mnl-3", "mnl-2"]
       },
       lowEnergy: {
         title: "Heated Thermal Springs & Wellness Mode",
         desc: "Natural hot sulfur baths at Vashisht followed by warm herbal tea by the Beas river.",
         replacements: [
           {
-            id: "mnl-alt-4",
+            id: "mnl-alt-5",
             name: "Private Hot Sulfur Thermal Mineral Baths (Vashisht)",
             timeSlot: "Morning (10:30 AM)",
             category: "wellness",
@@ -2634,7 +2934,7 @@ const DESTINATIONS_DATA = {
             costTier: "budget"
           },
           {
-            id: "mnl-alt-5",
+            id: "mnl-alt-6",
             name: "Riverside Garden Chai Lounge & Apple Orchard Stroll",
             timeSlot: "Afternoon (03:30 PM)",
             category: "nature",
@@ -2726,6 +3026,96 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "high",
         costTier: "premium"
+      },
+      {
+        id: "mnl-6",
+        name: "Jogini Waterfall Pine Forest Trek",
+        timeSlot: "Morning (10:00 AM)",
+        category: "nature",
+        cost: 0,
+        duration: "3 hours",
+        description: "Scenic 3 km hike through apple orchards and pine trees leading to a cascading mountain stream pool.",
+        tip: "Carry drinking water and wear sturdy trekking shoes.",
+        coords: [32.2680, 77.1950],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "budget"
+      },
+      {
+        id: "mnl-7",
+        name: "Naggar Castle & Roerich Heritage Art Gallery",
+        timeSlot: "Afternoon (02:30 PM)",
+        category: "culture",
+        cost: 200,
+        duration: "2 hours",
+        description: "Stone and timber medieval castle with panoramic Beas valley views and Russian master paintings.",
+        tip: "Sip spiced Himachali tea in the royal courtyard.",
+        coords: [32.1158, 77.1717],
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "mnl-8",
+        name: "Vashisht Natural Hot Springs & Temple",
+        timeSlot: "Morning (08:30 AM)",
+        category: "wellness",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Centuries-old sulfur thermal springs flowing into traditional stone tanks with healing mineral properties.",
+        tip: "Early mornings are best for quiet dip before tourist crowds.",
+        coords: [32.2612, 77.1873],
+        slotPreference: "morning",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "mnl-9",
+        name: "Mall Road Shopping & Tibetan Handicrafts",
+        timeSlot: "Evening (06:00 PM)",
+        category: "shopping",
+        cost: 900,
+        duration: "2 hours",
+        description: "Bustling street with Kullu woolen shawls, handmade wooden crafts, prayer flags, and hot momo stalls.",
+        tip: "Look for government handloom mark on genuine Kullu shawls.",
+        coords: [32.2415, 77.1895],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "moderate"
+      },
+      {
+        id: "mnl-10",
+        name: "Beas River White Water Rafting (Pirdi to Jhiri)",
+        timeSlot: "Morning (10:30 AM)",
+        category: "adventure",
+        cost: 1100,
+        duration: "2.5 hours",
+        description: "Grade II and III rapids over glacial mountain waters surrounded by snow peaks.",
+        tip: "Wear quick-dry clothes; wet suits are provided.",
+        coords: [31.9600, 77.1200],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "premium"
+      },
+      {
+        id: "mnl-11",
+        name: "Solang Valley Ropeway Cable Car & Sunset Deck",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 650,
+        duration: "1.5 hours",
+        description: "Glide to 3,200 meters altitude on a modern gondola cabin for 360-degree snow peaks sunset panoramas.",
+        tip: "Last cable car descent is at 6:15 PM.",
+        coords: [32.3166, 77.1578],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "moderate"
       }
     ]
   },
@@ -2738,7 +3128,7 @@ const DESTINATIONS_DATA = {
     bestTime: "September to March",
     avgDailyTransport: 750,
     centerCoords: [9.9312, 76.2673],
-    highlights: ["Alleppey Houseboat", "Munnar Tea Gardens", "Fort Kochi", "Kathakali Performance"],
+    highlights: ["Alleppey Houseboat", "Munnar Tea Gardens", "Fort Kochi", "Kathakali Performance", "Marari Beach"],
     transitInfo: {
       airport: "Cochin International Airport (COK) - World's 1st 100% solar powered airport",
       railway: "Ernakulam Junction (ERS) & Alappuzha (ALLP) - Superfast trains",
@@ -2803,20 +3193,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "moderate"
+          },
+          {
+            id: "ker-alt-4",
+            name: "Indo-Portuguese Museum & Bishop House Indoor Gallery",
+            timeSlot: "Morning (11:00 AM)",
+            category: "culture",
+            cost: 100,
+            duration: "1.5 hours",
+            description: "Sheltered collection of precious 16th-century silver monstrances, chalices, and teakwood altars in Fort Kochi.",
+            tip: "Completely sheltered from coastal rain.",
+            coords: [9.9620, 76.2410],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Fort Kochi & Sunset Cruise Express",
         desc: "Relaxed historic harbor stroll and traditional Sadhya dining.",
-        keepIds: ["ker-3", "ker-4", "ker-5"]
+        keepIds: ["ker-3", "ker-4", "ker-5", "ker-1"]
       },
       lowEnergy: {
         title: "Backwater Hammock & Village Tea Chill",
         desc: "Laze on a shaded houseboat deck sipping fresh tender coconut water.",
         replacements: [
           {
-            id: "ker-alt-4",
+            id: "ker-alt-5",
             name: "Shaded Kettuvallam Day Lounge & Fresh Seafood Lunch",
             timeSlot: "Morning (11:00 AM)",
             category: "nature",
@@ -2829,6 +3234,21 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "premium"
+          },
+          {
+            id: "ker-alt-6",
+            name: "Fort Kochi Heritage Shaded Garden Coffee",
+            timeSlot: "Afternoon (03:30 PM)",
+            category: "food",
+            cost: 350,
+            duration: "1.5 hours",
+            description: "Sit under colonial rain trees enjoying spiced ginger tea and banana fritters.",
+            tip: "Tranquil outdoor shaded seating.",
+            coords: [9.9654, 76.2421],
+            slotPreference: "afternoon",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       }
@@ -2908,6 +3328,96 @@ const DESTINATIONS_DATA = {
         weatherSensitive: false,
         exertionLevel: "low",
         costTier: "moderate"
+      },
+      {
+        id: "ker-6",
+        name: "Mattancherry Dutch Palace & Jewish Synagogue",
+        timeSlot: "Morning (11:00 AM)",
+        category: "culture",
+        cost: 50,
+        duration: "2 hours",
+        description: "Ramayana murals dating to the 16th century and 1762 hand-painted blue willow porcelain floor tiles.",
+        tip: "Closed on Fridays and Saturdays.",
+        coords: [9.9583, 76.2590],
+        slotPreference: "morning",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "ker-7",
+        name: "Marari Beach Peaceful Sunset & Fishermen Village",
+        timeSlot: "Evening (05:30 PM)",
+        category: "nature",
+        cost: 0,
+        duration: "2 hours",
+        description: "Golden sand quiet coast lined with coconut groves and traditional wooden fishing boats.",
+        tip: "Far more serene and uncrowded than urban beaches.",
+        coords: [9.5980, 76.2990],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "ker-8",
+        name: "Eravikulam National Park (Nilgiri Tahr Sanctuary)",
+        timeSlot: "Morning (08:30 AM)",
+        category: "adventure",
+        cost: 300,
+        duration: "3.5 hours",
+        description: "High-altitude rolling grassland home to the endangered mountain goat and Neelakurinji blooms.",
+        tip: "Advance online booking mandatory during peak season.",
+        coords: [10.1500, 77.0600],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "budget"
+      },
+      {
+        id: "ker-9",
+        name: "Kochi Marine Drive Sunset Walk & Ferry",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 50,
+        duration: "1.5 hours",
+        description: "Scenic promenade overlooking backwater channels, Vembanad lake, and harbor container ships.",
+        tip: "Enjoy sunset ice-cream and fresh roasted peanuts along the walkway.",
+        coords: [9.9790, 76.2760],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "ker-10",
+        name: "Spice Plantation Organic Tour & Tasting",
+        timeSlot: "Afternoon (02:00 PM)",
+        category: "food",
+        cost: 350,
+        duration: "2 hours",
+        description: "Walk under cardamom, cinnamon, black pepper, and vanilla vines with an expert botanist.",
+        tip: "Fresh whole spices available at farm-gate prices.",
+        coords: [10.0500, 77.0200],
+        slotPreference: "afternoon",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "ker-11",
+        name: "Kumarakom Bird Sanctuary Morning Walk",
+        timeSlot: "Morning (07:00 AM)",
+        category: "nature",
+        cost: 150,
+        duration: "2 hours",
+        description: "Lush 14-acre mangrove forest visited by migratory Siberian storks, egrets, and kingfishers.",
+        tip: "Best bird sightings between 6:30 AM and 8:30 AM.",
+        coords: [9.6230, 76.4290],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
       }
     ]
   },
@@ -2920,7 +3430,7 @@ const DESTINATIONS_DATA = {
     bestTime: "September to November / March to May",
     avgDailyTransport: 500,
     centerCoords: [30.0869, 78.2676],
-    highlights: ["Triveni Ghat Aarti", "Ganga White Water Rafting", "Beatles Ashram", "Neer Garh Waterfall"],
+    highlights: ["Triveni Ghat Aarti", "Ganga White Water Rafting", "Beatles Ashram", "Neer Garh Waterfall", "Parmarth Niketan"],
     transitInfo: {
       airport: "Dehradun Jolly Grant Airport (DED) - 20 km (30 mins drive)",
       railway: "Yog Nagari Rishikesh (YNRK) & Haridwar Junction (HW)",
@@ -2985,20 +3495,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
+          },
+          {
+            id: "rsh-alt-4",
+            name: "Sivananda Ashram Covered Satsang & Library",
+            timeSlot: "Morning (11:00 AM)",
+            category: "wellness",
+            cost: 0,
+            duration: "1.5 hours",
+            description: "Quiet spiritual library and covered philosophical discourse hall near Ram Jhula.",
+            tip: "Completely sheltered peaceful sanctuary.",
+            coords: [30.1220, 78.3130],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Tapovan Cafe & Evening Aarti Express",
         desc: "Focused spiritual highlights: treehouse cafe brunch and front-row seats for the Triveni Ghat Aarti.",
-        keepIds: ["rsh-3", "rsh-5", "rsh-1"]
+        keepIds: ["rsh-3", "rsh-5", "rsh-1", "rsh-4"]
       },
       lowEnergy: {
         title: "Spiritual Detox & Gentle Pranayama Mode",
         desc: "Gentle sunrise breathing by the river and ayurvedic herbal tea at Little Buddha Cafe.",
         replacements: [
           {
-            id: "rsh-alt-4",
+            id: "rsh-alt-5",
             name: "Gentle Sunset Meditation & Ganga Diya Offering",
             timeSlot: "Evening (05:30 PM)",
             category: "wellness",
@@ -3009,6 +3534,21 @@ const DESTINATIONS_DATA = {
             coords: [30.1189, 78.3115],
             slotPreference: "evening",
             weatherSensitive: true,
+            exertionLevel: "low",
+            costTier: "budget"
+          },
+          {
+            id: "rsh-alt-6",
+            name: "Laxman Jhula Rooftop Chai & Book Reading",
+            timeSlot: "Afternoon (03:00 PM)",
+            category: "food",
+            cost: 250,
+            duration: "2 hours",
+            description: "Relax on low floor cushions listening to temple bells across the emerald river.",
+            tip: "Zero physical exertion.",
+            coords: [30.1287, 78.3289],
+            slotPreference: "afternoon",
+            weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
           }
@@ -3090,6 +3630,96 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "low",
         costTier: "budget"
+      },
+      {
+        id: "rsh-6",
+        name: "Neer Garh Waterfall Hike & Cliff Pool",
+        timeSlot: "Morning (10:30 AM)",
+        category: "nature",
+        cost: 50,
+        duration: "2.5 hours",
+        description: "Hike through lush jungle trails to two tiers of natural turquoise cold water pools.",
+        tip: "Dip your feet in the chilly mountain stream to refresh.",
+        coords: [30.1500, 78.3400],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-7",
+        name: "Parmarth Niketan Ashram Sunset Ganga Aarti",
+        timeSlot: "Evening (05:30 PM)",
+        category: "culture",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Tranquil evening fire ceremony led by gurukul students right in front of the giant Lord Shiva statue.",
+        tip: "Sit quietly near the river ghat steps for serene chants.",
+        coords: [30.1189, 78.3115],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-8",
+        name: "Bungee Jumping & Giant Swing in Mohan Chatti",
+        timeSlot: "Morning (09:00 AM)",
+        category: "adventure",
+        cost: 3500,
+        duration: "3 hours",
+        description: "India's highest fixed-platform bungee jump (83 meters) operated by expert jump masters from New Zealand.",
+        tip: "Pre-booking mandatory; check medical fitness guidelines.",
+        coords: [30.0600, 78.4100],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "premium"
+      },
+      {
+        id: "rsh-9",
+        name: "Vashistha Cave (Gufa) Deep Meditation",
+        timeSlot: "Afternoon (02:30 PM)",
+        category: "wellness",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Ancient quiet stone cave on the banks of the Ganges where Sage Vashistha meditated 3,000 years ago.",
+        tip: "Absolute silence is maintained inside the cave.",
+        coords: [30.1600, 78.4300],
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-10",
+        name: "Ram Jhula & Geeta Bhawan Heritage Walk",
+        timeSlot: "Morning (11:30 AM)",
+        category: "culture",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Cross the historic suspension bridge and explore the Gita discourses inscribed on marble walls.",
+        tip: "Watch out for mischievous monkeys on the bridge.",
+        coords: [30.1220, 78.3130],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-11",
+        name: "Chotiwala Traditional Thali Dinner",
+        timeSlot: "Night (07:30 PM)",
+        category: "food",
+        cost: 350,
+        duration: "1 hour",
+        description: "Iconic 1958 vegetarian dining serving Garhwali Dal, Kadhai Paneer, and hot Gulab Jamuns.",
+        tip: "Look out for the costumed mascot seated outside the restaurant.",
+        coords: [30.1230, 78.3135],
+        slotPreference: "night",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
       }
     ]
   },
@@ -3102,7 +3732,7 @@ const DESTINATIONS_DATA = {
     bestTime: "September to March",
     avgDailyTransport: 550,
     centerCoords: [24.5854, 73.7125],
-    highlights: ["City Palace", "Lake Pichola Boat Cruise", "Bagore Ki Haveli", "Sajjangarh Monsoon Palace"],
+    highlights: ["City Palace", "Lake Pichola Boat Cruise", "Bagore Ki Haveli", "Sajjangarh Monsoon Palace", "Saheliyon Ki Bari"],
     transitInfo: {
       airport: "Maharana Pratap Airport (UDR) - 22 km from Old City",
       railway: "Udaipur City Railway Station (UDZ) - Chetak Express & Royal Rajasthan Trains",
@@ -3167,20 +3797,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "moderate"
+          },
+          {
+            id: "udp-alt-4",
+            name: "Ahar Cenotaphs Archaeological Museum (Indoor)",
+            timeSlot: "Morning (11:30 AM)",
+            category: "culture",
+            cost: 50,
+            duration: "1.5 hours",
+            description: "Ancient copper-age artifacts and royal Mewar dynastic stone carvings protected from weather.",
+            tip: "Rare historical site away from crowded palace zones.",
+            coords: [24.5880, 73.7220],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Palace & Sunset Lake Express",
         desc: "Core palace exploration and romantic candlelit lakeside dining at Ambrai Ghat.",
-        keepIds: ["udp-1", "udp-4", "udp-2"]
+        keepIds: ["udp-1", "udp-4", "udp-2", "udp-3"]
       },
       lowEnergy: {
         title: "Romantic Rooftop & Spa Retreat Mode",
         desc: "Gentle palace terrace walk followed by rooftop cold coffee and soothing Rajasthani head massage.",
         replacements: [
           {
-            id: "udp-alt-4",
+            id: "udp-alt-5",
             name: "Lakeside Rooftop Chill at Jheel's Ginger Coffee Bar",
             timeSlot: "Afternoon (04:00 PM)",
             category: "food",
@@ -3193,6 +3838,21 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
+          },
+          {
+            id: "udp-alt-6",
+            name: "Mewari Herbal Head Massage & Foot Reflexology",
+            timeSlot: "Evening (06:00 PM)",
+            category: "wellness",
+            cost: 800,
+            duration: "1 hour",
+            description: "Soothing natural almond oil scalp massage in a calm air-conditioned lakeview lounge.",
+            tip: "Instant relaxation after city palace walking.",
+            coords: [24.5810, 73.6830],
+            slotPreference: "evening",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "moderate"
           }
         ]
       }
@@ -3287,6 +3947,81 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "moderate",
         costTier: "budget"
+      },
+      {
+        id: "udp-7",
+        name: "Jagdish Temple & Old City Bazaar Walk",
+        timeSlot: "Morning (08:30 AM)",
+        category: "culture",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "1651 AD carved stone temple dedicated to Lord Vishnu, followed by stroll through silver and miniature painting shops.",
+        tip: "Listen to the morning drum prayers at 9:00 AM.",
+        coords: [24.5798, 73.6840],
+        slotPreference: "morning",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "udp-8",
+        name: "Shilpgram Rural Arts & Crafts Village",
+        timeSlot: "Afternoon (02:30 PM)",
+        category: "culture",
+        cost: 100,
+        duration: "2.5 hours",
+        description: "Living ethnographic museum with traditional terracotta huts, live weavers, and tribal music performances.",
+        tip: "Great place to buy authentic handmade pottery directly from artisans.",
+        coords: [24.6050, 73.6600],
+        slotPreference: "afternoon",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "udp-9",
+        name: "Fateh Sagar Lake Promenade & Nehru Park Boat",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 200,
+        duration: "2 hours",
+        description: "Charming evening breeze walk around the lake with pedal boats to the island garden park.",
+        tip: "Try the iconic Bombay Market cold coffee near the dam.",
+        coords: [24.6000, 73.6700],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "udp-10",
+        name: "Royal High Tea at Taj Lake Palace Island",
+        timeSlot: "Afternoon (03:30 PM)",
+        category: "food",
+        cost: 3200,
+        duration: "2 hours",
+        description: "Exclusive private boat transfer to the 18th-century floating marble palace for gourmet pastries and champagne tea.",
+        tip: "Advance reservation strictly mandatory.",
+        coords: [24.5750, 73.6800],
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "premium"
+      },
+      {
+        id: "udp-11",
+        name: "Karni Mata Ropeway & Lakeview Sunset Point",
+        timeSlot: "Evening (06:00 PM)",
+        category: "nature",
+        cost: 150,
+        duration: "1.5 hours",
+        description: "Cable car ride up to Machla Magra hill for aerial views of Lake Pichola and the illuminated City Palace.",
+        tip: "Spectacular dusk lighting over the water.",
+        coords: [24.5710, 73.6870],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
       }
     ]
   }
@@ -3304,16 +4039,17 @@ const INTEREST_CATEGORIES = [
 
 
 /**
- * TravelPilot - Algorithmic Trip Planner & Route Optimizer for India
+ * TravelPilot - Algorithmic Trip Planner & AI Route Optimizer for India
  *
- * Technical Core:
- *  - Exact Path Permutation / TSP Solver for daily stops
- *  - Geodesic Distance (Haversine km) & Estimated Transit Time
+ * Technical Highlights:
+ *  - Hybrid TSP Optimizer: Exact Permutations for n <= 7, 2-Opt Local Search for n > 7 (Zero freeze risk)
+ *  - AI Co-Pilot: Natural Language Intent Parser with Transparent Decision Reasoning
+ *  - Geodesic Distance (Haversine km) & Real-World Transit Estimates
  *  - Proactive Rule-Based Delay, Timing & Weather Risk Analyzer
  *  - Multi-Day Disruption Contingency Engine (Monsoon, Traffic Delay, Low-Energy)
- *  - Budget-Constrained Itinerary Generator
+ *  - Multi-Tier Budget-Constrained Itinerary Generator (Budget, Moderate, Luxury)
  *  - Interactive Leaflet.js Route Map with Visible Place Labels & Distance Badges
- *  - Transit Booking Hub & Live Reactive Budget Tracker
+ *  - Secure HTML Entity Sanitization (XSS Defense)
  */
 
 // =============================================================================
@@ -3388,7 +4124,7 @@ function calculatePathDistance(activities, defaultCenter) {
   return Number(total.toFixed(1));
 }
 
-// Generate all permutations of an array
+// Generate all permutations of an array (used only when n <= 7)
 function getPermutations(arr) {
   if (arr.length <= 1) return [arr];
   const result = [];
@@ -3401,6 +4137,39 @@ function getPermutations(arr) {
     }
   }
   return result;
+}
+
+// 2-Opt Local Search Route Optimizer for larger lists (n > 7)
+function twoOptOptimize(activities, defaultCenter) {
+  if (activities.length <= 2) return activities;
+  const center = defaultCenter || [26.9124, 75.7873];
+  let bestRoute = [...activities];
+  let bestDist = calculatePathDistance(bestRoute, center);
+
+  let improved = true;
+  let iterations = 0;
+
+  while (improved && iterations < 50) {
+    improved = false;
+    iterations++;
+    for (let i = 1; i < bestRoute.length - 1; i++) {
+      for (let k = i + 1; k < bestRoute.length; k++) {
+        const newRoute = bestRoute.slice(0, i)
+          .concat(bestRoute.slice(i, k + 1).reverse())
+          .concat(bestRoute.slice(k + 1));
+        const newDist = calculatePathDistance(newRoute, center);
+        if (newDist < bestDist - 0.05) {
+          bestRoute = newRoute;
+          bestDist = newDist;
+          improved = true;
+          break;
+        }
+      }
+      if (improved) break;
+    }
+  }
+
+  return bestRoute;
 }
 
 // =============================================================================
@@ -3496,7 +4265,7 @@ function generateItinerary() {
   const scoredPlaces = allPlaces.map(p => {
     let score = 0;
 
-    // Interest category match
+    // Interest category match (+6)
     if (state.selectedInterests.includes(p.category)) {
       score += 6;
     }
@@ -3504,15 +4273,16 @@ function generateItinerary() {
     // Budget shaping: favor activities matching user's financial tier
     const cost = Number(p.cost) || 0;
     if (targetDailyBudget < 2500) {
-      // Budget tier (< ₹2,500/day): boost free and inexpensive sights, penalize expensive ones
-      if (cost <= 250) score += 4;
-      else if (cost > 1000) score -= 6;
+      // Budget tier (< ₹2,500/day): boost free & inexpensive sights, heavily penalize expensive ones
+      if (cost <= 250 || p.costTier === "budget") score += 5;
+      else if (cost > 1000 || p.costTier === "premium") score -= 8;
     } else if (targetDailyBudget > 6000) {
       // Luxury tier (> ₹6,000/day): boost signature and premium experiences
-      if (cost >= 800 || p.costTier === "premium") score += 4;
+      if (cost >= 800 || p.costTier === "premium") score += 6;
+      else if (cost === 0 && p.category !== "nature") score -= 2;
     } else {
-      // Moderate tier (₹2,500 - ₹6,000/day): balanced mix
-      if (cost <= 750) score += 2;
+      // Moderate tier (₹2,500 - ₹6,000/day): balanced distribution
+      if (cost <= 750) score += 3;
     }
 
     return { ...p, score };
@@ -3530,9 +4300,9 @@ function generateItinerary() {
     for (const place of scoredPlaces) {
       if (dayActivities.length >= 3) break;
       if (!usedPlaceIds.has(place.id)) {
-        // Budget guard: prevent single day from exceeding 1.8x target if alternatives exist
+        // Budget guard: prevent single day from wildly overshooting budget
         const placeCost = Number(place.cost) || 0;
-        if (dayActivities.length >= 2 && (dayCost + placeCost) > (targetDailyBudget * 1.8) && targetDailyBudget < 3000) {
+        if (dayActivities.length >= 2 && (dayCost + placeCost) > (targetDailyBudget * 1.6) && targetDailyBudget < 3000) {
           continue; // Look for a more economical stop for the last slot
         }
 
@@ -3545,12 +4315,12 @@ function generateItinerary() {
     if (dayActivities.length === 0) {
       dayActivities.push({
         id: `custom-chill-${d}`,
-        name: `Leisure & Local Cafe Exploration in ${destInfo.name}`,
+        name: `Leisure & Local Market Walk in ${destInfo.name}`,
         timeSlot: "Afternoon (02:00 PM)",
         category: "food",
-        cost: 400,
+        cost: 300,
         duration: "2 hours",
-        description: `Stroll through the local streets, visit nearby markets, and enjoy regional delicacies.`,
+        description: `Stroll through the local streets, visit regional artisan stalls, and enjoy fresh delicacies.`,
         tip: "Ask your hotel host for their favorite hidden dining spot.",
         coords: destInfo.centerCoords,
         slotPreference: "afternoon",
@@ -3589,7 +4359,7 @@ function generateItinerary() {
 }
 
 // =============================================================================
-// 5. EXACT PATH PERMUTATION (TSP) ROUTE OPTIMIZER
+// 5. HYBRID TSP ROUTE OPTIMIZER (Exact Permutations <=7, 2-Opt >7)
 // =============================================================================
 
 function optimizeDayPath(activities, defaultCenter) {
@@ -3598,7 +4368,6 @@ function optimizeDayPath(activities, defaultCenter) {
   const center = defaultCenter || [26.9124, 75.7873];
   const n = activities.length;
 
-  // Standard chronological time slot sequence
   const timeSlotTemplates = [
     "Morning (09:00 AM)",
     "Morning (11:30 AM)",
@@ -3608,33 +4377,38 @@ function optimizeDayPath(activities, defaultCenter) {
   ];
 
   let bestPermutation = activities;
-  let minCost = Infinity;
 
-  // Exact evaluation for small daily tours (n <= 6 is max 720 permutations, evaluates in <1ms)
-  const allPerms = getPermutations(activities);
+  if (n <= 7) {
+    // Exact Permutation Solver for n <= 7 (Instantaneous <1ms)
+    let minCost = Infinity;
+    const allPerms = getPermutations(activities);
 
-  for (let p = 0; p < allPerms.length; p++) {
-    const perm = allPerms[p];
-    const dist = calculatePathDistance(perm, center);
+    for (let p = 0; p < allPerms.length; p++) {
+      const perm = allPerms[p];
+      const dist = calculatePathDistance(perm, center);
 
-    // Slot affinity constraints
-    let slotPenalty = 0;
-    for (let i = 0; i < perm.length; i++) {
-      const pref = perm[i].slotPreference || "any";
-      if (pref === "morning" && i >= n - 1) {
-        slotPenalty += 6.0; // Morning activity at the end
-      } else if ((pref === "evening" || pref === "night") && i === 0) {
-        slotPenalty += 12.0; // Evening/sunset activity at the beginning
-      } else if (pref === "night" && i < n - 1) {
-        slotPenalty += 8.0; // Night venue not in final slot
+      // Slot affinity constraints
+      let slotPenalty = 0;
+      for (let i = 0; i < perm.length; i++) {
+        const pref = perm[i].slotPreference || "any";
+        if (pref === "morning" && i >= n - 1) {
+          slotPenalty += 6.0;
+        } else if ((pref === "evening" || pref === "night") && i === 0) {
+          slotPenalty += 12.0;
+        } else if (pref === "night" && i < n - 1) {
+          slotPenalty += 8.0;
+        }
+      }
+
+      const totalCost = dist + slotPenalty;
+      if (totalCost < minCost) {
+        minCost = totalCost;
+        bestPermutation = perm;
       }
     }
-
-    const totalCost = dist + slotPenalty;
-    if (totalCost < minCost) {
-      minCost = totalCost;
-      bestPermutation = perm;
-    }
+  } else {
+    // Fallback: 2-Opt Local Search Heuristic for n > 7 (Guaranteed zero UI freeze)
+    bestPermutation = twoOptOptimize(activities, center);
   }
 
   // Assign clean chronological time slots based on the optimized order
@@ -3685,7 +4459,90 @@ function autoRerouteItinerary(targetDayIndex = -1) {
 }
 
 // =============================================================================
-// 6. PROACTIVE DELAY, TIMING & WEATHER RISK ANALYZER
+// 6. AI CO-PILOT: NATURAL LANGUAGE INTENT PARSER & ADAPTATION ENGINE
+// =============================================================================
+
+function parseAndExecuteAiPrompt(promptText) {
+  if (!promptText || !promptText.trim()) return;
+
+  const text = promptText.toLowerCase();
+  const reasoningContainer = document.getElementById("ai-reasoning-container");
+  const reasoningTitle = document.getElementById("ai-reasoning-title");
+  const reasoningBody = document.getElementById("ai-reasoning-text");
+
+  let detectedScenarios = [];
+  let rationale = "";
+
+  // Intent 1: Weather (Rain / Monsoon / Storm)
+  const isRain = text.includes("rain") || text.includes("pouring") || text.includes("monsoon") || text.includes("storm") || text.includes("waterlog") || text.includes("wet");
+  
+  // Intent 2: Delay / Traffic / Late
+  const isDelay = text.includes("delay") || text.includes("late") || text.includes("traffic") || text.includes("jam") || text.includes("flight delay") || text.includes("shorten");
+
+  // Intent 3: Fatigue / Wellness / Chill
+  const isChill = text.includes("tired") || text.includes("exhaust") || text.includes("chill") || text.includes("relax") || text.includes("spa") || text.includes("massage") || text.includes("rest") || text.includes("wellness");
+
+  // Intent 4: Budget adjustment
+  const isTightBudget = text.includes("tight budget") || text.includes("cheap") || text.includes("free") || text.includes("low budget") || text.includes("street food") || text.includes("money") || text.includes("economical");
+  const isLuxury = text.includes("luxury") || text.includes("royal") || text.includes("high tea") || text.includes("cruise") || text.includes("expensive") || text.includes("premium");
+
+  // Intent 5: Reset
+  const isReset = text.includes("reset") || text.includes("original") || text.includes("start over") || text.includes("undo");
+
+  if (isReset) {
+    applyDisruptionScenario("reset");
+    rationale = "Parsed request to restore baseline trip. Reverted all custom disruption overrides to your original generated plan.";
+    if (reasoningTitle) reasoningTitle.textContent = "AI Action: Baseline Plan Restored";
+    if (reasoningBody) reasoningBody.textContent = rationale;
+    if (reasoningContainer) reasoningContainer.style.display = "flex";
+    return;
+  }
+
+  // Execute Intent Combinations
+  if (isRain && isChill) {
+    applyDisruptionScenario("rain");
+    applyDisruptionScenario("chill");
+    rationale = "Detected rain conditions ('pouring/wet') and physical fatigue ('tired/exhausted'). Automatically converted outdoor viewpoints to sheltered indoor palaces & museums, while pacing the schedule with restorative wellness lounges across all days.";
+    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Combined Monsoon + Wellness Reroute";
+  } else if (isRain) {
+    applyDisruptionScenario("rain");
+    rationale = "Detected adverse weather advisory. Safely replaced all weather-sensitive forts, treks, and open-air activities with curated indoor royal museums and covered havelis across all days.";
+    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Monsoon & Rain Shelter Mode";
+  } else if (isDelay) {
+    applyDisruptionScenario("delay");
+    rationale = "Detected travel delay. Condensed daily stops to priority crown-jewel sights and injected time buffers (starting at 10:30 AM) to comfortably absorb flight/traffic delays.";
+    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Express Delay Buffer Route";
+  } else if (isChill) {
+    applyDisruptionScenario("chill");
+    rationale = "Detected need for relaxed pacing. Substituted high-exertion treks and uphill hikes with serene lakeside cafes, royal high-tea lounges, and Ayurvedic spa sessions.";
+    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Relaxation & Wellness Pacing";
+  } else if (isTightBudget) {
+    state.totalBudget = Math.max(6000, Math.round(state.totalBudget * 0.6));
+    syncFormWithState();
+    generateItinerary();
+    rationale = `Adapted plan for economical travel. Prioritized free public monuments, stepwells, ghat walks, and authentic street dining while filtering premium commercial tours.`;
+    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Budget-Optimized Regeneration";
+  } else if (isLuxury) {
+    state.totalBudget = Math.max(30000, Math.round(state.totalBudget * 1.5));
+    syncFormWithState();
+    generateItinerary();
+    rationale = "Upgraded itinerary with premium signature experiences including royal high-tea, private boat cruises, and luxury heritage dining.";
+    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Luxury Tier Regeneration";
+  } else {
+    // General auto-reroute optimization
+    autoRerouteItinerary(-1);
+    rationale = "Evaluated current stop coordinates and time slot affinities. Reordered itinerary using TSP geometric optimization to minimize travel distance and transit delays.";
+    if (reasoningTitle) reasoningTitle.textContent = "AI Decision: Route Geometry Optimized";
+  }
+
+  if (reasoningBody) reasoningBody.textContent = rationale;
+  if (reasoningContainer) reasoningContainer.style.display = "flex";
+
+  showToast("AI Co-Pilot Executed", "Applied scenario adaptations to your itinerary.", "success");
+}
+
+// =============================================================================
+// 7. PROACTIVE DELAY, TIMING & WEATHER RISK ANALYZER
 // =============================================================================
 
 function analyzeItineraryHealth() {
@@ -3823,12 +4680,13 @@ function updateAiDiagnosticsUI() {
 }
 
 // =============================================================================
-// 7. MULTI-DAY DISRUPTION CONTINGENCY ENGINE
+// 8. MULTI-DAY DISRUPTION CONTINGENCY ENGINE
 // =============================================================================
 
 function applyDisruptionScenario(type) {
   const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
   const plans = destInfo.contingencyPlans;
+  const allPlaces = destInfo.places || [];
   if (!plans) return;
 
   state.activeDisruption = type;
@@ -3836,21 +4694,28 @@ function applyDisruptionScenario(type) {
   if (type === "rain" && plans.heavyRain) {
     // Comprehensive Monsoon Reroute: swap weather-sensitive places across ALL days
     const rainPool = [...plans.heavyRain.replacements];
+    // Also include non-weather-sensitive core places as extended pool
+    const indoorCorePlaces = allPlaces.filter(p => !p.weatherSensitive);
+    const combinedPool = [...rainPool, ...indoorCorePlaces];
     let poolIdx = 0;
 
     state.itinerary.forEach((day, dIdx) => {
+      let dayChanged = false;
+
       day.activities = day.activities.map(act => {
-        if (act.weatherSensitive && poolIdx < rainPool.length) {
-          const replacement = JSON.parse(JSON.stringify(rainPool[poolIdx % rainPool.length]));
+        if (act.weatherSensitive && poolIdx < combinedPool.length) {
+          const replacement = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
           poolIdx++;
+          dayChanged = true;
           return replacement;
         }
         return act;
       });
 
-      // If day was heavily outdoor, update title
-      if (dIdx === 0) {
-        day.title = `Day 1: Sheltered Indoor Palaces & Cultural Masterclasses`;
+      if (dayChanged) {
+        day.title = `Day ${day.dayNum}: Sheltered Indoor Highlights of ${destInfo.name}`;
+        // Re-optimize and re-time the day after swapping
+        day.activities = optimizeDayPath(day.activities, destInfo.centerCoords);
       }
     });
 
@@ -3865,7 +4730,6 @@ function applyDisruptionScenario(type) {
 
     state.itinerary.forEach((day) => {
       if (day.activities.length > 2) {
-        // Keep activities matching keepIds or the top 2 stops
         const filtered = day.activities.filter(a => keepIds.has(a.id));
         if (filtered.length >= 2) {
           day.activities = filtered.slice(0, 2);
@@ -3881,6 +4745,8 @@ function applyDisruptionScenario(type) {
       if (day.activities[1]) {
         day.activities[1].timeSlot = "Afternoon (03:30 PM)";
       }
+
+      day.activities = optimizeDayPath(day.activities, destInfo.centerCoords);
     });
 
     showToast(
@@ -3891,17 +4757,25 @@ function applyDisruptionScenario(type) {
   } else if (type === "chill" && plans.lowEnergy) {
     // Relaxation / Wellness Mode: swap high-exertion activities across all days
     const chillPool = [...plans.lowEnergy.replacements];
+    const lowExertionCore = allPlaces.filter(p => p.exertionLevel === "low");
+    const combinedChillPool = [...chillPool, ...lowExertionCore];
     let poolIdx = 0;
 
     state.itinerary.forEach((day) => {
+      let dayChanged = false;
       day.activities = day.activities.map(act => {
-        if (act.exertionLevel === "high" && poolIdx < chillPool.length) {
-          const replacement = JSON.parse(JSON.stringify(chillPool[poolIdx % chillPool.length]));
+        if (act.exertionLevel === "high" && poolIdx < combinedChillPool.length) {
+          const replacement = JSON.parse(JSON.stringify(combinedChillPool[poolIdx % combinedChillPool.length]));
           poolIdx++;
+          dayChanged = true;
           return replacement;
         }
         return act;
       });
+
+      if (dayChanged) {
+        day.activities = optimizeDayPath(day.activities, destInfo.centerCoords);
+      }
     });
 
     showToast(
@@ -3949,7 +4823,7 @@ function updateDisruptionBarUI() {
 }
 
 // =============================================================================
-// 8. RENDERING & UI SYNC
+// 9. RENDERING & UI SYNC
 // =============================================================================
 
 function renderDashboard() {
@@ -4239,7 +5113,7 @@ function updateDaySubtotalBadges() {
 }
 
 // =============================================================================
-// 9. LIVE LEAFLET MAP VISUALIZER
+// 10. LIVE LEAFLET MAP VISUALIZER
 // =============================================================================
 
 function initOrUpdateMap() {
@@ -4394,7 +5268,7 @@ function initOrUpdateMap() {
 }
 
 // =============================================================================
-// 10. TRANSIT & CAB BOOKING HUB
+// 11. TRANSIT & CAB BOOKING HUB
 // =============================================================================
 
 function renderTransitView() {
@@ -4458,7 +5332,7 @@ function addTransitActivity(name, cost, timeSlot = "Morning (08:30 AM)") {
 }
 
 // =============================================================================
-// 11. LIVE BUDGET TRACKER & FINANCIAL SUMMARY
+// 12. LIVE BUDGET TRACKER & FINANCIAL SUMMARY
 // =============================================================================
 
 function recalculateBudget() {
@@ -4531,7 +5405,7 @@ function renderInsights() {
   container.innerHTML = `
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <div><strong>Best Season:</strong> ${escapeHtml(destInfo.bestTime)} for outdoor activities.</div>
+      <div><strong>Best Season:</strong> ${escapeHtml(destInfo.bestTime)} for pleasant travel.</div>
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -4539,7 +5413,7 @@ function renderInsights() {
     </div>
     <div class="insight-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <div><strong>TSP Route Optimizer:</strong> Evaluates permutations to guarantee shortest travel path between stops.</div>
+      <div><strong>Hybrid TSP Optimizer:</strong> Evaluates exact permutations for minimal travel distances with zero lag.</div>
     </div>
   `;
 }
@@ -4559,7 +5433,7 @@ function getCategoryLabel(cat) {
 }
 
 // =============================================================================
-// 12. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
+// 13. ACTIVITY ACTIONS: MOVE, DELETE, ADD, EDIT
 // =============================================================================
 
 function moveActivity(dayIndex, actIndex, direction) {
@@ -4689,7 +5563,7 @@ function setupCardDragAndDrop(card, dayIndex, actIndex) {
 }
 
 // =============================================================================
-// 13. MODALS & EVENT LISTENERS
+// 14. MODALS & EVENT LISTENERS
 // =============================================================================
 
 function openAddActivityModal(dayIndex) {
@@ -4745,6 +5619,25 @@ function setupEventListeners() {
     state.daysCount = Number(document.getElementById("input-days").value) || 3;
     state.totalBudget = Number(document.getElementById("input-budget").value) || 18000;
     generateItinerary();
+  });
+
+  // AI Co-Pilot Form Submit
+  document.getElementById("form-copilot")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const promptInput = document.getElementById("input-copilot-prompt");
+    if (promptInput && promptInput.value.trim()) {
+      parseAndExecuteAiPrompt(promptInput.value.trim());
+    }
+  });
+
+  // AI Co-Pilot Quick Prompt Chips
+  document.querySelectorAll(".copilot-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const promptText = chip.dataset.prompt;
+      const input = document.getElementById("input-copilot-prompt");
+      if (input) input.value = promptText;
+      parseAndExecuteAiPrompt(promptText);
+    });
   });
 
   // View Mode Switcher buttons
@@ -4916,7 +5809,7 @@ function showToast(title, message, type = "success") {
 }
 
 // =============================================================================
-// 14. GLOBAL WINDOW EXPORTS FOR EVENT HANDLING
+// 15. GLOBAL WINDOW EXPORTS FOR EVENT HANDLING
 // =============================================================================
 
 window.moveActivity = moveActivity;
@@ -4929,6 +5822,7 @@ window.switchViewMode = switchViewMode;
 window.applyDisruptionScenario = applyDisruptionScenario;
 window.addTransitActivity = addTransitActivity;
 window.autoRerouteItinerary = autoRerouteItinerary;
+window.parseAndExecuteAiPrompt = parseAndExecuteAiPrompt;
 window.initOrUpdateMap = initOrUpdateMap;
 
 </script>

@@ -17,7 +17,7 @@ const DESTINATIONS_DATA = {
     bestTime: "October to March",
     avgDailyTransport: 600,
     centerCoords: [26.9124, 75.7873],
-    highlights: ["Amber Fort", "Hawa Mahal", "Nahargarh Sunset", "City Palace", "Albert Hall"],
+    highlights: ["Amber Fort", "Hawa Mahal", "Nahargarh Sunset", "City Palace", "Albert Hall", "Chokhi Dhani"],
     transitInfo: {
       airport: "Jaipur International Airport (JAI) - 12 km from city center",
       railway: "Jaipur Junction (JP) & Gandhinagar Jaipur (GADJ) - Vande Bharat & Shatabdi",
@@ -83,20 +83,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "premium"
+          },
+          {
+            id: "jpr-alt-4",
+            name: "Jaipur Wax Museum & Sheesh Mahal Indoors",
+            timeSlot: "Afternoon (03:00 PM)",
+            category: "culture",
+            cost: 500,
+            duration: "1.5 hours",
+            description: "Covered wax gallery and mirrored royal hall inside the Nahargarh palace complex.",
+            tip: "Fully air-conditioned indoor exhibit.",
+            coords: [26.9370, 75.8150],
+            slotPreference: "afternoon",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "moderate"
           }
         ]
       },
       timeDelay: {
         title: "Flight Delay / Traffic Jam Expressway Mode",
         desc: "Condensed 2-stop priority route hitting the crown jewels of Jaipur without rushing.",
-        keepIds: ["jpr-1", "jpr-4", "jpr-3"]
+        keepIds: ["jpr-1", "jpr-4", "jpr-3", "jpr-8"]
       },
       lowEnergy: {
         title: "Relaxed Leisure & Palace High Tea Mode",
         desc: "Swap uphill fort hikes with leisurely palace garden strolls and royal high-tea at Taj Rambagh.",
         replacements: [
           {
-            id: "jpr-alt-4",
+            id: "jpr-alt-5",
             name: "Royal Afternoon High Tea at Taj Rambagh Palace",
             timeSlot: "Afternoon (03:30 PM)",
             category: "food",
@@ -111,7 +126,7 @@ const DESTINATIONS_DATA = {
             costTier: "premium"
           },
           {
-            id: "jpr-alt-5",
+            id: "jpr-alt-6",
             name: "Ayurvedic Herbal Oil Relaxation Spa in C-Scheme",
             timeSlot: "Evening (06:00 PM)",
             category: "wellness",
@@ -293,6 +308,21 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "low",
         costTier: "budget"
+      },
+      {
+        id: "jpr-12",
+        name: "Jaigarh Fort & World's Largest Cannon (Jaivana)",
+        timeSlot: "Morning (11:00 AM)",
+        category: "adventure",
+        cost: 350,
+        duration: "2 hours",
+        description: "Rugged military fortress connected via subterranean passages to Amber Fort.",
+        tip: "Incredible vantage point overlooking the Aravalli hills.",
+        coords: [26.9850, 75.8456],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "moderate"
       }
     ]
   },
@@ -305,7 +335,7 @@ const DESTINATIONS_DATA = {
     bestTime: "November to March",
     avgDailyTransport: 800,
     centerCoords: [15.4989, 73.8278],
-    highlights: ["Baga Beach", "Dudhsagar Falls", "Fontainhas", "Fort Aguada", "Thalassa Sunset"],
+    highlights: ["Baga Beach", "Dudhsagar Falls", "Fontainhas", "Fort Aguada", "Thalassa Sunset", "Old Goa"],
     transitInfo: {
       airport: "Dabolim Airport (GOI) & Manohar International Mopa (GOX)",
       railway: "Madgaon Junction (MAO) & Thivim (THVM) - Vande Bharat from Mumbai/Bangalore",
@@ -371,20 +401,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
+          },
+          {
+            id: "goa-alt-4",
+            name: "Goa Chitra Ethnographic Museum (Covered Pavilions)",
+            timeSlot: "Morning (11:00 AM)",
+            category: "culture",
+            cost: 300,
+            duration: "2 hours",
+            description: "Indoor organic farm museum displaying 4,000+ ancient Goan farming tools, bullock carts, and artisanal machinery in Benaulim.",
+            tip: "Sheltered and fascinating historical heritage.",
+            coords: [15.2630, 73.9410],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Late Flight / Delay Quick Route",
         desc: "Streamlined coastal sunset and dining itinerary in North Goa.",
-        keepIds: ["goa-1", "goa-6", "goa-3"]
+        keepIds: ["goa-1", "goa-6", "goa-3", "goa-4"]
       },
       lowEnergy: {
         title: "South Goa Silent Retreat Mode",
         desc: "Calm beachfront lounging at Palolem with gentle Ayurvedic massage and coconut smoothies.",
         replacements: [
           {
-            id: "goa-alt-4",
+            id: "goa-alt-5",
             name: "Ayurvedic Beachside Spa & Warm Herbal Massage at Palolem",
             timeSlot: "Afternoon (03:00 PM)",
             category: "wellness",
@@ -399,7 +444,7 @@ const DESTINATIONS_DATA = {
             costTier: "premium"
           },
           {
-            id: "goa-alt-5",
+            id: "goa-alt-6",
             name: "Quiet Latin Quarter Patio Coffee at Panjim",
             timeSlot: "Evening (05:30 PM)",
             category: "food",
@@ -521,6 +566,66 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "high",
         costTier: "premium"
+      },
+      {
+        id: "goa-8",
+        name: "Chapora Fort (Dil Chahta Hai Point)",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Iconic red-laterite cliff fort overlooking Vagator Beach and the Ozran coast.",
+        tip: "Wear shoes with good grip for the red gravel slope.",
+        coords: [15.6058, 73.7364],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "goa-9",
+        name: "Anjuna Flea Market & Beach Shacks",
+        timeSlot: "Afternoon (03:30 PM)",
+        category: "shopping",
+        cost: 800,
+        duration: "2.5 hours",
+        description: "Vibrant bohemian open-air market with handmade jewelry, beachwear, Tibetan crafts, and live music.",
+        tip: "Wednesday afternoons are the most lively.",
+        coords: [15.5733, 73.7410],
+        slotPreference: "afternoon",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "moderate"
+      },
+      {
+        id: "goa-10",
+        name: "Palolem Beach Kayaking & Silent Noise Club",
+        timeSlot: "Evening (05:30 PM)",
+        category: "nightlife",
+        cost: 950,
+        duration: "3 hours",
+        description: "Peaceful sea kayaking around Monkey Island followed by headphones party on the beach.",
+        tip: "South Goa's cleanest crescent beach.",
+        coords: [15.0100, 74.0232],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "moderate"
+      },
+      {
+        id: "goa-11",
+        name: "Mandovi River Sunset Luxury Cruise",
+        timeSlot: "Night (07:30 PM)",
+        category: "culture",
+        cost: 750,
+        duration: "2 hours",
+        description: "Evening boat cruise with live Portuguese Dekhni folk dance, DJ music, and illuminated Panjim views.",
+        tip: "Boarding starts from Santa Monica jetty near Mandovi bridge.",
+        coords: [15.5000, 73.8350],
+        slotPreference: "night",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "moderate"
       }
     ]
   },
@@ -533,7 +638,7 @@ const DESTINATIONS_DATA = {
     bestTime: "March to June / Dec to Feb",
     avgDailyTransport: 700,
     centerCoords: [32.2396, 77.1887],
-    highlights: ["Solang Valley", "Atal Tunnel & Sissu", "Hadimba Temple", "Old Manali Cafes", "Jogini Waterfall"],
+    highlights: ["Solang Valley", "Atal Tunnel & Sissu", "Hadimba Temple", "Old Manali Cafes", "Jogini Waterfall", "Naggar Castle"],
     transitInfo: {
       airport: "Bhuntar Airport (KUU) - 50 km / Chandigarh (IXC) - 290 km",
       railway: "Chandigarh (CDG) / Kalka (KLK) connected to Volvo AC Sleeper buses",
@@ -598,20 +703,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "moderate"
+          },
+          {
+            id: "mnl-alt-4",
+            name: "Gadhan Thekchhokling Gompa Tibetan Monastery",
+            timeSlot: "Morning (11:30 AM)",
+            category: "culture",
+            cost: 50,
+            duration: "1.5 hours",
+            description: "Indoor prayer hall with golden Buddha statues and traditional Tibetan incense aroma.",
+            tip: "Protected indoor sanctuary near Mall Road.",
+            coords: [32.2405, 77.1890],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Express Valley Highlights Route",
         desc: "Optimized route focusing on Hadimba Forest and Old Manali riverside dining.",
-        keepIds: ["mnl-1", "mnl-4", "mnl-3"]
+        keepIds: ["mnl-1", "mnl-4", "mnl-3", "mnl-2"]
       },
       lowEnergy: {
         title: "Heated Thermal Springs & Wellness Mode",
         desc: "Natural hot sulfur baths at Vashisht followed by warm herbal tea by the Beas river.",
         replacements: [
           {
-            id: "mnl-alt-4",
+            id: "mnl-alt-5",
             name: "Private Hot Sulfur Thermal Mineral Baths (Vashisht)",
             timeSlot: "Morning (10:30 AM)",
             category: "wellness",
@@ -626,7 +746,7 @@ const DESTINATIONS_DATA = {
             costTier: "budget"
           },
           {
-            id: "mnl-alt-5",
+            id: "mnl-alt-6",
             name: "Riverside Garden Chai Lounge & Apple Orchard Stroll",
             timeSlot: "Afternoon (03:30 PM)",
             category: "nature",
@@ -718,6 +838,96 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "high",
         costTier: "premium"
+      },
+      {
+        id: "mnl-6",
+        name: "Jogini Waterfall Pine Forest Trek",
+        timeSlot: "Morning (10:00 AM)",
+        category: "nature",
+        cost: 0,
+        duration: "3 hours",
+        description: "Scenic 3 km hike through apple orchards and pine trees leading to a cascading mountain stream pool.",
+        tip: "Carry drinking water and wear sturdy trekking shoes.",
+        coords: [32.2680, 77.1950],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "budget"
+      },
+      {
+        id: "mnl-7",
+        name: "Naggar Castle & Roerich Heritage Art Gallery",
+        timeSlot: "Afternoon (02:30 PM)",
+        category: "culture",
+        cost: 200,
+        duration: "2 hours",
+        description: "Stone and timber medieval castle with panoramic Beas valley views and Russian master paintings.",
+        tip: "Sip spiced Himachali tea in the royal courtyard.",
+        coords: [32.1158, 77.1717],
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "mnl-8",
+        name: "Vashisht Natural Hot Springs & Temple",
+        timeSlot: "Morning (08:30 AM)",
+        category: "wellness",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Centuries-old sulfur thermal springs flowing into traditional stone tanks with healing mineral properties.",
+        tip: "Early mornings are best for quiet dip before tourist crowds.",
+        coords: [32.2612, 77.1873],
+        slotPreference: "morning",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "mnl-9",
+        name: "Mall Road Shopping & Tibetan Handicrafts",
+        timeSlot: "Evening (06:00 PM)",
+        category: "shopping",
+        cost: 900,
+        duration: "2 hours",
+        description: "Bustling street with Kullu woolen shawls, handmade wooden crafts, prayer flags, and hot momo stalls.",
+        tip: "Look for government handloom mark on genuine Kullu shawls.",
+        coords: [32.2415, 77.1895],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "moderate"
+      },
+      {
+        id: "mnl-10",
+        name: "Beas River White Water Rafting (Pirdi to Jhiri)",
+        timeSlot: "Morning (10:30 AM)",
+        category: "adventure",
+        cost: 1100,
+        duration: "2.5 hours",
+        description: "Grade II and III rapids over glacial mountain waters surrounded by snow peaks.",
+        tip: "Wear quick-dry clothes; wet suits are provided.",
+        coords: [31.9600, 77.1200],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "premium"
+      },
+      {
+        id: "mnl-11",
+        name: "Solang Valley Ropeway Cable Car & Sunset Deck",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 650,
+        duration: "1.5 hours",
+        description: "Glide to 3,200 meters altitude on a modern gondola cabin for 360-degree snow peaks sunset panoramas.",
+        tip: "Last cable car descent is at 6:15 PM.",
+        coords: [32.3166, 77.1578],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "moderate"
       }
     ]
   },
@@ -730,7 +940,7 @@ const DESTINATIONS_DATA = {
     bestTime: "September to March",
     avgDailyTransport: 750,
     centerCoords: [9.9312, 76.2673],
-    highlights: ["Alleppey Houseboat", "Munnar Tea Gardens", "Fort Kochi", "Kathakali Performance"],
+    highlights: ["Alleppey Houseboat", "Munnar Tea Gardens", "Fort Kochi", "Kathakali Performance", "Marari Beach"],
     transitInfo: {
       airport: "Cochin International Airport (COK) - World's 1st 100% solar powered airport",
       railway: "Ernakulam Junction (ERS) & Alappuzha (ALLP) - Superfast trains",
@@ -795,20 +1005,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "moderate"
+          },
+          {
+            id: "ker-alt-4",
+            name: "Indo-Portuguese Museum & Bishop House Indoor Gallery",
+            timeSlot: "Morning (11:00 AM)",
+            category: "culture",
+            cost: 100,
+            duration: "1.5 hours",
+            description: "Sheltered collection of precious 16th-century silver monstrances, chalices, and teakwood altars in Fort Kochi.",
+            tip: "Completely sheltered from coastal rain.",
+            coords: [9.9620, 76.2410],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Fort Kochi & Sunset Cruise Express",
         desc: "Relaxed historic harbor stroll and traditional Sadhya dining.",
-        keepIds: ["ker-3", "ker-4", "ker-5"]
+        keepIds: ["ker-3", "ker-4", "ker-5", "ker-1"]
       },
       lowEnergy: {
         title: "Backwater Hammock & Village Tea Chill",
         desc: "Laze on a shaded houseboat deck sipping fresh tender coconut water.",
         replacements: [
           {
-            id: "ker-alt-4",
+            id: "ker-alt-5",
             name: "Shaded Kettuvallam Day Lounge & Fresh Seafood Lunch",
             timeSlot: "Morning (11:00 AM)",
             category: "nature",
@@ -821,6 +1046,21 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "premium"
+          },
+          {
+            id: "ker-alt-6",
+            name: "Fort Kochi Heritage Shaded Garden Coffee",
+            timeSlot: "Afternoon (03:30 PM)",
+            category: "food",
+            cost: 350,
+            duration: "1.5 hours",
+            description: "Sit under colonial rain trees enjoying spiced ginger tea and banana fritters.",
+            tip: "Tranquil outdoor shaded seating.",
+            coords: [9.9654, 76.2421],
+            slotPreference: "afternoon",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       }
@@ -900,6 +1140,96 @@ const DESTINATIONS_DATA = {
         weatherSensitive: false,
         exertionLevel: "low",
         costTier: "moderate"
+      },
+      {
+        id: "ker-6",
+        name: "Mattancherry Dutch Palace & Jewish Synagogue",
+        timeSlot: "Morning (11:00 AM)",
+        category: "culture",
+        cost: 50,
+        duration: "2 hours",
+        description: "Ramayana murals dating to the 16th century and 1762 hand-painted blue willow porcelain floor tiles.",
+        tip: "Closed on Fridays and Saturdays.",
+        coords: [9.9583, 76.2590],
+        slotPreference: "morning",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "ker-7",
+        name: "Marari Beach Peaceful Sunset & Fishermen Village",
+        timeSlot: "Evening (05:30 PM)",
+        category: "nature",
+        cost: 0,
+        duration: "2 hours",
+        description: "Golden sand quiet coast lined with coconut groves and traditional wooden fishing boats.",
+        tip: "Far more serene and uncrowded than urban beaches.",
+        coords: [9.5980, 76.2990],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "ker-8",
+        name: "Eravikulam National Park (Nilgiri Tahr Sanctuary)",
+        timeSlot: "Morning (08:30 AM)",
+        category: "adventure",
+        cost: 300,
+        duration: "3.5 hours",
+        description: "High-altitude rolling grassland home to the endangered mountain goat and Neelakurinji blooms.",
+        tip: "Advance online booking mandatory during peak season.",
+        coords: [10.1500, 77.0600],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "budget"
+      },
+      {
+        id: "ker-9",
+        name: "Kochi Marine Drive Sunset Walk & Ferry",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 50,
+        duration: "1.5 hours",
+        description: "Scenic promenade overlooking backwater channels, Vembanad lake, and harbor container ships.",
+        tip: "Enjoy sunset ice-cream and fresh roasted peanuts along the walkway.",
+        coords: [9.9790, 76.2760],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "ker-10",
+        name: "Spice Plantation Organic Tour & Tasting",
+        timeSlot: "Afternoon (02:00 PM)",
+        category: "food",
+        cost: 350,
+        duration: "2 hours",
+        description: "Walk under cardamom, cinnamon, black pepper, and vanilla vines with an expert botanist.",
+        tip: "Fresh whole spices available at farm-gate prices.",
+        coords: [10.0500, 77.0200],
+        slotPreference: "afternoon",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "ker-11",
+        name: "Kumarakom Bird Sanctuary Morning Walk",
+        timeSlot: "Morning (07:00 AM)",
+        category: "nature",
+        cost: 150,
+        duration: "2 hours",
+        description: "Lush 14-acre mangrove forest visited by migratory Siberian storks, egrets, and kingfishers.",
+        tip: "Best bird sightings between 6:30 AM and 8:30 AM.",
+        coords: [9.6230, 76.4290],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
       }
     ]
   },
@@ -912,7 +1242,7 @@ const DESTINATIONS_DATA = {
     bestTime: "September to November / March to May",
     avgDailyTransport: 500,
     centerCoords: [30.0869, 78.2676],
-    highlights: ["Triveni Ghat Aarti", "Ganga White Water Rafting", "Beatles Ashram", "Neer Garh Waterfall"],
+    highlights: ["Triveni Ghat Aarti", "Ganga White Water Rafting", "Beatles Ashram", "Neer Garh Waterfall", "Parmarth Niketan"],
     transitInfo: {
       airport: "Dehradun Jolly Grant Airport (DED) - 20 km (30 mins drive)",
       railway: "Yog Nagari Rishikesh (YNRK) & Haridwar Junction (HW)",
@@ -977,20 +1307,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
+          },
+          {
+            id: "rsh-alt-4",
+            name: "Sivananda Ashram Covered Satsang & Library",
+            timeSlot: "Morning (11:00 AM)",
+            category: "wellness",
+            cost: 0,
+            duration: "1.5 hours",
+            description: "Quiet spiritual library and covered philosophical discourse hall near Ram Jhula.",
+            tip: "Completely sheltered peaceful sanctuary.",
+            coords: [30.1220, 78.3130],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Tapovan Cafe & Evening Aarti Express",
         desc: "Focused spiritual highlights: treehouse cafe brunch and front-row seats for the Triveni Ghat Aarti.",
-        keepIds: ["rsh-3", "rsh-5", "rsh-1"]
+        keepIds: ["rsh-3", "rsh-5", "rsh-1", "rsh-4"]
       },
       lowEnergy: {
         title: "Spiritual Detox & Gentle Pranayama Mode",
         desc: "Gentle sunrise breathing by the river and ayurvedic herbal tea at Little Buddha Cafe.",
         replacements: [
           {
-            id: "rsh-alt-4",
+            id: "rsh-alt-5",
             name: "Gentle Sunset Meditation & Ganga Diya Offering",
             timeSlot: "Evening (05:30 PM)",
             category: "wellness",
@@ -1001,6 +1346,21 @@ const DESTINATIONS_DATA = {
             coords: [30.1189, 78.3115],
             slotPreference: "evening",
             weatherSensitive: true,
+            exertionLevel: "low",
+            costTier: "budget"
+          },
+          {
+            id: "rsh-alt-6",
+            name: "Laxman Jhula Rooftop Chai & Book Reading",
+            timeSlot: "Afternoon (03:00 PM)",
+            category: "food",
+            cost: 250,
+            duration: "2 hours",
+            description: "Relax on low floor cushions listening to temple bells across the emerald river.",
+            tip: "Zero physical exertion.",
+            coords: [30.1287, 78.3289],
+            slotPreference: "afternoon",
+            weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
           }
@@ -1082,6 +1442,96 @@ const DESTINATIONS_DATA = {
         weatherSensitive: true,
         exertionLevel: "low",
         costTier: "budget"
+      },
+      {
+        id: "rsh-6",
+        name: "Neer Garh Waterfall Hike & Cliff Pool",
+        timeSlot: "Morning (10:30 AM)",
+        category: "nature",
+        cost: 50,
+        duration: "2.5 hours",
+        description: "Hike through lush jungle trails to two tiers of natural turquoise cold water pools.",
+        tip: "Dip your feet in the chilly mountain stream to refresh.",
+        coords: [30.1500, 78.3400],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-7",
+        name: "Parmarth Niketan Ashram Sunset Ganga Aarti",
+        timeSlot: "Evening (05:30 PM)",
+        category: "culture",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Tranquil evening fire ceremony led by gurukul students right in front of the giant Lord Shiva statue.",
+        tip: "Sit quietly near the river ghat steps for serene chants.",
+        coords: [30.1189, 78.3115],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-8",
+        name: "Bungee Jumping & Giant Swing in Mohan Chatti",
+        timeSlot: "Morning (09:00 AM)",
+        category: "adventure",
+        cost: 3500,
+        duration: "3 hours",
+        description: "India's highest fixed-platform bungee jump (83 meters) operated by expert jump masters from New Zealand.",
+        tip: "Pre-booking mandatory; check medical fitness guidelines.",
+        coords: [30.0600, 78.4100],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "high",
+        costTier: "premium"
+      },
+      {
+        id: "rsh-9",
+        name: "Vashistha Cave (Gufa) Deep Meditation",
+        timeSlot: "Afternoon (02:30 PM)",
+        category: "wellness",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Ancient quiet stone cave on the banks of the Ganges where Sage Vashistha meditated 3,000 years ago.",
+        tip: "Absolute silence is maintained inside the cave.",
+        coords: [30.1600, 78.4300],
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-10",
+        name: "Ram Jhula & Geeta Bhawan Heritage Walk",
+        timeSlot: "Morning (11:30 AM)",
+        category: "culture",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "Cross the historic suspension bridge and explore the Gita discourses inscribed on marble walls.",
+        tip: "Watch out for mischievous monkeys on the bridge.",
+        coords: [30.1220, 78.3130],
+        slotPreference: "morning",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "rsh-11",
+        name: "Chotiwala Traditional Thali Dinner",
+        timeSlot: "Night (07:30 PM)",
+        category: "food",
+        cost: 350,
+        duration: "1 hour",
+        description: "Iconic 1958 vegetarian dining serving Garhwali Dal, Kadhai Paneer, and hot Gulab Jamuns.",
+        tip: "Look out for the costumed mascot seated outside the restaurant.",
+        coords: [30.1230, 78.3135],
+        slotPreference: "night",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
       }
     ]
   },
@@ -1094,7 +1544,7 @@ const DESTINATIONS_DATA = {
     bestTime: "September to March",
     avgDailyTransport: 550,
     centerCoords: [24.5854, 73.7125],
-    highlights: ["City Palace", "Lake Pichola Boat Cruise", "Bagore Ki Haveli", "Sajjangarh Monsoon Palace"],
+    highlights: ["City Palace", "Lake Pichola Boat Cruise", "Bagore Ki Haveli", "Sajjangarh Monsoon Palace", "Saheliyon Ki Bari"],
     transitInfo: {
       airport: "Maharana Pratap Airport (UDR) - 22 km from Old City",
       railway: "Udaipur City Railway Station (UDZ) - Chetak Express & Royal Rajasthan Trains",
@@ -1159,20 +1609,35 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "moderate"
+          },
+          {
+            id: "udp-alt-4",
+            name: "Ahar Cenotaphs Archaeological Museum (Indoor)",
+            timeSlot: "Morning (11:30 AM)",
+            category: "culture",
+            cost: 50,
+            duration: "1.5 hours",
+            description: "Ancient copper-age artifacts and royal Mewar dynastic stone carvings protected from weather.",
+            tip: "Rare historical site away from crowded palace zones.",
+            coords: [24.5880, 73.7220],
+            slotPreference: "morning",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "budget"
           }
         ]
       },
       timeDelay: {
         title: "Palace & Sunset Lake Express",
         desc: "Core palace exploration and romantic candlelit lakeside dining at Ambrai Ghat.",
-        keepIds: ["udp-1", "udp-4", "udp-2"]
+        keepIds: ["udp-1", "udp-4", "udp-2", "udp-3"]
       },
       lowEnergy: {
         title: "Romantic Rooftop & Spa Retreat Mode",
         desc: "Gentle palace terrace walk followed by rooftop cold coffee and soothing Rajasthani head massage.",
         replacements: [
           {
-            id: "udp-alt-4",
+            id: "udp-alt-5",
             name: "Lakeside Rooftop Chill at Jheel's Ginger Coffee Bar",
             timeSlot: "Afternoon (04:00 PM)",
             category: "food",
@@ -1185,6 +1650,21 @@ const DESTINATIONS_DATA = {
             weatherSensitive: false,
             exertionLevel: "low",
             costTier: "budget"
+          },
+          {
+            id: "udp-alt-6",
+            name: "Mewari Herbal Head Massage & Foot Reflexology",
+            timeSlot: "Evening (06:00 PM)",
+            category: "wellness",
+            cost: 800,
+            duration: "1 hour",
+            description: "Soothing natural almond oil scalp massage in a calm air-conditioned lakeview lounge.",
+            tip: "Instant relaxation after city palace walking.",
+            coords: [24.5810, 73.6830],
+            slotPreference: "evening",
+            weatherSensitive: false,
+            exertionLevel: "low",
+            costTier: "moderate"
           }
         ]
       }
@@ -1278,6 +1758,81 @@ const DESTINATIONS_DATA = {
         slotPreference: "evening",
         weatherSensitive: true,
         exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "udp-7",
+        name: "Jagdish Temple & Old City Bazaar Walk",
+        timeSlot: "Morning (08:30 AM)",
+        category: "culture",
+        cost: 0,
+        duration: "1.5 hours",
+        description: "1651 AD carved stone temple dedicated to Lord Vishnu, followed by stroll through silver and miniature painting shops.",
+        tip: "Listen to the morning drum prayers at 9:00 AM.",
+        coords: [24.5798, 73.6840],
+        slotPreference: "morning",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "udp-8",
+        name: "Shilpgram Rural Arts & Crafts Village",
+        timeSlot: "Afternoon (02:30 PM)",
+        category: "culture",
+        cost: 100,
+        duration: "2.5 hours",
+        description: "Living ethnographic museum with traditional terracotta huts, live weavers, and tribal music performances.",
+        tip: "Great place to buy authentic handmade pottery directly from artisans.",
+        coords: [24.6050, 73.6600],
+        slotPreference: "afternoon",
+        weatherSensitive: true,
+        exertionLevel: "moderate",
+        costTier: "budget"
+      },
+      {
+        id: "udp-9",
+        name: "Fateh Sagar Lake Promenade & Nehru Park Boat",
+        timeSlot: "Evening (05:00 PM)",
+        category: "nature",
+        cost: 200,
+        duration: "2 hours",
+        description: "Charming evening breeze walk around the lake with pedal boats to the island garden park.",
+        tip: "Try the iconic Bombay Market cold coffee near the dam.",
+        coords: [24.6000, 73.6700],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
+        costTier: "budget"
+      },
+      {
+        id: "udp-10",
+        name: "Royal High Tea at Taj Lake Palace Island",
+        timeSlot: "Afternoon (03:30 PM)",
+        category: "food",
+        cost: 3200,
+        duration: "2 hours",
+        description: "Exclusive private boat transfer to the 18th-century floating marble palace for gourmet pastries and champagne tea.",
+        tip: "Advance reservation strictly mandatory.",
+        coords: [24.5750, 73.6800],
+        slotPreference: "afternoon",
+        weatherSensitive: false,
+        exertionLevel: "low",
+        costTier: "premium"
+      },
+      {
+        id: "udp-11",
+        name: "Karni Mata Ropeway & Lakeview Sunset Point",
+        timeSlot: "Evening (06:00 PM)",
+        category: "nature",
+        cost: 150,
+        duration: "1.5 hours",
+        description: "Cable car ride up to Machla Magra hill for aerial views of Lake Pichola and the illuminated City Palace.",
+        tip: "Spectacular dusk lighting over the water.",
+        coords: [24.5710, 73.6870],
+        slotPreference: "evening",
+        weatherSensitive: true,
+        exertionLevel: "low",
         costTier: "budget"
       }
     ]

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TravelPilot — AI Trip Planner for India (Interactive Map, Transit Hub & Smart Delay Rerouting)</title>
-  <meta name="description" content="AI trip planner for India featuring live Leaflet route maps, geodesic distance calculations, transit and cab booking, and proactive AI delay detection and auto-rerouting.">
+  <title>TravelPilot — Algorithmic Trip Planner & Route Optimizer for India</title>
+  <meta name="description" content="AI trip planner for India featuring natural language co-pilot rerouting, exact TSP route optimization, geodesic distance calculation, transit booking hubs, and multi-day contingency adaptation.">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,7 +59,7 @@
           <span>🇮🇳 Smart Adaptive AI Planning for India</span>
         </div>
         <h2 class="hero-title">Plan your dream trip in <span>seconds</span></h2>
-        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Includes live interactive route maps, GPS distances, transit booking hubs, and automatic AI delay rerouting.</p>
+        <p class="hero-subtitle">Enter destination, duration, budget, and travel vibe. Features budget-aware generation, Traveling Salesperson (TSP) route optimization, transit booking hubs, and an interactive natural-language AI Co-Pilot.</p>
       </div>
 
       <div class="setup-card">
@@ -159,13 +159,51 @@
         </div>
       </div>
 
+      <!-- AI CO-PILOT NATURAL LANGUAGE ADAPTATION BAR -->
+      <div class="ai-copilot-card" id="ai-copilot-card">
+        <div class="ai-copilot-header">
+          <div class="ai-copilot-title">
+            <span>🧠 AI Co-Pilot Intent & Disruption Assistant</span>
+          </div>
+          <span class="meta-chip" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">Natural Language Adaptation</span>
+        </div>
+        <p style="font-size: 0.82rem; color: #581c87; margin-bottom: 12px;">
+          Type any live scenario in plain English. The AI parses your intent, explains its reasoning, and safely executes route and budget adaptations.
+        </p>
+
+        <form id="form-copilot" class="ai-copilot-input-row">
+          <input type="text" id="input-copilot-prompt" class="ai-copilot-input" placeholder="e.g. It's pouring rain and we are exhausted from travel..." autocomplete="off">
+          <button type="submit" class="btn-copilot-submit" id="btn-copilot-submit">
+            <span>⚡ Run AI Adaptation</span>
+          </button>
+        </form>
+
+        <div class="copilot-prompts-row">
+          <span class="copilot-prompts-lbl">Quick Scenarios:</span>
+          <button type="button" class="copilot-chip" data-prompt="It is pouring rain outside, please move us to indoor covered spots">🌧️ "Pouring rain, need indoor spots"</button>
+          <button type="button" class="copilot-chip" data-prompt="Flight is delayed by 3 hours, shorten the day to top highlights">⏱️ "Flight delayed 3 hrs"</button>
+          <button type="button" class="copilot-chip" data-prompt="Exhausted from travel, switch to chill wellness and high-tea mode">😴 "Tired, chill wellness mode"</button>
+          <button type="button" class="copilot-chip" data-prompt="We are on a tight budget, switch to free sights and street food">💰 "Tight budget, free sights"</button>
+          <button type="button" class="copilot-chip" data-prompt="Maximize thrilling adventure sports and active sights">⚡ "Maximize adventure"</button>
+        </div>
+
+        <!-- Dynamic AI Reasoning Output Box -->
+        <div class="ai-reasoning-box" id="ai-reasoning-container" style="display: none;">
+          <div class="ai-reasoning-icon">💡</div>
+          <div class="ai-reasoning-body">
+            <h5 id="ai-reasoning-title">AI Decision Rationale</h5>
+            <p id="ai-reasoning-text">Analyzing user intent...</p>
+          </div>
+        </div>
+      </div>
+
       <!-- AI PROACTIVE ROUTE HEALTH & DELAY DETECTOR CARD -->
       <div class="ai-diagnosis-card" id="ai-diagnosis-card">
         <div class="ai-diag-left">
-          <div class="ai-diag-icon" id="ai-diag-icon">🤖</div>
+          <div class="ai-diag-icon" id="ai-diag-icon">🧭</div>
           <div>
             <h4 class="ai-diag-title" id="ai-diag-title">
-              <span>AI Route Diagnostics & Delay Analyzer</span>
+              <span>Route Diagnostics & Transit Analyzer</span>
             </h4>
             <p class="ai-diag-desc" id="ai-diag-desc">Analyzing geographic proximity, transit durations, and weather vulnerabilities...</p>
             <div class="ai-risk-tags" id="ai-risk-tags-container"></div>
@@ -173,7 +211,7 @@
         </div>
         <div>
           <button class="btn-ai-reroute" id="btn-ai-auto-reroute">
-            <span>⚡ AI Auto-Reroute & Fix Delays</span>
+            <span>⚡ Optimize Route & Fix Delays</span>
           </button>
         </div>
       </div>
@@ -199,8 +237,8 @@
         <div class="disruption-info">
           <div class="disruption-icon-wrap" id="disruption-icon">⚡</div>
           <div class="disruption-text">
-            <h4 id="disruption-title">Dynamic Trip Disruption Assistant</h4>
-            <p id="disruption-desc">Something unexpected happened during your trip? Auto-adapt your route and budget in 1 click.</p>
+            <h4 id="disruption-title">Trip Disruption Assistant</h4>
+            <p id="disruption-desc">Unexpected weather, flight delay, or fatigue? Adapt your route and budget in 1 click.</p>
           </div>
         </div>
         <div class="disruption-actions">
@@ -321,7 +359,7 @@
                 <span>🎯 Recenter Map</span>
               </button>
               <button class="btn btn-primary btn-sm" id="btn-map-optimize">
-                <span>⚡ AI Optimize Route</span>
+                <span>⚡ Optimize Route</span>
               </button>
             </div>
           </div>
