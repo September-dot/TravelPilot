@@ -44,6 +44,7 @@
         <button type="button" class="nav-tab" data-view="simulator" id="tab-nav-simulator">Simulator</button>
         <button type="button" class="nav-tab" data-view="alternatives" id="tab-nav-alternatives">Alternatives</button>
         <button type="button" class="nav-tab" data-view="map" id="tab-nav-map">Route Map</button>
+        <button type="button" class="nav-tab" data-view="bookings" id="tab-nav-bookings">Bookings ✈️</button>
         <button type="button" class="nav-tab" data-view="ask-agent" id="tab-nav-ask-agent">Ask Agent</button>
       </nav>
 
@@ -68,9 +69,9 @@
           <span class="notification-badge-dot"></span>
         </button>
 
-        <div class="user-avatar-pill" id="user-avatar-badge" title="Active Planner Session">
-          <span>DU</span>
-        </div>
+        <button type="button" class="user-avatar-pill" id="user-avatar-badge" title="Profile: Mayank Sarna (Click to view profile)">
+          <span>MS</span>
+        </button>
       </div>
 
     </div>
@@ -159,8 +160,9 @@
 
       <!-- Quick Action Utilities -->
       <div class="sidebar-action-pills">
-        <button type="button" class="pill-act-btn" id="btn-export-ics">📅 Export .ICS</button>
-        <button type="button" class="pill-act-btn" id="btn-share-trip">🔗 Share Link</button>
+        <button type="button" class="pill-act-btn" id="btn-quick-bookings">🎟️ Bookings</button>
+        <button type="button" class="pill-act-btn" id="btn-export-ics">📅 .ICS</button>
+        <button type="button" class="pill-act-btn" id="btn-share-trip">🔗 Share</button>
         <button type="button" class="pill-act-btn" id="btn-print-itinerary">🖨️ PDF</button>
       </div>
 
@@ -634,6 +636,125 @@
 
         <div class="modal-footer-actions">
           <button type="submit" class="btn btn-primary full-width">Save AI Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: TRANSIT & TRAVEL BOOKINGS (CABS, TRAINS & FLIGHTS)          -->
+  <!-- ================================================================= -->
+  <div id="modal-bookings" class="modal-overlay" style="display: none;">
+    <div class="modal-box bookings-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 id="bookings-modal-title">🎟️ Bookings & Transit Hub</h3>
+          <p class="modal-subtitle" id="bookings-modal-subtitle">Instant verified booking links for Cabs, Trains, and Flights for your trip.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-bookings-close">✕</button>
+      </div>
+
+      <!-- Booking Category Tabs -->
+      <div class="booking-tabs-row">
+        <button type="button" class="b-tab-btn active" data-category="all" id="btn-btab-all">🌟 All Options</button>
+        <button type="button" class="b-tab-btn" data-category="cabs" id="btn-btab-cabs">🚕 Cabs & Taxis</button>
+        <button type="button" class="b-tab-btn" data-category="trains" id="btn-btab-trains">🚆 Trains (IRCTC)</button>
+        <button type="button" class="b-tab-btn" data-category="flights" id="btn-btab-flights">✈️ Flights</button>
+      </div>
+
+      <!-- Dynamic Bookings Content Container -->
+      <div class="bookings-content-container" id="bookings-content-container">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: USER PROFILE & TRAVEL PREFERENCES (MAYANK SARNA - MS)      -->
+  <!-- ================================================================= -->
+  <div id="modal-profile" class="modal-overlay" style="display: none;">
+    <div class="modal-box profile-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>👤 Traveler Profile & Settings</h3>
+          <p class="modal-subtitle">Manage personal preferences, currency, and travel defaults.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-profile-close">✕</button>
+      </div>
+
+      <!-- Profile Header Badge -->
+      <div class="profile-hero-card">
+        <div class="profile-avatar-large">MS</div>
+        <div class="profile-hero-info">
+          <h4 class="profile-name">Mayank Sarna</h4>
+          <span class="profile-badge-pro">👑 Pro Travel Architect • Verified</span>
+          <span class="profile-email">mayank.sarna@travelpilot.ai</span>
+        </div>
+      </div>
+
+      <!-- Profile Stats Grid -->
+      <div class="profile-stats-grid">
+        <div class="p-stat-card">
+          <span class="p-stat-val">12</span>
+          <span class="p-stat-lbl">Trips Planned</span>
+        </div>
+        <div class="p-stat-card">
+          <span class="p-stat-val">84.5 km</span>
+          <span class="p-stat-lbl">Commute Saved</span>
+        </div>
+        <div class="p-stat-card">
+          <span class="p-stat-val">100%</span>
+          <span class="p-stat-lbl">Feasible Guarantee</span>
+        </div>
+      </div>
+
+      <!-- Profile Preferences Form -->
+      <form id="form-user-profile">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="profile-home-city">Home Departure Hub</label>
+            <select id="profile-home-city" class="input-control">
+              <option value="DEL" selected>New Delhi (DEL) — IGI Airport</option>
+              <option value="BOM">Mumbai (BOM) — CSMIA Airport</option>
+              <option value="BLR">Bengaluru (BLR) — Kempegowda</option>
+              <option value="HYD">Hyderabad (HYD) — RGIA</option>
+              <option value="CCU">Kolkata (CCU) — NSCBI</option>
+              <option value="MAA">Chennai (MAA) — MAA Airport</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-currency">Preferred Currency</label>
+            <select id="profile-currency" class="input-control">
+              <option value="INR" selected>₹ INR (Indian Rupee)</option>
+              <option value="USD">$ USD (US Dollar)</option>
+              <option value="EUR">€ EUR (Euro)</option>
+              <option value="GBP">£ GBP (British Pound)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-transit-pref">Preferred Transit Mode</label>
+            <select id="profile-transit-pref" class="input-control">
+              <option value="cabs_flights" selected>Private Cabs + Flights (Comfort & Speed)</option>
+              <option value="trains">Express Railways / Vande Bharat (Scenic)</option>
+              <option value="self_drive">Self-Drive & Bike Rentals (Adventure)</option>
+              <option value="metro_auto">Metro & Auto-Rickshaws (Budget & Local)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-travel-pace">Default Daily Pacing</label>
+            <select id="profile-travel-pace" class="input-control">
+              <option value="balanced" selected>Balanced Explorer (3–4 stops/day)</option>
+              <option value="leisure">Relaxed Leisure (2 stops/day + Spa)</option>
+              <option value="packed">Action-Packed (5+ stops/day)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="submit" class="btn btn-primary full-width">Save Profile Preferences</button>
         </div>
       </form>
     </div>

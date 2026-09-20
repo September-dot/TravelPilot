@@ -1766,6 +1766,305 @@ body {
   font-size: 0.9rem;
 }
 
+/* ==========================================================================
+   BOOKINGS MODAL & TRANSIT HUB (CABS, TRAINS & FLIGHTS)
+   ========================================================================== */
+.bookings-modal-box {
+  max-width: 760px;
+}
+
+.booking-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 10px;
+}
+
+.b-tab-btn {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.b-tab-btn:hover {
+  background: #ffffff;
+  color: var(--text-main);
+}
+
+.b-tab-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 2px 6px var(--primary-glow);
+}
+
+.bookings-content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.booking-section-card {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.booking-sec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.booking-sec-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.booking-sec-title-wrap h4 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+}
+
+.booking-sec-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+.booking-partners-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .booking-partners-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.partner-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.partner-card:hover {
+  background: #ffffff;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.partner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.partner-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.partner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.partner-name {
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--navy-dark);
+}
+
+.partner-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.partner-action-btn {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.partner-card:hover .partner-action-btn {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   USER PROFILE MODAL (MAYANK SARNA - MS)
+   ========================================================================== */
+.profile-modal-box {
+  max-width: 580px;
+}
+
+.profile-hero-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.profile-avatar-large {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  flex-shrink: 0;
+}
+
+.profile-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.profile-badge-pro {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  width: fit-content;
+}
+
+.profile-email {
+  font-size: 0.76rem;
+  color: var(--text-light);
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.p-stat-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.p-stat-val {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--navy-dark);
+}
+
+.p-stat-lbl {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Transit Connector Action Buttons */
+.transit-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-transit-book-cab {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  color: var(--navy-dark);
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-transit-book-cab:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+
 </style>
 </head>
 <body>
@@ -1790,6 +2089,7 @@ body {
         <button type="button" class="nav-tab" data-view="simulator" id="tab-nav-simulator">Simulator</button>
         <button type="button" class="nav-tab" data-view="alternatives" id="tab-nav-alternatives">Alternatives</button>
         <button type="button" class="nav-tab" data-view="map" id="tab-nav-map">Route Map</button>
+        <button type="button" class="nav-tab" data-view="bookings" id="tab-nav-bookings">Bookings ✈️</button>
         <button type="button" class="nav-tab" data-view="ask-agent" id="tab-nav-ask-agent">Ask Agent</button>
       </nav>
 
@@ -1814,9 +2114,9 @@ body {
           <span class="notification-badge-dot"></span>
         </button>
 
-        <div class="user-avatar-pill" id="user-avatar-badge" title="Active Planner Session">
-          <span>DU</span>
-        </div>
+        <button type="button" class="user-avatar-pill" id="user-avatar-badge" title="Profile: Mayank Sarna (Click to view profile)">
+          <span>MS</span>
+        </button>
       </div>
 
     </div>
@@ -1905,8 +2205,9 @@ body {
 
       <!-- Quick Action Utilities -->
       <div class="sidebar-action-pills">
-        <button type="button" class="pill-act-btn" id="btn-export-ics">📅 Export .ICS</button>
-        <button type="button" class="pill-act-btn" id="btn-share-trip">🔗 Share Link</button>
+        <button type="button" class="pill-act-btn" id="btn-quick-bookings">🎟️ Bookings</button>
+        <button type="button" class="pill-act-btn" id="btn-export-ics">📅 .ICS</button>
+        <button type="button" class="pill-act-btn" id="btn-share-trip">🔗 Share</button>
         <button type="button" class="pill-act-btn" id="btn-print-itinerary">🖨️ PDF</button>
       </div>
 
@@ -2380,6 +2681,125 @@ body {
 
         <div class="modal-footer-actions">
           <button type="submit" class="btn btn-primary full-width">Save AI Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: TRANSIT & TRAVEL BOOKINGS (CABS, TRAINS & FLIGHTS)          -->
+  <!-- ================================================================= -->
+  <div id="modal-bookings" class="modal-overlay" style="display: none;">
+    <div class="modal-box bookings-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 id="bookings-modal-title">🎟️ Bookings & Transit Hub</h3>
+          <p class="modal-subtitle" id="bookings-modal-subtitle">Instant verified booking links for Cabs, Trains, and Flights for your trip.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-bookings-close">✕</button>
+      </div>
+
+      <!-- Booking Category Tabs -->
+      <div class="booking-tabs-row">
+        <button type="button" class="b-tab-btn active" data-category="all" id="btn-btab-all">🌟 All Options</button>
+        <button type="button" class="b-tab-btn" data-category="cabs" id="btn-btab-cabs">🚕 Cabs & Taxis</button>
+        <button type="button" class="b-tab-btn" data-category="trains" id="btn-btab-trains">🚆 Trains (IRCTC)</button>
+        <button type="button" class="b-tab-btn" data-category="flights" id="btn-btab-flights">✈️ Flights</button>
+      </div>
+
+      <!-- Dynamic Bookings Content Container -->
+      <div class="bookings-content-container" id="bookings-content-container">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: USER PROFILE & TRAVEL PREFERENCES (MAYANK SARNA - MS)      -->
+  <!-- ================================================================= -->
+  <div id="modal-profile" class="modal-overlay" style="display: none;">
+    <div class="modal-box profile-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3>👤 Traveler Profile & Settings</h3>
+          <p class="modal-subtitle">Manage personal preferences, currency, and travel defaults.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-profile-close">✕</button>
+      </div>
+
+      <!-- Profile Header Badge -->
+      <div class="profile-hero-card">
+        <div class="profile-avatar-large">MS</div>
+        <div class="profile-hero-info">
+          <h4 class="profile-name">Mayank Sarna</h4>
+          <span class="profile-badge-pro">👑 Pro Travel Architect • Verified</span>
+          <span class="profile-email">mayank.sarna@travelpilot.ai</span>
+        </div>
+      </div>
+
+      <!-- Profile Stats Grid -->
+      <div class="profile-stats-grid">
+        <div class="p-stat-card">
+          <span class="p-stat-val">12</span>
+          <span class="p-stat-lbl">Trips Planned</span>
+        </div>
+        <div class="p-stat-card">
+          <span class="p-stat-val">84.5 km</span>
+          <span class="p-stat-lbl">Commute Saved</span>
+        </div>
+        <div class="p-stat-card">
+          <span class="p-stat-val">100%</span>
+          <span class="p-stat-lbl">Feasible Guarantee</span>
+        </div>
+      </div>
+
+      <!-- Profile Preferences Form -->
+      <form id="form-user-profile">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="profile-home-city">Home Departure Hub</label>
+            <select id="profile-home-city" class="input-control">
+              <option value="DEL" selected>New Delhi (DEL) — IGI Airport</option>
+              <option value="BOM">Mumbai (BOM) — CSMIA Airport</option>
+              <option value="BLR">Bengaluru (BLR) — Kempegowda</option>
+              <option value="HYD">Hyderabad (HYD) — RGIA</option>
+              <option value="CCU">Kolkata (CCU) — NSCBI</option>
+              <option value="MAA">Chennai (MAA) — MAA Airport</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-currency">Preferred Currency</label>
+            <select id="profile-currency" class="input-control">
+              <option value="INR" selected>₹ INR (Indian Rupee)</option>
+              <option value="USD">$ USD (US Dollar)</option>
+              <option value="EUR">€ EUR (Euro)</option>
+              <option value="GBP">£ GBP (British Pound)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-transit-pref">Preferred Transit Mode</label>
+            <select id="profile-transit-pref" class="input-control">
+              <option value="cabs_flights" selected>Private Cabs + Flights (Comfort & Speed)</option>
+              <option value="trains">Express Railways / Vande Bharat (Scenic)</option>
+              <option value="self_drive">Self-Drive & Bike Rentals (Adventure)</option>
+              <option value="metro_auto">Metro & Auto-Rickshaws (Budget & Local)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-travel-pace">Default Daily Pacing</label>
+            <select id="profile-travel-pace" class="input-control">
+              <option value="balanced" selected>Balanced Explorer (3–4 stops/day)</option>
+              <option value="leisure">Relaxed Leisure (2 stops/day + Spa)</option>
+              <option value="packed">Action-Packed (5+ stops/day)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="submit" class="btn btn-primary full-width">Save Profile Preferences</button>
         </div>
       </form>
     </div>
@@ -6110,7 +6530,7 @@ function renderTimelineFeed() {
 
     container.appendChild(itemEl);
 
-    // If there is a next activity, append transit connector
+    // If there is a next activity, append transit connector with cab booking
     if (actIdx < currentDay.activities.length - 1) {
       const transitEl = document.createElement("div");
       transitEl.className = "transit-connector-box";
@@ -6118,8 +6538,14 @@ function renderTimelineFeed() {
         <div class="transit-info-left">
           <span>🚗 ${segmentDrive} min drive • ~${segmentDist} km (Optimized route)</span>
         </div>
-        <button type="button" class="transit-link-map">View Route 📍</button>
+        <div class="transit-actions-right">
+          <button type="button" class="btn-transit-book-cab" title="Book taxi for this commute">🚕 Book Cab</button>
+          <button type="button" class="transit-link-map" title="View interactive map route">Route 📍</button>
+        </div>
       `;
+      transitEl.querySelector(".btn-transit-book-cab").addEventListener("click", () => {
+        openBookingsModal("cabs");
+      });
       transitEl.querySelector(".transit-link-map").addEventListener("click", () => {
         openMapViewModal();
       });
@@ -6327,7 +6753,268 @@ function handleQaQuestion(topic) {
 }
 
 // =============================================================================
-// 16. INTERACTIVE LEAFLET MAP & HOTEL ORIGIN
+// 16. BOOKINGS HUB (CABS, TRAINS & FLIGHTS)
+// =============================================================================
+
+function openBookingsModal(category = "all") {
+  const modal = document.getElementById("modal-bookings");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderBookingsContent(category);
+  addTraceLog(`[Bookings] Opened transit booking hub (${category}) for ${state.destination}`, 'trace-cyan');
+}
+
+function closeBookingsModal() {
+  const modal = document.getElementById("modal-bookings");
+  if (modal) modal.style.display = "none";
+}
+
+function renderBookingsContent(activeCategory = "all") {
+  const container = document.getElementById("bookings-content-container");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const destInfo = DESTINATIONS_DATA[state.destination] || DESTINATIONS_DATA.jaipur;
+  const transit = destInfo.transitInfo || {};
+
+  // Update Tab active styling
+  document.querySelectorAll(".b-tab-btn").forEach(btn => {
+    if (btn.dataset.category === activeCategory) btn.classList.add("active");
+    else btn.classList.remove("active");
+  });
+
+  const showCabs = activeCategory === "all" || activeCategory === "cabs";
+  const showTrains = activeCategory === "all" || activeCategory === "trains";
+  const showFlights = activeCategory === "all" || activeCategory === "flights";
+
+  // 1. Cabs Section
+  if (showCabs) {
+    const cabSec = document.createElement("div");
+    cabSec.className = "booking-section-card";
+    cabSec.innerHTML = `
+      <div class="booking-sec-header">
+        <div class="booking-sec-title-wrap">
+          <span>🚕</span>
+          <h4>Local Sightseeing & Outstation Cabs</h4>
+        </div>
+        <span class="booking-sec-badge">~₹${transit.localTransport?.[0]?.avgCost || 1800}/day avg</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+        Pre-book verified local sightseeing taxis, app cabs, or auto-rickshaws for ${escapeHtml(destInfo.name)}.
+      </p>
+      <div class="booking-partners-grid">
+        <a href="https://m.uber.com/ul/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🚗</div>
+            <div class="partner-info">
+              <strong class="partner-name">Uber Rentals & Intercity</strong>
+              <span class="partner-desc">Hourly packages (2hr/4hr/8hr) in ${escapeHtml(destInfo.name)}</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Book Cab ↗</span>
+        </a>
+        <a href="https://book.olacabs.com/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🚕</div>
+            <div class="partner-info">
+              <strong class="partner-name">Ola Cabs & Prime SUV</strong>
+              <span class="partner-desc">Instant airport & sightseeing pickups</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Book Ola ↗</span>
+        </a>
+        <a href="https://www.makemytrip.com/cabs/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🚘</div>
+            <div class="partner-info">
+              <strong class="partner-name">MakeMyTrip Outstation Cabs</strong>
+              <span class="partner-desc">Expert chauffeurs & guaranteed AC cabs</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Compare Cabs ↗</span>
+        </a>
+        <a href="https://www.rapido.bike/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🛵</div>
+            <div class="partner-info">
+              <strong class="partner-name">Rapido Auto & Bike</strong>
+              <span class="partner-desc">Affordable hops across local markets</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Book Auto ↗</span>
+        </a>
+      </div>
+    `;
+    container.appendChild(cabSec);
+  }
+
+  // 2. Trains Section
+  if (showTrains) {
+    const trainSec = document.createElement("div");
+    trainSec.className = "booking-section-card";
+    trainSec.innerHTML = `
+      <div class="booking-sec-header">
+        <div class="booking-sec-title-wrap">
+          <span>🚆</span>
+          <h4>Indian Railways & Express Trains</h4>
+        </div>
+        <span class="booking-sec-badge">${escapeHtml(transit.railway || 'Major Railway Hub')}</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+        Direct Vande Bharat, Shatabdi, and Superfast express connections to ${escapeHtml(destInfo.name)}.
+      </p>
+      <div class="booking-partners-grid">
+        <a href="https://www.irctc.co.in/nget/train-search" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🇮🇳</div>
+            <div class="partner-info">
+              <strong class="partner-name">IRCTC Official Portal</strong>
+              <span class="partner-desc">Official ticket booking & tatkal window</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Book Train ↗</span>
+        </a>
+        <a href="https://www.confirmtkt.com/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🎫</div>
+            <div class="partner-info">
+              <strong class="partner-name">ConfirmTkt Live Seat Finder</strong>
+              <span class="partner-desc">Waitlist prediction & same-train alternatives</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Check PNR ↗</span>
+        </a>
+        <a href="https://www.railyatri.in/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🛤️</div>
+            <div class="partner-info">
+              <strong class="partner-name">RailYatri Live Running Status</strong>
+              <span class="partner-desc">Live GPS train tracking & platform locator</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Live Status ↗</span>
+        </a>
+        <a href="https://www.trainman.in/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🚆</div>
+            <div class="partner-info">
+              <strong class="partner-name">Trainman Tatkal & Trips</strong>
+              <span class="partner-desc">Zero cancellation charges on select routes</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Explore ↗</span>
+        </a>
+      </div>
+    `;
+    container.appendChild(trainSec);
+  }
+
+  // 3. Flights Section
+  if (showFlights) {
+    const flightSec = document.createElement("div");
+    flightSec.className = "booking-section-card";
+    flightSec.innerHTML = `
+      <div class="booking-sec-header">
+        <div class="booking-sec-title-wrap">
+          <span>✈️</span>
+          <h4>Domestic & International Flights</h4>
+        </div>
+        <span class="booking-sec-badge">${escapeHtml(transit.airport || 'Regional Airport Hub')}</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+        Direct flight deals and live schedules for ${escapeHtml(destInfo.name)}.
+      </p>
+      <div class="booking-partners-grid">
+        <a href="${transit.intercityLinks?.flights || 'https://www.makemytrip.com/flights/'}" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🛫</div>
+            <div class="partner-info">
+              <strong class="partner-name">MakeMyTrip Flights</strong>
+              <span class="partner-desc">Instant cashback & zero cancellation add-on</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Search Flights ↗</span>
+        </a>
+        <a href="https://www.google.com/travel/flights" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🌐</div>
+            <div class="partner-info">
+              <strong class="partner-name">Google Flights</strong>
+              <span class="partner-desc">Price graph tracker & cheapest fare calendar</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Compare Deals ↗</span>
+        </a>
+        <a href="https://www.skyscanner.co.in/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">🔍</div>
+            <div class="partner-info">
+              <strong class="partner-name">Skyscanner India</strong>
+              <span class="partner-desc">Compare all airline partners in one place</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">View Fares ↗</span>
+        </a>
+        <a href="https://www.easemytrip.com/flights.html" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-left">
+            <div class="partner-icon-box">💳</div>
+            <div class="partner-info">
+              <strong class="partner-name">EaseMyTrip (Zero Fee)</strong>
+              <span class="partner-desc">No convenience fee on selected payment cards</span>
+            </div>
+          </div>
+          <span class="partner-action-btn">Book Flight ↗</span>
+        </a>
+      </div>
+    `;
+    container.appendChild(flightSec);
+  }
+}
+
+// =============================================================================
+// 17. USER PROFILE & PREFERENCES (MAYANK SARNA - MS)
+// =============================================================================
+
+function openProfileModal() {
+  const modal = document.getElementById("modal-profile");
+  if (!modal) return;
+  const saved = localStorage.getItem("travelpilot_user_profile");
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.homeCity && document.getElementById("profile-home-city")) document.getElementById("profile-home-city").value = data.homeCity;
+      if (data.currency && document.getElementById("profile-currency")) document.getElementById("profile-currency").value = data.currency;
+      if (data.transitPref && document.getElementById("profile-transit-pref")) document.getElementById("profile-transit-pref").value = data.transitPref;
+      if (data.travelPace && document.getElementById("profile-travel-pace")) document.getElementById("profile-travel-pace").value = data.travelPace;
+    } catch (e) {}
+  }
+  modal.style.display = "flex";
+  addTraceLog(`[Profile] Opened traveler profile for Mayank Sarna (MS)`, 'trace-purple');
+}
+
+function closeProfileModal() {
+  const modal = document.getElementById("modal-profile");
+  if (modal) modal.style.display = "none";
+}
+
+function saveProfilePreferences(e) {
+  e.preventDefault();
+  const profile = {
+    name: "Mayank Sarna",
+    initials: "MS",
+    homeCity: document.getElementById("profile-home-city")?.value || "DEL",
+    currency: document.getElementById("profile-currency")?.value || "INR",
+    transitPref: document.getElementById("profile-transit-pref")?.value || "cabs_flights",
+    travelPace: document.getElementById("profile-travel-pace")?.value || "balanced"
+  };
+  localStorage.setItem("travelpilot_user_profile", JSON.stringify(profile));
+  closeProfileModal();
+  showToast("Profile Saved 👤", "Preferences updated for Mayank Sarna (MS).", "success");
+  addTraceLog(`[Profile] Saved preferences: Home ${profile.homeCity}, Currency ${profile.currency}, Transit ${profile.transitPref}`, 'trace-emerald');
+}
+
+// =============================================================================
+// 18. INTERACTIVE LEAFLET MAP & HOTEL ORIGIN
 // =============================================================================
 
 function initOrUpdateMap() {
@@ -6526,7 +7213,7 @@ function saveToLocalStorage() {
 }
 
 // =============================================================================
-// 17. EVENT LISTENERS & BOOTSTRAP
+// 19. EVENT LISTENERS & BOOTSTRAP
 // =============================================================================
 
 function setupEventListeners() {
@@ -6561,10 +7248,21 @@ function setupEventListeners() {
     setActiveTopNav("map");
   });
 
+  document.getElementById("tab-nav-bookings")?.addEventListener("click", () => {
+    openBookingsModal("all");
+    setActiveTopNav("bookings");
+  });
+
   document.getElementById("tab-nav-ask-agent")?.addEventListener("click", () => {
     openQaModal();
     setActiveTopNav("ask-agent");
   });
+
+  // User Profile Trigger (MS Avatar Badge)
+  document.getElementById("user-avatar-badge")?.addEventListener("click", openProfileModal);
+
+  // Quick Action Pill: Bookings
+  document.getElementById("btn-quick-bookings")?.addEventListener("click", () => openBookingsModal("all"));
 
   // AI Agent Suite Items (Left Sidebar)
   document.getElementById("agent-btn-constraints")?.addEventListener("click", openTripPlannerModal);
@@ -6598,6 +7296,17 @@ function setupEventListeners() {
 
   document.getElementById("btn-planner-close")?.addEventListener("click", closeTripPlannerModal);
   document.getElementById("btn-planner-cancel")?.addEventListener("click", closeTripPlannerModal);
+
+  // Bookings Modal Category Filter Tabs & close
+  document.getElementById("btn-bookings-close")?.addEventListener("click", closeBookingsModal);
+  document.getElementById("btn-btab-all")?.addEventListener("click", () => renderBookingsContent("all"));
+  document.getElementById("btn-btab-cabs")?.addEventListener("click", () => renderBookingsContent("cabs"));
+  document.getElementById("btn-btab-trains")?.addEventListener("click", () => renderBookingsContent("trains"));
+  document.getElementById("btn-btab-flights")?.addEventListener("click", () => renderBookingsContent("flights"));
+
+  // Profile Modal close & form submit
+  document.getElementById("btn-profile-close")?.addEventListener("click", closeProfileModal);
+  document.getElementById("form-user-profile")?.addEventListener("submit", saveProfilePreferences);
 
   // Simulator Modal triggers & close
   document.getElementById("btn-simulator-close")?.addEventListener("click", closeSimulatorModal);
@@ -6683,6 +7392,8 @@ function closeAllModals() {
   closeSimulatorModal();
   closeAlternativesModal();
   closeMapViewModal();
+  closeBookingsModal();
+  closeProfileModal();
   closeQaModal();
   closeAiSettingsModal();
   closeDiffPreviewModal();
