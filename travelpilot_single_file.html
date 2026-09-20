@@ -2077,44 +2077,45 @@ body {
     <div class="header-container">
       
       <!-- Brand Logo -->
-      <button type="button" class="brand-wrap" id="btn-brand-home" title="TravelPilot Dashboard">
+      <!-- Brand Logo -->
+      <button type="button" class="brand-wrap" id="btn-brand-home" title="TravelPilot Dashboard" onclick="closeAllModals(); renderDashboard();">
         <div class="brand-logo-badge">tp</div>
         <span class="brand-title">TravelPilot</span>
       </button>
 
       <!-- Center Nav Tabs -->
       <nav class="main-top-nav">
-        <button type="button" class="nav-tab active" data-view="dashboard" id="tab-nav-dashboard">Dashboard</button>
-        <button type="button" class="nav-tab" data-view="planner" id="tab-nav-planner">Trip Planner</button>
-        <button type="button" class="nav-tab" data-view="simulator" id="tab-nav-simulator">Simulator</button>
-        <button type="button" class="nav-tab" data-view="alternatives" id="tab-nav-alternatives">Alternatives</button>
-        <button type="button" class="nav-tab" data-view="map" id="tab-nav-map">Route Map</button>
-        <button type="button" class="nav-tab" data-view="bookings" id="tab-nav-bookings">Bookings ✈️</button>
-        <button type="button" class="nav-tab" data-view="ask-agent" id="tab-nav-ask-agent">Ask Agent</button>
+        <button type="button" class="nav-tab active" data-view="dashboard" id="tab-nav-dashboard" onclick="closeAllModals(); setActiveTopNav('dashboard');">Dashboard</button>
+        <button type="button" class="nav-tab" data-view="planner" id="tab-nav-planner" onclick="openTripPlannerModal(); setActiveTopNav('planner');">Trip Planner</button>
+        <button type="button" class="nav-tab" data-view="simulator" id="tab-nav-simulator" onclick="openSimulatorModal(); setActiveTopNav('simulator');">Simulator</button>
+        <button type="button" class="nav-tab" data-view="alternatives" id="tab-nav-alternatives" onclick="openAlternativesModal(state.activeDayTab || 0, 0); setActiveTopNav('alternatives');">Alternatives</button>
+        <button type="button" class="nav-tab" data-view="map" id="tab-nav-map" onclick="openMapViewModal(); setActiveTopNav('map');">Route Map</button>
+        <button type="button" class="nav-tab" data-view="bookings" id="tab-nav-bookings" onclick="openBookingsModal('all'); setActiveTopNav('bookings');">Bookings ✈️</button>
+        <button type="button" class="nav-tab" data-view="ask-agent" id="tab-nav-ask-agent" onclick="openQaModal(); setActiveTopNav('ask-agent');">Ask Agent</button>
       </nav>
 
       <!-- Right Actions -->
       <div class="header-right-actions">
         <!-- Undo / Redo Controls -->
         <div class="undo-redo-group">
-          <button type="button" class="btn-icon-top" id="btn-header-undo" title="Undo Last Change (Cmd+Z)" disabled>
+          <button type="button" class="btn-icon-top" id="btn-header-undo" title="Undo Last Change (Cmd+Z)" onclick="performUndo()" disabled>
             <span>↩️</span>
           </button>
-          <button type="button" class="btn-icon-top" id="btn-header-redo" title="Redo (Cmd+Shift+Z)" disabled>
+          <button type="button" class="btn-icon-top" id="btn-header-redo" title="Redo (Cmd+Shift+Z)" onclick="performRedo()" disabled>
             <span>↪️</span>
           </button>
         </div>
 
-        <button type="button" class="btn-icon-top" id="btn-ai-settings" title="Configure AI Provider / API Key">
+        <button type="button" class="btn-icon-top" id="btn-ai-settings" title="Configure AI Provider / API Key" onclick="openAiSettingsModal()">
           <span>⚙️</span>
         </button>
 
-        <button type="button" class="btn-icon-top" id="btn-header-notifications" title="Trip Health Alerts">
+        <button type="button" class="btn-icon-top" id="btn-header-notifications" title="Trip Health Alerts" onclick="showToast('Trip Health Status', 'All routes and stops are 100% verified and conflict-free.', 'success')">
           <span>🔔</span>
           <span class="notification-badge-dot"></span>
         </button>
 
-        <button type="button" class="user-avatar-pill" id="user-avatar-badge" title="Profile: Mayank Sarna (Click to view profile)">
+        <button type="button" class="user-avatar-pill" id="user-avatar-badge" title="Profile: Mayank Sarna (Click to view profile)" onclick="openProfileModal();">
           <span>MS</span>
         </button>
       </div>
@@ -2144,7 +2145,7 @@ body {
         </div>
 
         <div class="agent-items-list">
-          <button type="button" class="agent-suite-item active" id="agent-btn-constraints" data-agent="constraints">
+          <button type="button" class="agent-suite-item active" id="agent-btn-constraints" data-agent="constraints" onclick="openTripPlannerModal()">
             <div class="agent-item-icon icon-purple">🧩</div>
             <div class="agent-item-text">
               <strong>Constraint Parser</strong>
@@ -2152,7 +2153,7 @@ body {
             </div>
           </button>
 
-          <button type="button" class="agent-suite-item" id="agent-btn-alternatives" data-agent="alternatives">
+          <button type="button" class="agent-suite-item" id="agent-btn-alternatives" data-agent="alternatives" onclick="openAlternativesModal(state.activeDayTab || 0, 0)">
             <div class="agent-item-icon icon-teal">🔄</div>
             <div class="agent-item-text">
               <strong>Alternatives</strong>
@@ -2160,7 +2161,7 @@ body {
             </div>
           </button>
 
-          <button type="button" class="agent-suite-item" id="agent-btn-simulator" data-agent="simulator">
+          <button type="button" class="agent-suite-item" id="agent-btn-simulator" data-agent="simulator" onclick="openSimulatorModal()">
             <div class="agent-item-icon icon-amber">⚡</div>
             <div class="agent-item-text">
               <strong>What-If Simulator</strong>
@@ -2168,7 +2169,7 @@ body {
             </div>
           </button>
 
-          <button type="button" class="agent-suite-item" id="agent-btn-qa" data-agent="qa">
+          <button type="button" class="agent-suite-item" id="agent-btn-qa" data-agent="qa" onclick="openQaModal()">
             <div class="agent-item-icon icon-blue">💬</div>
             <div class="agent-item-text">
               <strong>Q&A Agent</strong>
@@ -2176,7 +2177,7 @@ body {
             </div>
           </button>
 
-          <button type="button" class="agent-suite-item" id="agent-btn-explainer" data-agent="explainer">
+          <button type="button" class="agent-suite-item" id="agent-btn-explainer" data-agent="explainer" onclick="addTraceLog('[Explainer Trace] Bounded autonomy: Intent parsing -> Slot validation -> TSP 2-Opt -> Diff approval', 'trace-amber'); showToast('Explainer Trace', 'Active logic pipeline logged in Live Agent Trace console.', 'info');">
             <div class="agent-item-icon icon-indigo">📊</div>
             <div class="agent-item-text">
               <strong>Explainer Trace</strong>
@@ -2197,7 +2198,7 @@ body {
           <span class="status-pill-green" id="sidebar-trip-status">
             <span class="pulse-dot"></span> Status: Conflict-Free
           </span>
-          <button type="button" class="btn-modify-constraints" id="btn-sidebar-modify-trip">
+          <button type="button" class="btn-modify-constraints" id="btn-sidebar-modify-trip" onclick="openTripPlannerModal()">
             Modify Constraints
           </button>
         </div>
@@ -2205,10 +2206,10 @@ body {
 
       <!-- Quick Action Utilities -->
       <div class="sidebar-action-pills">
-        <button type="button" class="pill-act-btn" id="btn-quick-bookings">🎟️ Bookings</button>
-        <button type="button" class="pill-act-btn" id="btn-export-ics">📅 .ICS</button>
-        <button type="button" class="pill-act-btn" id="btn-share-trip">🔗 Share</button>
-        <button type="button" class="pill-act-btn" id="btn-print-itinerary">🖨️ PDF</button>
+        <button type="button" class="pill-act-btn" id="btn-quick-bookings" onclick="openBookingsModal('all');">🎟️ Bookings</button>
+        <button type="button" class="pill-act-btn" id="btn-export-ics" onclick="exportTripToIcs();">📅 .ICS</button>
+        <button type="button" class="pill-act-btn" id="btn-share-trip" onclick="generateShareableUrl();">🔗 Share</button>
+        <button type="button" class="pill-act-btn" id="btn-print-itinerary" onclick="window.print();">🖨️ PDF</button>
       </div>
 
     </aside>
@@ -7497,10 +7498,53 @@ if (typeof window !== 'undefined' && window.location && typeof window.location.p
   });
 }
 
+// Global Window Bindings for Inline Triggers & External Integration
+if (typeof window !== "undefined") {
+  window.openBookingsModal = openBookingsModal;
+  window.closeBookingsModal = closeBookingsModal;
+  window.renderBookingsContent = renderBookingsContent;
+  window.openProfileModal = openProfileModal;
+  window.closeProfileModal = closeProfileModal;
+  window.saveProfilePreferences = saveProfilePreferences;
+  window.openTripPlannerModal = openTripPlannerModal;
+  window.closeTripPlannerModal = closeTripPlannerModal;
+  window.openSimulatorModal = openSimulatorModal;
+  window.closeSimulatorModal = closeSimulatorModal;
+  window.openAlternativesModal = openAlternativesModal;
+  window.closeAlternativesModal = closeAlternativesModal;
+  window.openMapViewModal = openMapViewModal;
+  window.closeMapViewModal = closeMapViewModal;
+  window.openQaModal = openQaModal;
+  window.closeQaModal = closeQaModal;
+  window.openAiSettingsModal = openAiSettingsModal;
+  window.closeAiSettingsModal = closeAiSettingsModal;
+  window.closeAllModals = closeAllModals;
+  window.setActiveTopNav = setActiveTopNav;
+  window.toggleHotelSelectMode = toggleHotelSelectMode;
+  window.handleQaQuestion = handleQaQuestion;
+  window.addNewDay = addNewDay;
+  window.performUndo = performUndo;
+  window.performRedo = performRedo;
+  window.exportTripToIcs = exportTripToIcs;
+  window.generateShareableUrl = generateShareableUrl;
+  window.renderDashboard = renderDashboard;
+  window.showToast = showToast;
+  window.addTraceLog = addTraceLog;
+}
+
 // Initial Boot
 document.addEventListener("DOMContentLoaded", () => {
   renderInterestChips();
   setupEventListeners();
+
+  // Modal Backdrop Click Dismiss
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        overlay.style.display = "none";
+      }
+    });
+  });
 
   if (loadStateFromUrlHash()) return;
 

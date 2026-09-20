@@ -2732,10 +2732,53 @@ if (typeof window !== 'undefined' && window.location && typeof window.location.p
   });
 }
 
+// Global Window Bindings for Inline Triggers & External Integration
+if (typeof window !== "undefined") {
+  window.openBookingsModal = openBookingsModal;
+  window.closeBookingsModal = closeBookingsModal;
+  window.renderBookingsContent = renderBookingsContent;
+  window.openProfileModal = openProfileModal;
+  window.closeProfileModal = closeProfileModal;
+  window.saveProfilePreferences = saveProfilePreferences;
+  window.openTripPlannerModal = openTripPlannerModal;
+  window.closeTripPlannerModal = closeTripPlannerModal;
+  window.openSimulatorModal = openSimulatorModal;
+  window.closeSimulatorModal = closeSimulatorModal;
+  window.openAlternativesModal = openAlternativesModal;
+  window.closeAlternativesModal = closeAlternativesModal;
+  window.openMapViewModal = openMapViewModal;
+  window.closeMapViewModal = closeMapViewModal;
+  window.openQaModal = openQaModal;
+  window.closeQaModal = closeQaModal;
+  window.openAiSettingsModal = openAiSettingsModal;
+  window.closeAiSettingsModal = closeAiSettingsModal;
+  window.closeAllModals = closeAllModals;
+  window.setActiveTopNav = setActiveTopNav;
+  window.toggleHotelSelectMode = toggleHotelSelectMode;
+  window.handleQaQuestion = handleQaQuestion;
+  window.addNewDay = addNewDay;
+  window.performUndo = performUndo;
+  window.performRedo = performRedo;
+  window.exportTripToIcs = exportTripToIcs;
+  window.generateShareableUrl = generateShareableUrl;
+  window.renderDashboard = renderDashboard;
+  window.showToast = showToast;
+  window.addTraceLog = addTraceLog;
+}
+
 // Initial Boot
 document.addEventListener("DOMContentLoaded", () => {
   renderInterestChips();
   setupEventListeners();
+
+  // Modal Backdrop Click Dismiss
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        overlay.style.display = "none";
+      }
+    });
+  });
 
   if (loadStateFromUrlHash()) return;
 
