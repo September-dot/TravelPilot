@@ -4139,13 +4139,36 @@ function getPermutations(arr) {
   return result;
 }
 
-// 2-Opt Local Search Route Optimizer for larger lists (n > 7)
-function twoOptOptimize(activities, defaultCenter) {
+// Nearest-Neighbour Heuristic with 2-Opt Local Search for larger lists (n > 7)
+// Eliminates O(n!) permutation freeze risk (e.g. 10 stops = 3.6 million permutations)
+function nearestNeighborWithTwoOpt(activities, defaultCenter) {
   if (activities.length <= 2) return activities;
   const center = defaultCenter || [26.9124, 75.7873];
-  let bestRoute = [...activities];
+  
+  // Step 1: Construct initial tour using Nearest-Neighbour Greedy Heuristic
+  const unvisited = [...activities];
+  const tour = [unvisited.shift()];
+  
+  while (unvisited.length > 0) {
+    const current = tour[tour.length - 1];
+    const curCoords = current.coords || center;
+    let nearestIdx = 0;
+    let minD = Infinity;
+    
+    for (let i = 0; i < unvisited.length; i++) {
+      const nextCoords = unvisited[i].coords || center;
+      const d = calculateDistanceKm(curCoords[0], curCoords[1], nextCoords[0], nextCoords[1]);
+      if (d < minD) {
+        minD = d;
+        nearestIdx = i;
+      }
+    }
+    tour.push(unvisited.splice(nearestIdx, 1)[0]);
+  }
+  
+  // Step 2: Refine tour using 2-Opt Local Search
+  let bestRoute = tour;
   let bestDist = calculatePathDistance(bestRoute, center);
-
   let improved = true;
   let iterations = 0;
 
@@ -4407,8 +4430,8 @@ function optimizeDayPath(activities, defaultCenter) {
       }
     }
   } else {
-    // Fallback: 2-Opt Local Search Heuristic for n > 7 (Guaranteed zero UI freeze)
-    bestPermutation = twoOptOptimize(activities, center);
+    // Fallback: Nearest-Neighbor + 2-Opt Local Search for n > 7 (Guaranteed zero UI freeze)
+    bestPermutation = nearestNeighborWithTwoOpt(activities, center);
   }
 
   // Assign clean chronological time slots based on the optimized order
@@ -4698,16 +4721,23 @@ function applyDisruptionScenario(type) {
     const indoorCorePlaces = allPlaces.filter(p => !p.weatherSensitive);
     const combinedPool = [...rainPool, ...indoorCorePlaces];
     let poolIdx = 0;
+    let totalSwapped = 0;
+    let unreplacedOutdoor = 0;
 
     state.itinerary.forEach((day, dIdx) => {
       let dayChanged = false;
 
       day.activities = day.activities.map(act => {
-        if (act.weatherSensitive && poolIdx < combinedPool.length) {
-          const replacement = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
-          poolIdx++;
-          dayChanged = true;
-          return replacement;
+        if (act.weatherSensitive) {
+          if (poolIdx < combinedPool.length) {
+            const replacement = JSON.parse(JSON.stringify(combinedPool[poolIdx % combinedPool.length]));
+            poolIdx++;
+            totalSwapped++;
+            dayChanged = true;
+            return replacement;
+          } else {
+            unreplacedOutdoor++;
+          }
         }
         return act;
       });
@@ -4719,11 +4749,19 @@ function applyDisruptionScenario(type) {
       }
     });
 
-    showToast(
-      "Monsoon Contingency Applied 🌧️", 
-      "Swapped outdoor open-air venues across all days with indoor heritage museums, covered havelis, and culinary workshops.", 
-      "success"
-    );
+    if (unreplacedOutdoor > 0) {
+      showToast(
+        "Monsoon Contingency Applied (Partial) ⚠️", 
+        `Swapped ${totalSwapped} outdoor stops with indoor alternatives. Note: ${unreplacedOutdoor} outdoor stop(s) remained due to limited indoor venues in this destination.`, 
+        "warning"
+      );
+    } else {
+      showToast(
+        "Monsoon Contingency Applied 🌧️", 
+        `Swapped ${totalSwapped} outdoor venues across all days with indoor heritage museums, covered havelis, and culinary workshops. All days re-timed!`, 
+        "success"
+      );
+    }
   } else if (type === "delay" && plans.timeDelay) {
     // Traffic Delay / Highway Jam: keep prioritized core stops and adjust start time buffers
     const keepIds = new Set(plans.timeDelay.keepIds || []);
